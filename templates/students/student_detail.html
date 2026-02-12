@@ -1,0 +1,405 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block PageTitle %}{{ student.full_name }} - Polymath School of English{% endblock %}
+{% block pageTitle %}Student Profile{% endblock %}
+{% block Title %}Students{% endblock %}
+{% block functionTitle %}Profile Details{% endblock %}
+
+{% block content %}
+<!-- Student Header -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        {% if student.profile_picture %}
+                            <img src="{{ student.profile_picture.url }}" alt="{{ student.full_name }}" class="rounded-circle" width="100" height="100">
+                        {% else %}
+                            <div class="avatar-xl">
+                                <span class="avatar-title rounded-circle bg-soft-primary text-primary fs-1">
+                                    {{ student.full_name|first|upper }}
+                                </span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col">
+                        <h3 class="mb-1">{{ student.full_name }}</h3>
+                        <p class="text-muted mb-2">{{ student.name_with_initials }}</p>
+                        <div class="d-flex flex-wrap gap-2">
+                            <span class="badge bg-primary">{{ student.admission_number }}</span>
+                            {% if student.current_level == 'STARTERS' %}
+                                <span class="badge bg-info">Pre A1 Starters</span>
+                            {% elif student.current_level == 'MOVERS' %}
+                                <span class="badge bg-warning">A1 Movers</span>
+                            {% elif student.current_level == 'FLYERS' %}
+                                <span class="badge bg-success">A2 Flyers</span>
+                            {% endif %}
+                            {% if student.is_active %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-danger">Inactive</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        {% if perms.students.change_student %}
+                            <a href="{% url 'student_edit' student.id %}" class="btn btn-warning me-2">
+                                <i class="ri-edit-line me-1"></i> Edit Profile
+                            </a>
+                        {% endif %}
+                        <button onclick="window.history.back()" class="btn btn-secondary me-2">
+                            <i class="ri-arrow-left-line me-1"></i> Back
+                        </button>
+                        <a href="{% url 'student_list' %}" class="btn btn-info">
+                            <i class="ri-team-line me-1"></i> All Students
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row">
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1 overflow-hidden">
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Attendance</p>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <h5 class="text-success mb-0">{{ attendance_percentage }}%</h5>
+                    </div>
+                </div>
+                <div class="d-flex align-items-end justify-content-between mt-4">
+                    <div>
+                        <h4 class="fs-22 fw-semibold ff-secondary mb-2">{{ present_count }}/{{ total_classes }}</h4>
+                        <p class="text-muted mb-0">Last 30 Days</p>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-success-subtle rounded fs-3">
+                            <i class="bx bx-check-circle text-success"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1 overflow-hidden">
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Total Points</p>
+                    </div>
+                </div>
+                <div class="d-flex align-items-end justify-content-between mt-4">
+                    <div>
+                        <h4 class="fs-22 fw-semibold ff-secondary mb-2">{{ student.total_points }}</h4>
+                        <p class="text-muted mb-0">Gamification Points</p>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-warning-subtle rounded fs-3">
+                            <i class="bx bx-star text-warning"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1 overflow-hidden">
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Streak Days</p>
+                    </div>
+                </div>
+                <div class="d-flex align-items-end justify-content-between mt-4">
+                    <div>
+                        <h4 class="fs-22 fw-semibold ff-secondary mb-2">{{ student.streak_days }}</h4>
+                        <p class="text-muted mb-0">Consecutive Days</p>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-danger-subtle rounded fs-3">
+                            <i class="bx bx-trending-up text-danger"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1 overflow-hidden">
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Badges Earned</p>
+                    </div>
+                </div>
+                <div class="d-flex align-items-end justify-content-between mt-4">
+                    <div>
+                        <h4 class="fs-22 fw-semibold ff-secondary mb-2">{{ badges.count }}</h4>
+                        <p class="text-muted mb-0">Achievements</p>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-info-subtle rounded fs-3">
+                            <i class="bx bx-award text-info"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Personal Information -->
+    <div class="col-xl-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Personal Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-borderless mb-0">
+                        <tbody>
+                            <tr>
+                                <th class="ps-0" scope="row">Admission Number</th>
+                                <td class="text-muted">{{ student.admission_number }}</td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0" scope="row">Full Name</th>
+                                <td class="text-muted">{{ student.full_name }}</td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0" scope="row">Name with Initials</th>
+                                <td class="text-muted">{{ student.name_with_initials }}</td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0" scope="row">Date of Birth</th>
+                                <td class="text-muted">{{ student.date_of_birth|date:"Y-m-d" }} ({{ student.age }} years old)</td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0" scope="row">Gender</th>
+                                <td class="text-muted">{{ student.get_gender_display }}</td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0" scope="row">Nationality</th>
+                                <td class="text-muted">{{ student.nationality }}</td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0" scope="row">Current School</th>
+                                <td class="text-muted">{{ student.current_school|default:"Not provided" }}</td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0" scope="row">Enrollment Date</th>
+                                <td class="text-muted">{{ student.enrollment_date|date:"Y-m-d" }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Guardians -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Guardians / Parents</h5>
+            </div>
+            <div class="card-body">
+                {% if guardians %}
+                    {% for guardian in guardians %}
+                        <div class="d-flex align-items-center mb-3 {% if not forloop.last %}pb-3 border-bottom{% endif %}">
+                            <div class="avatar-sm me-3">
+                                <span class="avatar-title rounded-circle bg-soft-info text-info">
+                                    <i class="ri-user-line fs-5"></i>
+                                </span>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">{{ guardian.full_name }}</h6>
+                                <p class="text-muted mb-0 small">{{ guardian.get_relationship_display }}</p>
+                                <p class="text-muted mb-0 small">
+                                    <i class="ri-phone-line"></i> {{ guardian.contact_number }}
+                                    {% if guardian.email %}
+                                        <br><i class="ri-mail-line"></i> {{ guardian.email }}
+                                    {% endif %}
+                                </p>
+                                {% if guardian.occupation %}
+                                    <p class="text-muted mb-0 small"><i class="ri-briefcase-line"></i> {{ guardian.occupation }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted mb-0">No guardian information available.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-6">
+        <!-- Contact Information -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Contact Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-borderless mb-0">
+                        <tbody>
+                            <tr>
+                                <th class="ps-0" scope="row">Email</th>
+                                <td class="text-muted">{{ student.student_email|default:"Not provided" }}</td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0" scope="row">Primary Contact</th>
+                                <td class="text-muted">{{ student.primary_contact_number }}</td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0" scope="row">WhatsApp</th>
+                                <td class="text-muted">{{ student.whatsapp_number|default:"Not provided" }}</td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0" scope="row">Home Address</th>
+                                <td class="text-muted">{{ student.home_address }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Academic Information -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Academic Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-borderless mb-0">
+                        <tbody>
+                            <tr>
+                                <th class="ps-0" scope="row">Current Level</th>
+                                <td class="text-muted">{{ student.get_current_level_display }}</td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0" scope="row">Assigned Class</th>
+                                <td class="text-muted">
+                                    {% if student.assigned_class %}
+                                        {{ student.assigned_class.class_name }}
+                                    {% else %}
+                                        <span class="text-warning">Not Assigned</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0" scope="row">Username</th>
+                                <td class="text-muted">{{ student.user.username }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Badges -->
+        {% if badges %}
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Recent Badges</h5>
+            </div>
+            <div class="card-body">
+                {% for badge in badges %}
+                    <div class="d-flex align-items-center mb-3 {% if not forloop.last %}pb-3 border-bottom{% endif %}">
+                        <div class="avatar-sm me-3">
+                            <span class="avatar-title rounded-circle bg-soft-warning text-warning">
+                                <i class="{{ badge.badge_icon }} fs-5"></i>
+                            </span>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">{{ badge.badge_name }}</h6>
+                            <p class="text-muted mb-0 small">{{ badge.description }}</p>
+                            <p class="text-muted mb-0 small">
+                                <i class="ri-calendar-line"></i> {{ badge.earned_date|date:"M d, Y" }}
+                                <span class="ms-2 text-warning"><i class="ri-star-fill"></i> +{{ badge.points_awarded }} points</span>
+                            </p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Recent Attendance -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h5 class="card-title mb-0">Recent Attendance (Last 30 Days)</h5>
+                    </div>
+                    <div class="col-auto">
+                        <a href="{% url 'attendance_report' %}?student_id={{ student.id }}" class="btn btn-sm btn-primary">
+                            <i class="ri-file-chart-line me-1"></i> Full Report
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if recent_attendance %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Class</th>
+                                    <th>Status</th>
+                                    <th>Notes</th>
+                                    <th>Marked By</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for attendance in recent_attendance %}
+                                    <tr>
+                                        <td>{{ attendance.date|date:"M d, Y (D)" }}</td>
+                                        <td>{{ attendance.class_session.class_name|default:"N/A" }}</td>
+                                        <td>
+                                            {% if attendance.status == 'PRESENT' %}
+                                                <span class="badge bg-success">Present</span>
+                                            {% elif attendance.status == 'ABSENT' %}
+                                                <span class="badge bg-danger">Absent</span>
+                                            {% elif attendance.status == 'LATE' %}
+                                                <span class="badge bg-warning">Late</span>
+                                            {% elif attendance.status == 'EXCUSED' %}
+                                                <span class="badge bg-info">Excused</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ attendance.notes|default:"-" }}</td>
+                                        <td><small>{{ attendance.marked_by.get_full_name|default:attendance.marked_by.username }}</small></td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info mb-0">
+                        <i class="ri-information-line me-2"></i> No attendance records found for the last 30 days.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

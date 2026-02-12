@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block PageTitle %}Teachers - Polymath School of English{% endblock %}
+{% block pageTitle %}Teachers{% endblock %}
+{% block Title %}Teachers{% endblock %}
+{% block functionTitle %}Teacher Management{% endblock %}
+
+{% block content %}
+<!-- Search and Filter Section -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h5 class="card-title mb-0">Teacher List ({{ total_count }} teachers)</h5>
+                    </div>
+                    <div class="col-auto">
+                        {% if perms.students.add_teacher %}
+                            <a href="{% url 'teacher_add' %}" class="btn btn-success">
+                                <i class="ri-user-add-line me-1"></i> Add New Teacher
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <form method="get" action="{% url 'teacher_list' %}" class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Search</label>
+                        <input type="text" class="form-control" name="search" value="{{ search_query }}" placeholder="Name, Employee ID, Email...">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" name="status">
+                            <option value="">All Status</option>
+                            <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                            <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Employment Type</label>
+                        <select class="form-select" name="employment_type">
+                            <option value="">All Types</option>
+                            <option value="FULL_TIME" {% if employment_filter == 'FULL_TIME' %}selected{% endif %}>Full Time</option>
+                            <option value="PART_TIME" {% if employment_filter == 'PART_TIME' %}selected{% endif %}>Part Time</option>
+                            <option value="CONTRACT" {% if employment_filter == 'CONTRACT' %}selected{% endif %}>Contract</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Specialization</label>
+                        <select class="form-select" name="specialization">
+                            <option value="">All Levels</option>
+                            <option value="STARTERS" {% if specialization == 'STARTERS' %}selected{% endif %}>Starters</option>
+                            <option value="MOVERS" {% if specialization == 'MOVERS' %}selected{% endif %}>Movers</option>
+                            <option value="FLYERS" {% if specialization == 'FLYERS' %}selected{% endif %}>Flyers</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">&nbsp;</label>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="ri-search-line me-1"></i> Filter
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Teacher Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                {% if teachers %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>
+                                        <a href="?sort=employee_id&{{ request.GET.urlencode }}">
+                                            Employee ID <i class="ri-arrow-up-down-line"></i>
+                                        </a>
+                                    </th>
+                                    <th>
+                                        <a href="?sort=full_name&{{ request.GET.urlencode }}">
+                                            Full Name <i class="ri-arrow-up-down-line"></i>
+                                        </a>
+                                    </th>
+                                    <th>Specializations</th>
+                                    <th>Contact</th>
+                                    <th>
+                                        <a href="?sort=years_of_experience&{{ request.GET.urlencode }}">
+                                            Experience <i class="ri-arrow-up-down-line"></i>
+                                        </a>
+                                    </th>
+                                    <th>Employment</th>
+                                    <th>Current Rate</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for teacher in teachers %}
+                                    <tr>
+                                        <td>
+                                            <span class="badge bg-primary">{{ teacher.employee_id }}</span>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                {% if teacher.profile_picture %}
+                                                    <img src="{{ teacher.profile_picture.url }}" alt="{{ teacher.full_name }}" class="rounded-circle me-2" width="32" height="32">
+                                                {% else %}
+                                                    <div class="avatar-xs me-2">
+                                                        <span class="avatar-title rounded-circle bg-soft-primary text-primary">
+                                                            {{ teacher.full_name|first|upper }}
+                                                        </span>
+                                                    </div>
+                                                {% endif %}
+                                                <div>
+                                                    <h6 class="mb-0">{{ teacher.full_name }}</h6>
+                                                    <small class="text-muted">{{ teacher.email }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if teacher.teaches_starters %}
+                                                <span class="badge bg-info me-1">Starters</span>
+                                            {% endif %}
+                                            {% if teacher.teaches_movers %}
+                                                <span class="badge bg-warning me-1">Movers</span>
+                                            {% endif %}
+                                            {% if teacher.teaches_flyers %}
+                                                <span class="badge bg-success me-1">Flyers</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <small>
+                                                <i class="ri-phone-line"></i> {{ teacher.contact_number }}
+                                            </small>
+                                        </td>
+                                        <td>{{ teacher.years_of_experience }} years</td>
+                                        <td>
+                                            {% if teacher.employment_type == 'FULL_TIME' %}
+                                                <span class="badge bg-success">Full Time</span>
+                                            {% elif teacher.employment_type == 'PART_TIME' %}
+                                                <span class="badge bg-info">Part Time</span>
+                                            {% elif teacher.employment_type == 'CONTRACT' %}
+                                                <span class="badge bg-warning">Contract</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if teacher.get_current_hourly_rate %}
+                                                LKR {{ teacher.get_current_hourly_rate }}/hr
+                                            {% else %}
+                                                <span class="text-muted">Not set</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if teacher.is_active %}
+                                                <span class="badge bg-success">Active</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Inactive</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{% url 'teacher_detail' teacher.id %}" class="btn btn-primary" title="View Details">
+                                                    <i class="ri-eye-line"></i>
+                                                </a>
+                                                {% if perms.students.change_teacher %}
+                                                    <a href="{% url 'teacher_edit' teacher.id %}" class="btn btn-warning" title="Edit">
+                                                        <i class="ri-edit-line"></i>
+                                                    </a>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if page_obj.has_other_pages %}
+                        <nav class="mt-4">
+                            <ul class="pagination justify-content-center">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=1&{{ request.GET.urlencode }}">First</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}">Previous</a>
+                                    </li>
+                                {% endif %}
+
+                                <li class="page-item active">
+                                    <span class="page-link">
+                                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                                    </span>
+                                </li>
+
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}">Next</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&{{ request.GET.urlencode }}">Last</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% endif %}
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="ri-information-line me-2"></i> No teachers found matching your criteria.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

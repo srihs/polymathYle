@@ -1,0 +1,283 @@
+/* Polymath YLE Custom Styles */
+
+:root {
+    --primary-color: #660066;
+    --secondary-color: #d896ff;
+}
+
+/* Primary Buttons */
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    border: none;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #550055 0%, #c785ee 100%);
+}
+
+/* Badges */
+.badge.bg-primary {
+    background: var(--primary-color) !important;
+}
+
+/* Pagination */
+.pagination .page-item.active .page-link {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+/* Form Controls */
+.form-check-input:checked {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+/* Text Colors */
+.text-primary {
+    color: var(--primary-color) !important;
+}
+
+/* Avatar Styles */
+.avatar-sm {
+    width: 32px;
+    height: 32px;
+}
+
+.avatar-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.bg-soft-primary {
+    background-color: rgba(102, 0, 102, 0.1);
+}
+
+/* Profile Pictures */
+.profile-picture-circle {
+    width: 32px;
+    height: 32px;
+    object-fit: cover;
+}
+
+/* Status Badges */
+.status-badge-active {
+    background-color: #28a745;
+}
+
+.status-badge-inactive {
+    background-color: #6c757d;
+}
+
+.status-badge-pending {
+    background-color: #ffc107;
+}
+
+.status-badge-approved {
+    background-color: #28a745;
+}
+
+.status-badge-rejected {
+    background-color: #dc3545;
+}
+
+/* Card Animations */
+.card-animate {
+    transition: all 0.3s ease;
+}
+
+.card-animate:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Links */
+a {
+    color: var(--primary-color);
+}
+
+a:hover {
+    color: var(--secondary-color);
+}
+
+/* Login Page Styles */
+.auth-page-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.auth-full-bg {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+}
+
+/* Application Form Styles */
+.application-form .form-label {
+    font-weight: 500;
+}
+
+.application-form .required {
+    color: #dc3545;
+}
+
+/* Teacher/Student List Filters */
+.filter-section {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 0.25rem;
+    margin-bottom: 1rem;
+}
+
+/* Document Type Badges */
+.badge.doc-type-cv {
+    background-color: #007bff;
+}
+
+.badge.doc-type-cert {
+    background-color: #28a745;
+}
+
+.badge.doc-type-id {
+    background-color: #ffc107;
+}
+
+.badge.doc-type-contract {
+    background-color: #dc3545;
+}
+
+/* Rate Display */
+.rate-amount {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #28a745;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 3rem 0;
+    color: #6c757d;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    opacity: 0.3;
+}
+
+/* Login Page Specific Styles */
+.login-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.login-logo {
+    text-align: center;
+    margin-bottom: 5px;
+}
+
+.login-logo img {
+    max-width: 300px;
+    height: auto;
+}
+
+.login-card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.08);
+    padding: 50px 45px;
+    max-width: 460px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.login-title {
+    color: var(--primary-color);
+    font-size: 24px;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+.login-subtitle {
+    color: #74788d;
+    font-size: 14px;
+    text-align: center;
+    margin-bottom: 35px;
+}
+
+.login-card .form-label {
+    color: #495057;
+    font-weight: 500;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.login-card .form-control {
+    height: 46px;
+    border-radius: 6px;
+    border: 1px solid #e3e6f0;
+    padding: 10px 15px;
+    font-size: 14px;
+}
+
+.login-card .form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(102, 0, 102, 0.15);
+}
+
+.btn-login {
+    width: 100%;
+    height: 46px;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    border: none;
+    border-radius: 6px;
+    color: white;
+    font-weight: 500;
+    font-size: 15px;
+    margin-top: 25px;
+    transition: all 0.3s;
+}
+
+.btn-login:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 0, 102, 0.4);
+    background: linear-gradient(135deg, #550055 0%, #c785f0 100%);
+}
+
+.password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #74788d;
+    font-size: 16px;
+}
+
+.password-toggle:hover {
+    color: var(--primary-color);
+}
+
+.footer-text {
+    text-align: center;
+    color: #74788d;
+    font-size: 13px;
+    margin-top: 35px;
+}
+
+.password-field-wrapper {
+    position: relative;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .filter-section .row {
+        gap: 0.5rem;
+    }
+}

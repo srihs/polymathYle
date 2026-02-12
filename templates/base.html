@@ -1,0 +1,551 @@
+{% load static %}
+
+<!doctype html>
+<html lang="en" data-layout="horizontal" data-topbar="light" data-sidebar-size="lg" data-sidebar="light"
+      data-sidebar-image="none" data-preloader="disable">
+<head>
+    <meta charset="utf-8"/>
+    <title>  {% block PageTitle %}
+        {% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- App favicon -->
+    <link rel="shortcut icon" href="{% static 'assets/images/favicon.ico' %}">
+
+    <!-- Layout config Js -->
+    <script src="{% static 'assets/js/layout.js' %}"></script>
+    <!-- Bootstrap Css -->
+    <link href="{% static 'assets/css/bootstrap.min.css' %}" rel="stylesheet" type="text/css"/>
+    <!-- Icons Css -->
+    <link href="{% static 'assets/css/icons.min.css' %}" rel="stylesheet" type="text/css"/>
+    <!-- App Css-->
+    <link href="{% static 'assets/css/app.min.css' %}" rel="stylesheet" type="text/css"/>
+    <!-- custom Css-->
+    <link href="{% static 'assets/css/custom.min.css' %}" rel="stylesheet" type="text/css"/>
+    <!-- YLE Custom Styles -->
+    <link href="{% static 'assets/css/yle-custom.css' %}" rel="stylesheet" type="text/css"/>
+    <link rel="stylesheet" href="{% static 'assets/libs/flatpickr/flatpickr.min.css' %}">
+    <!-- Select2 Styles -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+    <!-- Note: RTL stylesheet removed - was causing clear button to appear on LEFT side instead of RIGHT -->
+    <!-- DataTables and Select2 custom fixes - MUST be after Select2 CSS -->
+    <link href="{% static 'assets/css/datatables-custom.css' %}" rel="stylesheet" type="text/css"/>
+
+    <!--datatable css-->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css"/>
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.dataTables.min.css">
+    <!--datatable responsive css-->
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.bootstrap.min.css"/>
+    <link href="https://cdn.datatables.net/v/dt/jq-3.7.0/dt-1.13.8/b-2.4.2/b-colvis-2.4.2/b-html5-2.4.2/b-print-2.4.2/r-2.5.0/sc-2.3.0/datatables.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/airbnb.css">
+ 
+<script src="https://cdn.datatables.net/v/dt/jq-3.7.0/dt-1.13.8/b-2.4.2/b-colvis-2.4.2/b-html5-2.4.2/b-print-2.4.2/r-2.5.0/sc-2.3.0/datatables.min.js"></script>
+
+
+
+</head>
+
+<body class>
+
+<!-- Begin page -->
+<div id="layout-wrapper">
+
+    <header id="page-topbar">
+        <div class="layout-width">
+            <div class="navbar-header">
+                <div class="d-flex">
+                    <!-- LOGO -->
+                    <div class="navbar-brand-box horizontal-logo">
+                        <a href="/" class="logo logo-dark">
+                        <span class="logo-sm">
+                            <img src="{% static 'assets/images/logo.png' %}" alt="">
+                        </span>
+                            <span class="logo-lg">
+                            <img src="{% static 'assets/images/logo.png' %}" alt="">
+                        </span>
+                        </a>
+
+                        <a href="index.html" class="logo logo-light">
+                        
+                        </a>
+                    </div>
+                    <button type="button" class="btn btn-sm px-3 fs-16 header-item vertical-menu-btn topnav-hamburger" id="topnav-hamburger-icon">
+                        <span class="hamburger-icon">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </span>
+                    </button>
+
+
+                </div>
+
+                <div class="d-flex align-items-center">
+
+                    <div class="dropdown d-md-none topbar-head-dropdown header-item">
+                        <button type="button" class="btn btn-icon btn-topbar btn-ghost-secondary rounded-circle"
+                                id="page-header-search-dropdown" data-bs-toggle="dropdown" aria-haspopup="true"
+                                aria-expanded="false">
+                            <i class="bx bx-search fs-22"></i>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end p-0"
+                             aria-labelledby="page-header-search-dropdown">
+                            <form class="p-3">
+                                <div class="form-group m-0">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" placeholder="Search ..."
+                                               aria-label="Recipient's username">
+                                        <button class="btn btn-primary" type="submit"><i class="mdi mdi-magnify"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="dropdown ms-sm-3 header-item topbar-user">
+                        <button type="button" class="btn" id="page-header-user-dropdown" data-bs-toggle="dropdown"
+                                aria-haspopup="true" aria-expanded="false">
+                        <span class="d-flex align-items-center">
+                           <img class="rounded-circle header-profile-user"
+                                src="{% static 'assets/images/hair-cut.gif' %}"
+                                alt="Header Avatar">
+
+                            <span class="text-start ms-xl-2">
+                                <span class="d-none d-xl-inline-block ms-1 fw-medium user-name-text">{% block UserName %} {{ UserName }} {% endblock %}</span>
+                                
+                            </span>
+                        </span>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end">
+                            <!-- item-->
+                            <h6 class="dropdown-header">Welcome {{ UserName}}</h6>
+                            
+                            <a class="dropdown-item" href="{% url 'logout' %}"><i
+                                    class="mdi mdi-logout text-muted fs-16 align-middle me-1"></i> <span
+                                    class="align-middle" data-key="t-logout">Logout</span></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- removeNotificationModal -->
+    <div id="removeNotificationModal" class="modal fade zoomIn" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                            id="NotificationModalbtn-close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mt-2 text-center">
+                        <lord-icon src="https://cdn.lordicon.com/gsqxdxog.json" trigger="loop"
+                                   colors="primary:#f7b84b,secondary:#f06548"
+                                   style="width:100px;height:100px"></lord-icon>
+                        <div class="mt-4 pt-2 fs-15 mx-4 mx-sm-5">
+                            <h4>Are you sure ?</h4>
+                            <p class="text-muted mx-4 mb-0">Are you sure you want to remove this Notification ?</p>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2 justify-content-center mt-4 mb-2">
+                        <button type="button" class="btn w-sm btn-light" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn w-sm btn-danger" id="delete-notification">Yes, Delete It!
+                        </button>
+                    </div>
+                </div>
+
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+    <!-- ========== App Menu ========== -->
+    <div class="app-menu navbar-menu">
+        
+
+        <div id="scrollbar">
+            <div class="container-fluid">
+
+                <div id="two-column-menu">
+                </div>
+                <ul class="navbar-nav" id="navbar-nav">
+                    <li class="menu-title"><span data-key="t-menu">Menu</span></li>
+                    <li class="nav-item">
+                        <a class="nav-link menu-link" href="{% url 'dashboard' %}">
+                            <i class="bx bxs-dashboard"></i> <span data-key="t-dashboards">Dashboard</span>
+                        </a>
+                    </li> <!-- end Dashboard Menu -->
+
+                    <!-- Students Menu -->
+                    {% if perms.students.view_student or perms.students.view_application %}
+                    <li class="nav-item">
+                        <a href="#sidebarStudents" class="nav-link" data-bs-toggle="collapse" role="button"
+                           aria-expanded="false" aria-controls="sidebarStudents">
+                            <i class="ri-user-line"></i><span data-key="t-students">Students</span>
+                        </a>
+                        <div class="collapse menu-dropdown" id="sidebarStudents">
+                            <ul class="nav nav-sm flex-column">
+                                {% if perms.students.view_student %}
+                                <li class="nav-item">
+                                    <a href="{% url 'student_list' %}" class="nav-link">
+                                        <i class="ri-team-line"></i> All Students
+                                    </a>
+                                </li>
+                                {% endif %}
+                                {% if perms.students.view_application %}
+                                <li class="nav-item">
+                                    <a href="{% url 'application_list' %}" class="nav-link">
+                                        <i class="ri-file-list-line"></i> Applications
+                                    </a>
+                                </li>
+                                {% endif %}
+                                <li class="nav-item">
+                                    <a href="{% url 'apply' %}" class="nav-link" target="_blank">
+                                        <i class="ri-user-add-line"></i> New Application
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                    {% endif %}
+
+                    <!-- Teachers Menu -->
+                    {% if perms.students.view_teacher %}
+                    <li class="nav-item">
+                        <a href="#sidebarTeachers" class="nav-link" data-bs-toggle="collapse" role="button"
+                           aria-expanded="false" aria-controls="sidebarTeachers">
+                            <i class="ri-user-star-line"></i><span data-key="t-teachers">Teachers</span>
+                        </a>
+                        <div class="collapse menu-dropdown" id="sidebarTeachers">
+                            <ul class="nav nav-sm flex-column">
+                                <li class="nav-item">
+                                    <a href="{% url 'teacher_list' %}" class="nav-link">
+                                        <i class="ri-team-line"></i> All Teachers
+                                    </a>
+                                </li>
+                                {% if perms.students.add_teacher %}
+                                <li class="nav-item">
+                                    <a href="{% url 'teacher_add' %}" class="nav-link">
+                                        <i class="ri-user-add-line"></i> Add Teacher
+                                    </a>
+                                </li>
+                                {% endif %}
+                                <li class="nav-item">
+                                    <a href="{% url 'teacher_documents' %}" class="nav-link">
+                                        <i class="ri-file-text-line"></i> Documents
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{% url 'teacher_rates' %}" class="nav-link">
+                                        <i class="ri-money-dollar-circle-line"></i> Hourly Rates
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                    {% endif %}
+
+                    <!-- Classes & Courses Menu -->
+                    {% if perms.courses.view_class or perms.courses.view_ylelevel %}
+                    <li class="nav-item">
+                        <a href="#sidebarCourses" class="nav-link" data-bs-toggle="collapse" role="button"
+                           aria-expanded="false" aria-controls="sidebarCourses">
+                            <i class="ri-book-open-line"></i><span data-key="t-courses">Classes & Courses</span>
+                        </a>
+                        <div class="collapse menu-dropdown" id="sidebarCourses">
+                            <ul class="nav nav-sm flex-column">
+                                {% if perms.courses.view_class %}
+                                <li class="nav-item">
+                                    <a href="/admin/courses/class/" class="nav-link">
+                                        <i class="ri-home-4-line"></i> All Classes
+                                    </a>
+                                </li>
+                                {% endif %}
+                                {% if perms.courses.view_ylelevel %}
+                                <li class="nav-item">
+                                    <a href="/admin/courses/ylelevel/" class="nav-link">
+                                        <i class="ri-stack-line"></i> YLE Levels
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="/admin/courses/unit/" class="nav-link">
+                                        <i class="ri-book-2-line"></i> Units
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="/admin/courses/lesson/" class="nav-link">
+                                        <i class="ri-file-list-3-line"></i> Lessons
+                                    </a>
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </li>
+                    {% endif %}
+
+                    <!-- Attendance Menu -->
+                    {% if perms.students.view_attendance or perms.students.add_attendance %}
+                    <li class="nav-item">
+                        <a href="#sidebarAttendance" class="nav-link" data-bs-toggle="collapse" role="button"
+                           aria-expanded="false" aria-controls="sidebarAttendance">
+                            <i class="ri-checkbox-multiple-line"></i><span data-key="t-attendance">Attendance</span>
+                        </a>
+                        <div class="collapse menu-dropdown" id="sidebarAttendance">
+                            <ul class="nav nav-sm flex-column">
+                                {% if perms.students.add_attendance %}
+                                <li class="nav-item">
+                                    <a href="{% url 'attendance_mark' %}" class="nav-link">
+                                        <i class="ri-checkbox-line"></i> Mark Attendance
+                                    </a>
+                                </li>
+                                {% endif %}
+                                {% if perms.students.view_attendance %}
+                                <li class="nav-item">
+                                    <a href="{% url 'attendance_report' %}" class="nav-link">
+                                        <i class="ri-file-chart-line"></i> Attendance Reports
+                                    </a>
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </li>
+                    {% endif %}
+
+                    <!-- Progress & Assessment Menu -->
+                    {% if perms.progress.view_skillprogress or perms.progress.view_assessmentresult %}
+                    <li class="nav-item">
+                        <a href="#sidebarProgress" class="nav-link" data-bs-toggle="collapse" role="button"
+                           aria-expanded="false" aria-controls="sidebarProgress">
+                            <i class="ri-line-chart-line"></i><span data-key="t-progress">Progress & Assessment</span>
+                        </a>
+                        <div class="collapse menu-dropdown" id="sidebarProgress">
+                            <ul class="nav nav-sm flex-column">
+                                <li class="nav-item">
+                                    <a href="/admin/progress/skillprogress/" class="nav-link">
+                                        <i class="ri-stack-line"></i> Skill Progress
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="/admin/progress/lessonprogress/" class="nav-link">
+                                        <i class="ri-book-read-line"></i> Lesson Progress
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="/admin/progress/assessmentresult/" class="nav-link">
+                                        <i class="ri-file-chart-line"></i> Assessment Results
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="/admin/progress/practiceattempt/" class="nav-link">
+                                        <i class="ri-edit-box-line"></i> Practice Attempts
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                    {% endif %}
+
+                    <!-- Certification Menu -->
+                    {% if perms.certification.view_certificate or perms.certification.view_examregistration %}
+                    <li class="nav-item">
+                        <a href="#sidebarCertification" class="nav-link" data-bs-toggle="collapse" role="button"
+                           aria-expanded="false" aria-controls="sidebarCertification">
+                            <i class="ri-award-line"></i><span data-key="t-certification">Certification</span>
+                        </a>
+                        <div class="collapse menu-dropdown" id="sidebarCertification">
+                            <ul class="nav nav-sm flex-column">
+                                <li class="nav-item">
+                                    <a href="/admin/certification/examregistration/" class="nav-link">
+                                        <i class="ri-file-list-line"></i> Exam Registrations
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="/admin/certification/examresult/" class="nav-link">
+                                        <i class="ri-file-chart-line"></i> Exam Results
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="/admin/certification/certificate/" class="nav-link">
+                                        <i class="ri-award-fill"></i> Certificates
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                    {% endif %}
+
+                    <!-- Reports Menu -->
+                    <li class="nav-item">
+                        <a href="#sidebarReports" class="nav-link" data-bs-toggle="collapse" role="button"
+                           aria-expanded="false" aria-controls="sidebarReports">
+                            <i class="ri-bar-chart-box-line"></i><span data-key="t-reports">Reports</span>
+                        </a>
+                        <div class="collapse menu-dropdown" id="sidebarReports">
+                            <ul class="nav nav-sm flex-column">
+                                <li class="nav-item">
+                                    <a href="{% url 'attendance_report' %}" class="nav-link">
+                                        <i class="ri-calendar-check-line"></i> Attendance Report
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="#" class="nav-link">
+                                        <i class="ri-line-chart-line"></i> Progress Report
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="#" class="nav-link">
+                                        <i class="ri-bar-chart-fill"></i> Class Performance
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="#" class="nav-link">
+                                        <i class="ri-trophy-line"></i> Badge Summary
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+
+                    <!-- Admin Menu -->
+                    {% if user.is_superuser %}
+                    <li class="nav-item">
+                        <a href="#sidebarAdmin" class="nav-link" data-bs-toggle="collapse" role="button"
+                           aria-expanded="false" aria-controls="sidebarAdmin">
+                            <i class="ri-settings-3-line"></i><span data-key="t-admin">Administration</span>
+                        </a>
+                        <div class="collapse menu-dropdown" id="sidebarAdmin">
+                            <ul class="nav nav-sm flex-column">
+                                <li class="nav-item">
+                                    <a href="/admin/" class="nav-link">
+                                        <i class="ri-dashboard-line"></i> Django Admin
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="/admin/auth/user/" class="nav-link">
+                                        <i class="ri-user-settings-line"></i> User Management
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="/admin/auth/group/" class="nav-link">
+                                        <i class="ri-group-line"></i> Groups & Permissions
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                    {% endif %}
+
+                </ul>
+            </div>
+            <!-- Sidebar -->
+        </div>
+
+        <div class="sidebar-background"></div>
+    </div>
+    <!-- Left Sidebar End -->
+    <!-- Vertical Overlay-->
+    <div class="vertical-overlay"></div>
+
+    <!-- ============================================================== -->
+    <!-- Start right Content here -->
+    <!-- ============================================================== -->
+    <div class="main-content">
+
+        <div class="page-content">
+            <div class="container-fluid">
+
+                <!-- start page title -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                            <h4 class="mb-sm-0">{% block pageTitle %} {% endblock %}</h4>
+
+                            <div class="page-title-right">
+                                <ol class="breadcrumb m-0">
+                                    <li class="breadcrumb-item">{% block Title %}{% endblock %}</li>
+                                    <li class="breadcrumb-item active">{% block functionTitle %}{% endblock %}</li>
+                                </ol>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                <!-- end page title -->
+                {% block content %}
+                {% endblock %}
+
+            </div>
+
+            <!-- container-fluid -->
+
+        </div>
+        {% block modals %}
+        {% endblock %}
+        <!-- End Page-content -->
+
+        <footer class="footer">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <script>document.write(new Date().getFullYear())</script>
+                        © Polymath Group.
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="text-sm-end d-none d-sm-block">
+                            Develop by Polymath IT Division
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+    <!-- end main content-->
+
+</div>
+<!-- END layout-wrapper -->
+
+
+<!--start back-to-top-->
+<button onclick="topFunction()" class="btn btn-danger btn-icon" id="back-to-top">
+    <i class="ri-arrow-up-line"></i>
+</button>
+<!--end back-to-top-->
+
+<!--preloader-->
+<div id="preloader">
+    <div id="status">
+        <div class="spinner-border text-primary avatar-sm" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+
+
+    <!-- JAVASCRIPT -->
+    <script src="{% static 'assets/libs/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'assets/libs/simplebar/simplebar.min.js' %}"></script>
+    <script src="{% static 'assets/libs/node-waves/waves.min.js' %}"></script>
+    <script src="{% static 'assets/libs/feather-icons/feather.min.js' %}"></script>
+    <script src="{% static 'assets/js/pages/plugins/lord-icon-2.1.0.js' %}"></script>
+    <script src="{% static 'assets/js/plugins.js' %}"></script>
+
+    <!-- apexcharts -->
+    <script src="{% static 'assets/libs/apexcharts/apexcharts.min.js' %}"></script>
+
+
+
+    <!-- Dashboard init -->
+    <script src="{% static 'assets/js/pages/dashboard-crm.init.js' %}"></script>
+
+    <script src="https://unpkg.com/feather-icons"></script>
+
+{% endblock %}
+<!-- App js -->
+<script src="{% static 'assets/js/app.js' %}"></script>
+
+</body>
+
+</html>

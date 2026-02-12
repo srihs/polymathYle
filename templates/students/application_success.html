@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block PageTitle %}Application Submitted - PolymathYLE{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card mt-5">
+                <div class="card-body text-center p-5">
+                    <div class="mb-4">
+                        <i class="ri-checkbox-circle-fill text-success" style="font-size: 80px;"></i>
+                    </div>
+                    <h2 class="text-success mb-3">Application Submitted Successfully!</h2>
+                    <p class="lead mb-4">Thank you for applying to the Cambridge English Young Learners Program at PolymathYLE.</p>
+
+                    <div class="alert alert-info">
+                        <h5 class="alert-heading">Your Application Reference Number:</h5>
+                        <h3 class="mb-0">{{ application.admission_number|default:"Pending" }}</h3>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="text-muted">Student Name</h6>
+                                    <p class="mb-0"><strong>{{ application.full_name }}</strong></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="text-muted">Application Date</h6>
+                                    <p class="mb-0"><strong>{{ application.application_date }}</strong></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-warning mt-4">
+                        <i class="ri-information-line"></i>
+                        <strong>Next Steps:</strong>
+                        <ul class="text-start mt-2">
+                            <li>You will receive an email confirmation at <strong>{{ application.primary_contact_email }}</strong></li>
+                            <li>Our admissions team will review your application within 2-3 business days</li>
+                            <li>You can check your application status using the reference number above</li>
+                            <li>We will contact you via WhatsApp at <strong>{{ application.whatsapp_number }}</strong> once reviewed</li>
+                        </ul>
+                    </div>
+
+                    <div class="mt-4">
+                        <a href="{% url 'application_status' %}" class="btn btn-primary btn-lg me-2">
+                            <i class="ri-search-line"></i> Check Application Status
+                        </a>
+                        <a href="/" class="btn btn-outline-secondary btn-lg">
+                            <i class="ri-home-line"></i> Back to Home
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

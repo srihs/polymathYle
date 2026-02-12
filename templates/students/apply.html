@@ -1,0 +1,262 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block PageTitle %}Online Application - Polymath School of English{% endblock %}
+{% block pageTitle %}Student Application{% endblock %}
+{% block Title %}Applications{% endblock %}
+{% block functionTitle %}Online Application Form{% endblock %}
+
+{% block content %}
+<div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-header align-items-center d-flex">
+                    <h4 class="card-title mb-0 flex-grow-1">Cambridge English Young Learners Application Form</h4>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post" enctype="multipart/form-data" id="applicationForm">
+                        {% csrf_token %}
+
+                        <!-- Student Personal Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary mb-3">
+                                    <i class="ri-user-line"></i> Student Information
+                                </h5>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="name_with_initials" class="form-label">Name with Initials <span class="text-danger">*</span></label>
+                                {{ form.name_with_initials }}
+                                {% if form.name_with_initials.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.name_with_initials.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="full_name" class="form-label">Full Name <span class="text-danger">*</span></label>
+                                {{ form.full_name }}
+                                {% if form.full_name.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.full_name.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label for="date_of_birth" class="form-label">Date of Birth <span class="text-danger">*</span></label>
+                                {{ form.date_of_birth }}
+                                {% if form.date_of_birth.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.date_of_birth.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label for="gender" class="form-label">Gender <span class="text-danger">*</span></label>
+                                {{ form.gender }}
+                                {% if form.gender.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.gender.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label for="nationality" class="form-label">Nationality</label>
+                                {{ form.nationality }}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="student_email" class="form-label">Student Email (if any)</label>
+                                {{ form.student_email }}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="current_school" class="form-label">Current School</label>
+                                {{ form.current_school }}
+                            </div>
+
+                            <div class="col-12 mb-3">
+                                <label for="siblings_info" class="form-label">Siblings Currently Attending (if any)</label>
+                                {{ form.siblings_info }}
+                                <small class="form-text text-muted">Please provide names and levels of siblings</small>
+                            </div>
+                        </div>
+
+                        <!-- Mother Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary mb-3">
+                                    <i class="ri-parent-line"></i> Mother's Information
+                                </h5>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label for="mother_name" class="form-label">Mother's Name <span class="text-danger">*</span></label>
+                                {{ form.mother_name }}
+                                {% if form.mother_name.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.mother_name.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label for="mother_contact_number" class="form-label">Contact Number <span class="text-danger">*</span></label>
+                                {{ form.mother_contact_number }}
+                                {% if form.mother_contact_number.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.mother_contact_number.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label for="mother_occupation" class="form-label">Occupation</label>
+                                {{ form.mother_occupation }}
+                            </div>
+                        </div>
+
+                        <!-- Father Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary mb-3">
+                                    <i class="ri-parent-line"></i> Father's Information
+                                </h5>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label for="father_name" class="form-label">Father's Name <span class="text-danger">*</span></label>
+                                {{ form.father_name }}
+                                {% if form.father_name.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.father_name.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label for="father_contact_number" class="form-label">Contact Number <span class="text-danger">*</span></label>
+                                {{ form.father_contact_number }}
+                                {% if form.father_contact_number.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.father_contact_number.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label for="father_occupation" class="form-label">Occupation</label>
+                                {{ form.father_occupation }}
+                            </div>
+                        </div>
+
+                        <!-- Contact Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary mb-3">
+                                    <i class="ri-map-pin-line"></i> Contact Information
+                                </h5>
+                            </div>
+
+                            <div class="col-12 mb-3">
+                                <label for="home_address" class="form-label">Home Address <span class="text-danger">*</span></label>
+                                {{ form.home_address }}
+                                {% if form.home_address.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.home_address.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="whatsapp_number" class="form-label">WhatsApp Number <span class="text-danger">*</span></label>
+                                {{ form.whatsapp_number }}
+                                {% if form.whatsapp_number.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.whatsapp_number.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="primary_contact_email" class="form-label">Primary Email <span class="text-danger">*</span></label>
+                                {{ form.primary_contact_email }}
+                                {% if form.primary_contact_email.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.primary_contact_email.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Special Comments -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary mb-3">
+                                    <i class="ri-chat-3-line"></i> Additional Information
+                                </h5>
+                            </div>
+
+                            <div class="col-12 mb-3">
+                                <label for="special_comments" class="form-label">Special Comments</label>
+                                {{ form.special_comments }}
+                                <small class="form-text text-muted">Any additional information you'd like to share</small>
+                            </div>
+                        </div>
+
+                        <!-- Terms and Conditions -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="form-check">
+                                    {{ form.terms_accepted }}
+                                    <label class="form-check-label" for="{{ form.terms_accepted.id_for_label }}">
+                                        I agree to the <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">Terms and Conditions</a> <span class="text-danger">*</span>
+                                    </label>
+                                    {% if form.terms_accepted.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.terms_accepted.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="row">
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="ri-send-plane-fill"></i> Submit Application
+                                </button>
+                                <a href="/" class="btn btn-secondary btn-lg">
+                                    <i class="ri-close-line"></i> Cancel
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<!-- Terms Modal -->
+<div class="modal fade" id="termsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Terms and Conditions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h6>Terms and Conditions of the Institution</h6>
+                <ol>
+                    <li>I/We agree to understand, accept and support the mission of the institution and be bound by the rules governing the institution, the authority of the Chairman and Board of Management of the institution.</li>
+                    <li>I/We agree to pay all fees as detailed on fee invoices and I/We understand that the non-payment or on or before the requested date excludes the student from attending classes. It is our obligation to ensure the fees are paid on time.</li>
+                    <li>I/We agree to accept and be bound by the rules governing health and medical requirements for the safety of all students and the institution.</li>
+                    <li>I/We agree that the institution has the authority to terminate the students in accordance with the guidelines set down in the institution's discipline policy.</li>
+                    <li>I/We agree the institution may at its discretion, suspend or terminate a student's enrollment for failure to comply with the conditions of this agreement, as well as for other serious breaches of the institution's rules and regulations.</li>
+                    <li>I/We agree that the institution is not liable for any loss or damage to the student's personal belongings.</li>
+                    <li>I/We agree to allow my/our children to involve themselves in all of the institution's activities, including excursions/field trips arranged by the institution.</li>
+                    <li>I/We agree that in case of an emergency, the institution is permitted to give appropriate medical attention and/or treatment.</li>
+                    <li>I/We agree to have our contact details published in the institution directory unless otherwise notified by us in writing to the institution.</li>
+                    <li>I/We agree that student photographs, images and recordings can be used for institution's marketing materials.</li>
+                    <li>I/We agree that the admission fee paid, in the enrollment is non-refundable.</li>
+                    <li>I/We understand that the semester fee will be increased accordingly with the decision of management.</li>
+                </ol>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

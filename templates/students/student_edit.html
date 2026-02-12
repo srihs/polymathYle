@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block PageTitle %}Edit {{ student.full_name }} - Polymath School of English{% endblock %}
+{% block pageTitle %}Edit Student{% endblock %}
+{% block Title %}Students{% endblock %}
+{% block functionTitle %}Edit Profile{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Edit Student Profile</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data" action="{% url 'student_edit' student.id %}">
+                    {% csrf_token %}
+
+                    <!-- Basic Information -->
+                    <h6 class="mb-3 text-uppercase fw-semibold">Basic Information</h6>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="full_name" class="form-label">Full Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="full_name" name="full_name" value="{{ student.full_name }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="name_with_initials" class="form-label">Name with Initials <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="name_with_initials" name="name_with_initials" value="{{ student.name_with_initials }}" required>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="student_email" class="form-label">Student Email</label>
+                            <input type="email" class="form-control" id="student_email" name="student_email" value="{{ student.student_email }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="current_school" class="form-label">Current School</label>
+                            <input type="text" class="form-control" id="current_school" name="current_school" value="{{ student.current_school }}">
+                        </div>
+                    </div>
+
+                    <!-- Contact Information -->
+                    <h6 class="mb-3 text-uppercase fw-semibold mt-4">Contact Information</h6>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="primary_contact_number" class="form-label">Primary Contact Number <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="primary_contact_number" name="primary_contact_number" value="{{ student.primary_contact_number }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="whatsapp_number" class="form-label">WhatsApp Number</label>
+                            <input type="text" class="form-control" id="whatsapp_number" name="whatsapp_number" value="{{ student.whatsapp_number }}">
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <label for="home_address" class="form-label">Home Address <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="home_address" name="home_address" rows="3" required>{{ student.home_address }}</textarea>
+                        </div>
+                    </div>
+
+                    <!-- Academic Information -->
+                    <h6 class="mb-3 text-uppercase fw-semibold mt-4">Academic Information</h6>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="current_level" class="form-label">Current Level <span class="text-danger">*</span></label>
+                            <select class="form-select" id="current_level" name="current_level" required>
+                                <option value="STARTERS" {% if student.current_level == 'STARTERS' %}selected{% endif %}>Pre A1 Starters</option>
+                                <option value="MOVERS" {% if student.current_level == 'MOVERS' %}selected{% endif %}>A1 Movers</option>
+                                <option value="FLYERS" {% if student.current_level == 'FLYERS' %}selected{% endif %}>A2 Flyers</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="assigned_class" class="form-label">Assigned Class</label>
+                            <select class="form-select" id="assigned_class" name="assigned_class">
+                                <option value="">Not Assigned</option>
+                                {% for class in classes %}
+                                    <option value="{{ class.id }}" {% if student.assigned_class and student.assigned_class.id == class.id %}selected{% endif %}>
+                                        {{ class.class_name }} - {{ class.get_level_display }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">Select the class this student is enrolled in</div>
+                        </div>
+                    </div>
+
+                    <!-- Profile Picture -->
+                    <h6 class="mb-3 text-uppercase fw-semibold mt-4">Profile Picture</h6>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="profile_picture" class="form-label">Upload New Profile Picture</label>
+                            <input type="file" class="form-control" id="profile_picture" name="profile_picture" accept="image/*">
+                            <div class="form-text">Supported formats: JPG, PNG, GIF (Max 2MB)</div>
+                        </div>
+                        <div class="col-md-6">
+                            {% if student.profile_picture %}
+                                <label class="form-label">Current Picture</label>
+                                <div>
+                                    <img src="{{ student.profile_picture.url }}" alt="{{ student.full_name }}" class="img-thumbnail" style="max-width: 150px;">
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Status -->
+                    <h6 class="mb-3 text-uppercase fw-semibold mt-4">Status</h6>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="is_active" name="is_active" {% if student.is_active %}checked{% endif %}>
+                                <label class="form-check-label" for="is_active">
+                                    Active Student
+                                </label>
+                                <div class="form-text">Uncheck to mark student as inactive (graduated or withdrawn)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Readonly Information -->
+                    <h6 class="mb-3 text-uppercase fw-semibold mt-4">System Information (Read-Only)</h6>
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label">Admission Number</label>
+                            <input type="text" class="form-control" value="{{ student.admission_number }}" readonly>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Date of Birth</label>
+                            <input type="text" class="form-control" value="{{ student.date_of_birth|date:'Y-m-d' }}" readonly>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Enrollment Date</label>
+                            <input type="text" class="form-control" value="{{ student.enrollment_date|date:'Y-m-d' }}" readonly>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="ri-save-line me-1"></i> Save Changes
+                        </button>
+                        <button type="button" onclick="window.history.back()" class="btn btn-secondary me-2">
+                            <i class="ri-arrow-left-line me-1"></i> Back
+                        </button>
+                        <a href="{% url 'student_detail' student.id %}" class="btn btn-info">
+                            <i class="ri-eye-line me-1"></i> View Profile
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,293 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block PageTitle %}Applications - Polymath School of English{% endblock %}
+{% block pageTitle %}Applications{% endblock %}
+{% block Title %}Applications{% endblock %}
+{% block functionTitle %}Application Management{% endblock %}
+
+{% block content %}
+<!-- Statistics Cards -->
+<div class="row">
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1 overflow-hidden">
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Total Applications</p>
+                    </div>
+                </div>
+                <div class="d-flex align-items-end justify-content-between mt-4">
+                    <div>
+                        <h4 class="fs-22 fw-semibold ff-secondary mb-4">{{ total_applications }}</h4>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-info-subtle rounded fs-3">
+                            <i class="bx bx-file text-info"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1 overflow-hidden">
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Pending</p>
+                    </div>
+                </div>
+                <div class="d-flex align-items-end justify-content-between mt-4">
+                    <div>
+                        <h4 class="fs-22 fw-semibold ff-secondary mb-4">{{ pending_count }}</h4>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-warning-subtle rounded fs-3">
+                            <i class="bx bx-time text-warning"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1 overflow-hidden">
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Approved</p>
+                    </div>
+                </div>
+                <div class="d-flex align-items-end justify-content-between mt-4">
+                    <div>
+                        <h4 class="fs-22 fw-semibold ff-secondary mb-4">{{ approved_count }}</h4>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-success-subtle rounded fs-3">
+                            <i class="bx bx-check-circle text-success"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1 overflow-hidden">
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Rejected</p>
+                    </div>
+                </div>
+                <div class="d-flex align-items-end justify-content-between mt-4">
+                    <div>
+                        <h4 class="fs-22 fw-semibold ff-secondary mb-4">{{ rejected_count }}</h4>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-danger-subtle rounded fs-3">
+                            <i class="bx bx-x-circle text-danger"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search and Filter Section -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h5 class="card-title mb-0">Filter Applications</h5>
+                    </div>
+                    <div class="col-auto">
+                        <button onclick="window.history.back()" class="btn btn-secondary me-2">
+                            <i class="ri-arrow-left-line me-1"></i> Back
+                        </button>
+                        <a href="{% url 'apply' %}" class="btn btn-success" target="_blank">
+                            <i class="ri-file-add-line me-1"></i> New Application
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <form method="get" action="{% url 'application_list' %}" class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Search</label>
+                        <input type="text" class="form-control" name="search" value="{{ search_query }}" placeholder="Name, Admission No., Email...">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" name="status">
+                            <option value="">All Status</option>
+                            <option value="PENDING" {% if status_filter == 'PENDING' %}selected{% endif %}>Pending</option>
+                            <option value="APPROVED" {% if status_filter == 'APPROVED' %}selected{% endif %}>Approved</option>
+                            <option value="REJECTED" {% if status_filter == 'REJECTED' %}selected{% endif %}>Rejected</option>
+                            <option value="WAITLIST" {% if status_filter == 'WAITLIST' %}selected{% endif %}>Waitlist</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Type</label>
+                        <select class="form-select" name="type">
+                            <option value="">All Types</option>
+                            <option value="ONLINE" {% if type_filter == 'ONLINE' %}selected{% endif %}>Online</option>
+                            <option value="OFFLINE" {% if type_filter == 'OFFLINE' %}selected{% endif %}>Offline</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">From Date</label>
+                        <input type="date" class="form-control" name="date_from" value="{{ date_from }}">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">To Date</label>
+                        <input type="date" class="form-control" name="date_to" value="{{ date_to }}">
+                    </div>
+                    <div class="col-md-1">
+                        <label class="form-label">&nbsp;</label>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="ri-search-line"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Applications Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                {% if applications %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Application Date</th>
+                                    <th>Admission No.</th>
+                                    <th>Full Name</th>
+                                    <th>Age/Gender</th>
+                                    <th>Contact</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for app in applications %}
+                                    <tr>
+                                        <td>{{ app.application_date|date:"M d, Y" }}</td>
+                                        <td>
+                                            {% if app.admission_number %}
+                                                <span class="badge bg-primary">{{ app.admission_number }}</span>
+                                            {% else %}
+                                                <span class="text-muted">Pending</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <h6 class="mb-0">{{ app.full_name }}</h6>
+                                            <small class="text-muted">{{ app.name_with_initials }}</small>
+                                        </td>
+                                        <td>
+                                            {{ app.age }} years
+                                            <br>
+                                            <small class="text-muted">{{ app.get_gender_display }}</small>
+                                        </td>
+                                        <td>
+                                            <small>
+                                                <i class="ri-mail-line"></i> {{ app.primary_contact_email }}<br>
+                                                <i class="ri-phone-line"></i> {{ app.mother_contact_number }}
+                                            </small>
+                                        </td>
+                                        <td>
+                                            {% if app.application_type == 'ONLINE' %}
+                                                <span class="badge bg-info">Online</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Offline</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if app.status == 'PENDING' %}
+                                                <span class="badge bg-warning">Pending</span>
+                                            {% elif app.status == 'APPROVED' %}
+                                                <span class="badge bg-success">Approved</span>
+                                            {% elif app.status == 'REJECTED' %}
+                                                <span class="badge bg-danger">Rejected</span>
+                                            {% elif app.status == 'WAITLIST' %}
+                                                <span class="badge bg-secondary">Waitlist</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{% url 'application_review' app.id %}" class="btn btn-primary" title="Review">
+                                                    <i class="ri-eye-line"></i>
+                                                </a>
+                                                {% if app.status == 'APPROVED' and not app.enrolled_student %}
+                                                    <a href="{% url 'student_enroll' app.id %}" class="btn btn-success" title="Enroll Student">
+                                                        <i class="ri-user-add-line"></i>
+                                                    </a>
+                                                {% endif %}
+                                                {% if app.enrolled_student %}
+                                                    <a href="{% url 'student_detail' app.enrolled_student.id %}" class="btn btn-info" title="View Student">
+                                                        <i class="ri-user-line"></i>
+                                                    </a>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if page_obj.has_other_pages %}
+                        <nav class="mt-4">
+                            <ul class="pagination justify-content-center">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=1&{{ request.GET.urlencode }}">First</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}">Previous</a>
+                                    </li>
+                                {% endif %}
+
+                                <li class="page-item active">
+                                    <span class="page-link">
+                                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                                    </span>
+                                </li>
+
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}">Next</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&{{ request.GET.urlencode }}">Last</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% endif %}
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="ri-information-line me-2"></i> No applications found matching your criteria.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

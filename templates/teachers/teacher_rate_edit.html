@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block PageTitle %}Edit Hourly Rate - Polymath School of English{% endblock %}
+{% block pageTitle %}Edit Hourly Rate{% endblock %}
+{% block Title %}Teachers{% endblock %}
+{% block functionTitle %}Edit Hourly Rate for {{ teacher.full_name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="ri-money-dollar-circle-line me-2"></i>
+                    Edit Rate Details
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'teacher_rate_edit' rate.id %}">
+                    {% csrf_token %}
+
+                    <!-- Rate Amount -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="hourly_rate" class="form-label">Hourly Rate <span class="text-danger">*</span></label>
+                            <input type="number" step="0.01" class="form-control" id="hourly_rate" name="hourly_rate" value="{{ rate.hourly_rate }}" required>
+                            <small class="text-muted">Enter the rate amount</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="currency" class="form-label">Currency <span class="text-danger">*</span></label>
+                            <select class="form-select" id="currency" name="currency" required>
+                                {% for code, name in currencies %}
+                                    <option value="{{ code }}" {% if code == rate.currency %}selected{% endif %}>{{ name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Effective Period -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="effective_from" class="form-label">Effective From <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="effective_from" name="effective_from" value="{{ rate.effective_from|date:'Y-m-d' }}" required>
+                            <small class="text-muted">Date when this rate becomes active</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="effective_until" class="form-label">Effective Until</label>
+                            <input type="date" class="form-control" id="effective_until" name="effective_until" value="{% if rate.effective_until %}{{ rate.effective_until|date:'Y-m-d' }}{% endif %}">
+                            <small class="text-muted">Leave blank if this is the current rate</small>
+                        </div>
+                    </div>
+
+                    <!-- Current Status -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="is_current" name="is_current" {% if rate.is_current %}checked{% endif %}>
+                                <label class="form-check-label" for="is_current">
+                                    Mark as Current Rate
+                                </label>
+                            </div>
+                            <small class="text-muted">If checked, this will become the active hourly rate</small>
+                        </div>
+                    </div>
+
+                    <!-- Reason -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <label for="reason" class="form-label">Reason for Rate Change</label>
+                            <textarea class="form-control" id="reason" name="reason" rows="3" placeholder="E.g., Annual increment, Performance bonus, Initial rate, etc.">{{ rate.reason }}</textarea>
+                        </div>
+                    </div>
+
+                    <!-- Metadata -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="alert alert-light">
+                                <strong>Created:</strong> {{ rate.created_at|date:"M d, Y g:i A" }}<br>
+                                {% if rate.approved_by %}
+                                <strong>Approved by:</strong> {{ rate.approved_by.get_full_name|default:rate.approved_by.username }} on {{ rate.approval_date|date:"M d, Y" }}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-success btn-lg me-2">
+                            <i class="ri-save-line me-1"></i> Save Changes
+                        </button>
+                        <button type="button" onclick="window.history.back()" class="btn btn-secondary btn-lg me-2">
+                            <i class="ri-arrow-left-line me-1"></i> Cancel
+                        </button>
+                        <a href="{% url 'teacher_detail' teacher.id %}" class="btn btn-info btn-lg">
+                            <i class="ri-eye-line me-1"></i> View Teacher
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Warning Card -->
+    <div class="col-lg-4">
+        <div class="card border-warning">
+            <div class="card-header bg-warning bg-opacity-10">
+                <h6 class="card-title mb-0 text-warning">
+                    <i class="ri-alert-line me-2"></i>
+                    Important Notes
+                </h6>
+            </div>
+            <div class="card-body">
+                <h6 class="fw-semibold">Before Editing:</h6>
+                <ul class="mb-3">
+                    <li>Changing rates affects historical payment calculations</li>
+                    <li>Verify dates carefully to avoid conflicts</li>
+                    <li>Marking as "current" will unmark other current rates</li>
+                </ul>
+
+                <h6 class="fw-semibold">Consider:</h6>
+                <ul>
+                    <li>Adding a new rate instead of editing existing one</li>
+                    <li>Preserving historical accuracy</li>
+                    <li>Documenting reason for changes</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Delete Option -->
+        <div class="card border-danger mt-3">
+            <div class="card-header bg-danger bg-opacity-10">
+                <h6 class="card-title mb-0 text-danger">
+                    <i class="ri-delete-bin-line me-2"></i>
+                    Delete Rate
+                </h6>
+            </div>
+            <div class="card-body">
+                <p class="mb-3">Permanently remove this rate record. This action cannot be undone.</p>
+                <form method="post" action="{% url 'teacher_rate_delete' rate.id %}" onsubmit="return confirm('Are you sure you want to delete this rate? This action cannot be undone.');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger w-100">
+                        <i class="ri-delete-bin-line me-1"></i> Delete Rate
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

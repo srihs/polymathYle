@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block PageTitle %}Teacher Documents - Polymath School of English{% endblock %}
+{% block pageTitle %}Teacher Documents{% endblock %}
+{% block Title %}Teachers{% endblock %}
+{% block functionTitle %}Document Management{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-12">
+        <!-- Filter Section -->
+        <div class="card">
+            <div class="card-body">
+                <form method="get" action="{% url 'teacher_documents' %}" class="row g-3">
+                    <div class="col-md-3">
+                        <input type="text" class="form-control" name="search" placeholder="Search teacher, employee ID, type..." value="{{ search_query }}">
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" name="teacher">
+                            <option value="">All Teachers</option>
+                            {% for teacher in teachers %}
+                                <option value="{{ teacher.id }}" {% if selected_teacher == teacher.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ teacher.full_name }} ({{ teacher.employee_id }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" name="type">
+                            <option value="">All Document Types</option>
+                            {% for type_code, type_name in doc_types %}
+                                <option value="{{ type_code }}" {% if selected_type == type_code %}selected{% endif %}>
+                                    {{ type_name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="ri-search-line me-1"></i> Filter
+                        </button>
+                        <a href="{% url 'teacher_documents' %}" class="btn btn-secondary">
+                            <i class="ri-refresh-line me-1"></i> Reset
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Documents List -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="ri-file-text-line me-2"></i>
+                    Teacher Documents
+                    <span class="badge bg-primary ms-2">{{ page_obj.paginator.count }}</span>
+                </h5>
+                <div>
+                    <button onclick="window.history.back()" class="btn btn-secondary me-2">
+                        <i class="ri-arrow-left-line me-1"></i> Back
+                    </button>
+                    <a href="{% url 'teacher_list' %}" class="btn btn-info">
+                        <i class="ri-team-line me-1"></i> All Teachers
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Teacher</th>
+                                <th>Employee ID</th>
+                                <th>Document Type</th>
+                                <th>File Name</th>
+                                <th>Uploaded</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for document in documents %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        {% if document.teacher.profile_picture %}
+                                            <img src="{{ document.teacher.profile_picture.url }}"
+                                                 alt="{{ document.teacher.full_name }}"
+                                                 class="rounded-circle me-2"
+                                                 style="width: 32px; height: 32px; object-fit: cover;">
+                                        {% else %}
+                                            <div class="avatar-sm me-2">
+                                                <span class="avatar-title rounded-circle bg-soft-primary text-primary">
+                                                    {{ document.teacher.full_name|first|upper }}
+                                                </span>
+                                            </div>
+                                        {% endif %}
+                                        <div>
+                                            <a href="{% url 'teacher_detail' document.teacher.id %}" class="fw-medium">
+                                                {{ document.teacher.full_name }}
+                                            </a>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info-subtle text-info">
+                                        {{ document.teacher.employee_id }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if document.document_type == 'CV' %}
+                                        <span class="badge bg-primary"><i class="ri-file-user-line me-1"></i>CV/Resume</span>
+                                    {% elif document.document_type == 'CERT' %}
+                                        <span class="badge bg-success"><i class="ri-award-line me-1"></i>Certificate</span>
+                                    {% elif document.document_type == 'ID' %}
+                                        <span class="badge bg-warning"><i class="ri-id-card-line me-1"></i>ID Document</span>
+                                    {% elif document.document_type == 'CONTRACT' %}
+                                        <span class="badge bg-danger"><i class="ri-file-text-line me-1"></i>Contract</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary"><i class="ri-file-line me-1"></i>{{ document.get_document_type_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <i class="ri-file-line me-1"></i>
+                                    {{ document.document.name|slice:"19:" }}
+                                </td>
+                                <td>
+                                    <small class="text-muted">
+                                        <i class="ri-calendar-line me-1"></i>
+                                        {{ document.uploaded_at|date:"M d, Y" }}
+                                    </small>
+                                </td>
+                                <td>
+                                    <a href="{{ document.document.url }}" target="_blank" class="btn btn-sm btn-soft-primary" title="View Document">
+                                        <i class="ri-eye-line"></i>
+                                    </a>
+                                    <a href="{{ document.document.url }}" download class="btn btn-sm btn-soft-success" title="Download">
+                                        <i class="ri-download-line"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-5">
+                                    <i class="ri-file-line" style="font-size: 3rem; opacity: 0.3;"></i>
+                                    <p class="mt-2">No documents found</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                {% if page_obj.paginator.num_pages > 1 %}
+                <div class="d-flex justify-content-between align-items-center mt-4">
+                    <div class="text-muted">
+                        Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} documents
+                    </div>
+                    <nav>
+                        <ul class="pagination mb-0">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_teacher %}&teacher={{ selected_teacher }}{% endif %}{% if selected_type %}&type={{ selected_type }}{% endif %}">
+                                        <i class="ri-arrow-left-s-line"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if page_obj.number == num %}
+                                    <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_teacher %}&teacher={{ selected_teacher }}{% endif %}{% if selected_type %}&type={{ selected_type }}{% endif %}">
+                                            {{ num }}
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_teacher %}&teacher={{ selected_teacher }}{% endif %}{% if selected_type %}&type={{ selected_type }}{% endif %}">
+                                        <i class="ri-arrow-right-s-line"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

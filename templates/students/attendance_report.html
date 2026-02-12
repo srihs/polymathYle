@@ -1,0 +1,374 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block PageTitle %}Attendance Report - Polymath School of English{% endblock %}
+{% block pageTitle %}Attendance Report{% endblock %}
+{% block Title %}Attendance{% endblock %}
+{% block functionTitle %}Reports & Analytics{% endblock %}
+
+{% block content %}
+<!-- Statistics Cards -->
+<div class="row">
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1 overflow-hidden">
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Total Records</p>
+                    </div>
+                </div>
+                <div class="d-flex align-items-end justify-content-between mt-4">
+                    <div>
+                        <h4 class="fs-22 fw-semibold ff-secondary mb-4">{{ total_records }}</h4>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-info-subtle rounded fs-3">
+                            <i class="bx bx-file text-info"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1 overflow-hidden">
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Present</p>
+                    </div>
+                </div>
+                <div class="d-flex align-items-end justify-content-between mt-4">
+                    <div>
+                        <h4 class="fs-22 fw-semibold ff-secondary mb-4">{{ present_count }}</h4>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-success-subtle rounded fs-3">
+                            <i class="bx bx-check-circle text-success"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1 overflow-hidden">
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Absent</p>
+                    </div>
+                </div>
+                <div class="d-flex align-items-end justify-content-between mt-4">
+                    <div>
+                        <h4 class="fs-22 fw-semibold ff-secondary mb-4">{{ absent_count }}</h4>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-danger-subtle rounded fs-3">
+                            <i class="bx bx-x-circle text-danger"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1 overflow-hidden">
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Attendance %</p>
+                    </div>
+                </div>
+                <div class="d-flex align-items-end justify-content-between mt-4">
+                    <div>
+                        <h4 class="fs-22 fw-semibold ff-secondary mb-4">{{ attendance_percentage }}%</h4>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-primary-subtle rounded fs-3">
+                            <i class="bx bx-trending-up text-primary"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Section -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h5 class="card-title mb-0">Filter Reports</h5>
+                    </div>
+                    <div class="col-auto">
+                        <button onclick="window.history.back()" class="btn btn-secondary me-2">
+                            <i class="ri-arrow-left-line me-1"></i> Back
+                        </button>
+                        <a href="{% url 'attendance_mark' %}" class="btn btn-success">
+                            <i class="ri-checkbox-multiple-line me-1"></i> Mark Attendance
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <form method="get" action="{% url 'attendance_report' %}" class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Student</label>
+                        <select class="form-select" name="student_id">
+                            <option value="">All Students</option>
+                            {% for s in students %}
+                                <option value="{{ s.id }}" {% if student and student.id == s.id %}selected{% endif %}>
+                                    {{ s.admission_number }} - {{ s.full_name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Class</label>
+                        <select class="form-select" name="class_id">
+                            <option value="">All Classes</option>
+                            {% for class in classes %}
+                                <option value="{{ class.id }}" {% if selected_class and selected_class.id == class.id %}selected{% endif %}>
+                                    {{ class.class_name }} - {{ class.get_level_display }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">From Date</label>
+                        <input type="date" class="form-control" name="date_from" value="{{ date_from|date:'Y-m-d' }}">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">To Date</label>
+                        <input type="date" class="form-control" name="date_to" value="{{ date_to|date:'Y-m-d' }}">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">&nbsp;</label>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="ri-search-line me-1"></i> Filter
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Additional Statistics -->
+{% if student or selected_class %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Filter Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% if student %}
+                        <div class="col-md-6">
+                            <p class="mb-1"><strong>Student:</strong> {{ student.admission_number }} - {{ student.full_name }}</p>
+                            <p class="mb-0 text-muted small">{{ student.get_current_level_display }}</p>
+                        </div>
+                    {% endif %}
+                    {% if selected_class %}
+                        <div class="col-md-6">
+                            <p class="mb-1"><strong>Class:</strong> {{ selected_class.class_name }}</p>
+                            <p class="mb-0 text-muted small">{{ selected_class.get_level_display }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-12">
+                        <p class="mb-0"><strong>Date Range:</strong> {{ date_from|date:"M d, Y" }} to {{ date_to|date:"M d, Y" }}</p>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-3">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-xs me-2">
+                                <span class="avatar-title rounded bg-success-subtle text-success">
+                                    <i class="ri-check-line"></i>
+                                </span>
+                            </div>
+                            <div>
+                                <p class="mb-0 text-muted small">Present</p>
+                                <h6 class="mb-0">{{ present_count }}</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-xs me-2">
+                                <span class="avatar-title rounded bg-danger-subtle text-danger">
+                                    <i class="ri-close-line"></i>
+                                </span>
+                            </div>
+                            <div>
+                                <p class="mb-0 text-muted small">Absent</p>
+                                <h6 class="mb-0">{{ absent_count }}</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-xs me-2">
+                                <span class="avatar-title rounded bg-warning-subtle text-warning">
+                                    <i class="ri-time-line"></i>
+                                </span>
+                            </div>
+                            <div>
+                                <p class="mb-0 text-muted small">Late</p>
+                                <h6 class="mb-0">{{ late_count }}</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-xs me-2">
+                                <span class="avatar-title rounded bg-info-subtle text-info">
+                                    <i class="ri-information-line"></i>
+                                </span>
+                            </div>
+                            <div>
+                                <p class="mb-0 text-muted small">Excused</p>
+                                <h6 class="mb-0">{{ excused_count }}</h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Attendance Records Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Attendance Records</h5>
+            </div>
+            <div class="card-body">
+                {% if attendance_records %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Student</th>
+                                    <th>Admission No.</th>
+                                    <th>Class</th>
+                                    <th>Status</th>
+                                    <th>Notes</th>
+                                    <th>Marked By</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for record in attendance_records %}
+                                    <tr>
+                                        <td>{{ record.date|date:"M d, Y (D)" }}</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                {% if record.student.profile_picture %}
+                                                    <img src="{{ record.student.profile_picture.url }}" alt="{{ record.student.full_name }}" class="rounded-circle me-2" width="32" height="32">
+                                                {% else %}
+                                                    <div class="avatar-xs me-2">
+                                                        <span class="avatar-title rounded-circle bg-soft-primary text-primary">
+                                                            {{ record.student.full_name|first|upper }}
+                                                        </span>
+                                                    </div>
+                                                {% endif %}
+                                                <div>
+                                                    <h6 class="mb-0">{{ record.student.full_name }}</h6>
+                                                    <small class="text-muted">{{ record.student.name_with_initials }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-primary">{{ record.student.admission_number }}</span>
+                                        </td>
+                                        <td>
+                                            {% if record.class_session %}
+                                                {{ record.class_session.class_name }}
+                                            {% else %}
+                                                <span class="text-muted">N/A</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if record.status == 'PRESENT' %}
+                                                <span class="badge bg-success">Present</span>
+                                            {% elif record.status == 'ABSENT' %}
+                                                <span class="badge bg-danger">Absent</span>
+                                            {% elif record.status == 'LATE' %}
+                                                <span class="badge bg-warning">Late</span>
+                                            {% elif record.status == 'EXCUSED' %}
+                                                <span class="badge bg-info">Excused</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if record.notes %}
+                                                <small class="text-muted">{{ record.notes }}</small>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <small>{{ record.marked_by.get_full_name|default:record.marked_by.username }}</small>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if page_obj.has_other_pages %}
+                        <nav class="mt-4">
+                            <ul class="pagination justify-content-center">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=1&{{ request.GET.urlencode }}">First</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}">Previous</a>
+                                    </li>
+                                {% endif %}
+
+                                <li class="page-item active">
+                                    <span class="page-link">
+                                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                                    </span>
+                                </li>
+
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}">Next</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&{{ request.GET.urlencode }}">Last</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% endif %}
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="ri-information-line me-2"></i> No attendance records found for the selected criteria.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

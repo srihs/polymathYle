@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block PageTitle %}Enroll Student - Polymath School of English{% endblock %}
+{% block pageTitle %}Enroll Student{% endblock %}
+{% block Title %}Applications{% endblock %}
+{% block functionTitle %}Create Student Profile{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-12">
+        <!-- Application Summary -->
+        <div class="card">
+            <div class="card-header bg-soft-primary">
+                <h5 class="card-title mb-0">Application Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <p class="mb-2"><strong>Admission Number:</strong></p>
+                        <p class="text-muted">{{ application.admission_number }}</p>
+                    </div>
+                    <div class="col-md-3">
+                        <p class="mb-2"><strong>Full Name:</strong></p>
+                        <p class="text-muted">{{ application.full_name }}</p>
+                    </div>
+                    <div class="col-md-3">
+                        <p class="mb-2"><strong>Date of Birth:</strong></p>
+                        <p class="text-muted">{{ application.date_of_birth|date:"Y-m-d" }} ({{ application.age }} years)</p>
+                    </div>
+                    <div class="col-md-3">
+                        <p class="mb-2"><strong>Status:</strong></p>
+                        <span class="badge bg-success">{{ application.get_status_display }}</span>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <p class="mb-2"><strong>Mother:</strong></p>
+                        <p class="text-muted">{{ application.mother_name }} - {{ application.mother_contact_number }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-2"><strong>Father:</strong></p>
+                        <p class="text-muted">{{ application.father_name }} - {{ application.father_contact_number }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enrollment Form -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Create Student Profile</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="ri-information-line me-2"></i>
+                    This will create a student profile and user account based on the approved application.
+                </div>
+
+                <form method="post" action="{% url 'student_enroll' application.id %}">
+                    {% csrf_token %}
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="current_level" class="form-label">Assign Initial Level <span class="text-danger">*</span></label>
+                            <select class="form-select" id="current_level" name="current_level" required>
+                                <option value="STARTERS">Pre A1 Starters</option>
+                                <option value="MOVERS">A1 Movers</option>
+                                <option value="FLYERS">A2 Flyers</option>
+                            </select>
+                            <div class="form-text">Select the YLE level based on placement test or assessment</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="password" class="form-label">Initial Password <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="password" name="password" value="student123" required>
+                            <div class="form-text">Default password for student login (student can change later)</div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="alert alert-warning">
+                                <h6 class="alert-heading">Account Details</h6>
+                                <p class="mb-0">
+                                    <strong>Username:</strong> student_{{ application.admission_number|lower|cut:"-" }}<br>
+                                    <strong>Email:</strong> {{ application.student_email|default:application.primary_contact_email }}<br>
+                                    <strong>User Group:</strong> Students
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-uppercase fw-semibold mb-3">Guardian Profiles to be Created:</h6>
+                            <ul class="list-unstyled">
+                                {% if application.mother_name %}
+                                    <li class="mb-2">
+                                        <i class="ri-user-line text-primary me-2"></i>
+                                        <strong>Mother:</strong> {{ application.mother_name }}
+                                        ({{ application.mother_contact_number }}, {{ application.primary_contact_email }})
+                                        {% if application.mother_occupation %}
+                                            - {{ application.mother_occupation }}
+                                        {% endif %}
+                                    </li>
+                                {% endif %}
+                                {% if application.father_name %}
+                                    <li>
+                                        <i class="ri-user-line text-primary me-2"></i>
+                                        <strong>Father:</strong> {{ application.father_name }}
+                                        ({{ application.father_contact_number }}, {{ application.primary_contact_email }})
+                                        {% if application.father_occupation %}
+                                            - {{ application.father_occupation }}
+                                        {% endif %}
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-success">
+                        <i class="ri-checkbox-circle-line me-2"></i>
+                        <strong>What happens when you click "Enroll Student":</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>Student user account will be created with username: <code>student_{{ application.admission_number|lower|cut:"-" }}</code></li>
+                            <li>Student profile will be created with admission number: <strong>{{ application.admission_number }}</strong></li>
+                            <li>Guardian profiles will be created for mother and father</li>
+                            <li>Student will be added to "Students" user group with appropriate permissions</li>
+                            <li>You can assign class later from the student profile page</li>
+                        </ul>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-success btn-lg me-2">
+                            <i class="ri-user-add-line me-1"></i> Enroll Student
+                        </button>
+                        <button type="button" onclick="window.history.back()" class="btn btn-secondary btn-lg me-2">
+                            <i class="ri-arrow-left-line me-1"></i> Back
+                        </button>
+                        <a href="{% url 'application_review' application.id %}" class="btn btn-info btn-lg">
+                            <i class="ri-eye-line me-1"></i> View Application
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

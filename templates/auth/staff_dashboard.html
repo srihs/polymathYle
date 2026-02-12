@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block PageTitle %}Staff Dashboard - Polymath School of English{% endblock %}
+
+{% block pageTitle %}Staff Dashboard{% endblock %}
+{% block Title %}Dashboard{% endblock %}
+{% block functionTitle %}Staff{% endblock %}
+
+{% block content %}
+<!-- Statistics -->
+            <div class="row">
+                <div class="col-xl-3 col-md-6">
+                    <div class="card card-animate">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-grow-1 overflow-hidden">
+                                    <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Total Applications</p>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-end justify-content-between mt-4">
+                                <div>
+                                    <h4 class="fs-22 fw-semibold ff-secondary mb-4">{{ total_applications }}</h4>
+                                </div>
+                                <div class="avatar-sm flex-shrink-0">
+                                    <span class="avatar-title bg-info-subtle rounded fs-3">
+                                        <i class="bx bx-file text-info"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6">
+                    <div class="card card-animate">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-grow-1 overflow-hidden">
+                                    <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Pending</p>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-end justify-content-between mt-4">
+                                <div>
+                                    <h4 class="fs-22 fw-semibold ff-secondary mb-4">{{ pending_count }}</h4>
+                                </div>
+                                <div class="avatar-sm flex-shrink-0">
+                                    <span class="avatar-title bg-warning-subtle rounded fs-3">
+                                        <i class="bx bx-time text-warning"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6">
+                    <div class="card card-animate">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-grow-1 overflow-hidden">
+                                    <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Approved</p>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-end justify-content-between mt-4">
+                                <div>
+                                    <h4 class="fs-22 fw-semibold ff-secondary mb-4">{{ approved_count }}</h4>
+                                </div>
+                                <div class="avatar-sm flex-shrink-0">
+                                    <span class="avatar-title bg-success-subtle rounded fs-3">
+                                        <i class="bx bx-check-circle text-success"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6">
+                    <div class="card card-animate">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-grow-1 overflow-hidden">
+                                    <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Active Students</p>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-end justify-content-between mt-4">
+                                <div>
+                                    <h4 class="fs-22 fw-semibold ff-secondary mb-4">{{ total_students }}</h4>
+                                </div>
+                                <div class="avatar-sm flex-shrink-0">
+                                    <span class="avatar-title bg-primary-subtle rounded fs-3">
+                                        <i class="bx bx-user-check text-primary"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pending Applications -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Pending Applications</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if pending_applications %}
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Admission No.</th>
+                                                <th>Full Name</th>
+                                                <th>Application Date</th>
+                                                <th>Age</th>
+                                                <th>Gender</th>
+                                                <th>Contact Email</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for app in pending_applications %}
+                                                <tr>
+                                                    <td>{{ app.admission_number|default:"Pending" }}</td>
+                                                    <td>{{ app.full_name }}</td>
+                                                    <td>{{ app.application_date|date:"Y-m-d" }}</td>
+                                                    <td>{{ app.age }}</td>
+                                                    <td>{{ app.gender }}</td>
+                                                    <td>{{ app.primary_contact_email }}</td>
+                                                    <td>
+                                                        <a href="/admin/students/application/{{ app.id }}/change/" class="btn btn-sm btn-primary">
+                                                            <i class="ri-eye-line"></i> Review
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="alert alert-success">
+                                    <i class="ri-checkbox-circle-line me-2"></i> No pending applications!
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Students -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Recent Enrollments</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if recent_students %}
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Admission No.</th>
+                                                <th>Full Name</th>
+                                                <th>Current Level</th>
+                                                <th>Enrollment Date</th>
+                                                <th>Assigned Class</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for student in recent_students %}
+                                                <tr>
+                                                    <td><span class="badge bg-primary">{{ student.admission_number }}</span></td>
+                                                    <td>{{ student.full_name }}</td>
+                                                    <td>{{ student.get_current_level_display }}</td>
+                                                    <td>{{ student.enrollment_date|date:"Y-m-d" }}</td>
+                                                    <td>{{ student.assigned_class|default:"Not Assigned" }}</td>
+                                                    <td>
+                                                        {% if student.is_active %}
+                                                            <span class="badge bg-success">Active</span>
+                                                        {% else %}
+                                                            <span class="badge bg-danger">Inactive</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        <a href="/admin/students/student/{{ student.id }}/change/" class="btn btn-sm btn-info">
+                                                            <i class="ri-eye-line"></i> View
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="alert alert-info">
+                                    <i class="ri-information-line me-2"></i> No student enrollments yet.
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Quick Actions</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <a href="/admin/students/application/" class="btn btn-primary w-100">
+                                        <i class="ri-file-list-line me-2"></i> View All Applications
+                                    </a>
+                                </div>
+                                <div class="col-md-3">
+                                    <a href="/admin/students/application/add/" class="btn btn-success w-100">
+                                        <i class="ri-file-add-line me-2"></i> Add Application
+                                    </a>
+                                </div>
+                                <div class="col-md-3">
+                                    <a href="/admin/students/student/" class="btn btn-info w-100">
+                                        <i class="ri-user-line me-2"></i> Manage Students
+                                    </a>
+                                </div>
+                                <div class="col-md-3">
+                                    <a href="/admin/certification/certificate/add/" class="btn btn-warning w-100">
+                                        <i class="ri-award-line me-2"></i> Issue Certificate
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+{% endblock %}

@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block PageTitle %}Parent Portal - PolymathYLE{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Title -->
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                <h4 class="mb-sm-0">Parent Portal</h4>
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="/">Home</a></li>
+                        <li class="breadcrumb-item active">Parent Portal</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Guardian Info -->
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Welcome, {{ guardian.full_name }}</h5>
+                    <p class="text-muted">{{ guardian.relationship }} | {{ guardian.email }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Children List -->
+    <div class="row">
+        {% for student in guardian.students.all %}
+            <div class="col-lg-12 mb-4">
+                <div class="card">
+                    <div class="card-header bg-primary-subtle">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0">
+                                {% if student.profile_picture %}
+                                    <img src="{{ student.profile_picture.url }}" alt="{{ student.full_name }}" class="avatar-md rounded-circle">
+                                {% else %}
+                                    <div class="avatar-md">
+                                        <div class="avatar-title bg-primary text-white fs-3 rounded-circle">
+                                            {{ student.full_name|first }}
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h5 class="mb-1">{{ student.full_name }}</h5>
+                                <p class="text-muted mb-0">
+                                    {{ student.admission_number }} | {{ student.current_level }} | Age: {{ student.age }}
+                                </p>
+                            </div>
+                            <div class="flex-shrink-0">
+                                <span class="badge bg-{% if student.is_active %}success{% else %}danger{% endif %} fs-6">
+                                    {{ student.is_active|yesno:"Active,Inactive" }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <!-- Progress Stats -->
+                            <div class="col-md-3 mb-3">
+                                <div class="border rounded p-3 text-center">
+                                    <h6 class="text-muted mb-2">Total Points</h6>
+                                    <h3 class="text-primary mb-0">{{ student.total_points }}</h3>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="border rounded p-3 text-center">
+                                    <h6 class="text-muted mb-2">Streak Days</h6>
+                                    <h3 class="text-success mb-0">{{ student.streak_days }}</h3>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="border rounded p-3 text-center">
+                                    <h6 class="text-muted mb-2">Badges Earned</h6>
+                                    <h3 class="text-warning mb-0">{{ student.badges.count }}</h3>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="border rounded p-3 text-center">
+                                    <h6 class="text-muted mb-2">Last Activity</h6>
+                                    <p class="mb-0"><small>{{ student.last_activity|date:"M d, Y" }}</small></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Attendance -->
+                        <h6 class="text-muted mb-3 mt-3">Recent Attendance</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-nowrap align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Status</th>
+                                        <th>Arrival Time</th>
+                                        <th>Notes</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for attendance in student.attendance_records.all|slice:":5" %}
+                                        <tr>
+                                            <td>{{ attendance.date }}</td>
+                                            <td>
+                                                {% if attendance.status == 'PRESENT' %}
+                                                    <span class="badge bg-success">Present</span>
+                                                {% elif attendance.status == 'ABSENT' %}
+                                                    <span class="badge bg-danger">Absent</span>
+                                                {% elif attendance.status == 'LATE' %}
+                                                    <span class="badge bg-warning">Late</span>
+                                                {% elif attendance.status == 'EXCUSED' %}
+                                                    <span class="badge bg-info">Excused</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ attendance.arrival_time|default:"-" }}</td>
+                                            <td>{{ attendance.notes|default:"-" }}</td>
+                                        </tr>
+                                    {% empty %}
+                                        <tr>
+                                            <td colspan="4" class="text-center text-muted">No attendance records yet</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Recent Badges -->
+                        <h6 class="text-muted mb-3 mt-4">Recent Achievements</h6>
+                        <div class="row">
+                            {% for badge in student.badges.all|slice:":3" %}
+                                <div class="col-md-4 mb-2">
+                                    <div class="d-flex align-items-center border rounded p-2">
+                                        <div class="flex-shrink-0">
+                                            <span class="fs-3">{{ badge.badge_icon|default:"🏆" }}</span>
+                                        </div>
+                                        <div class="flex-grow-1 ms-2">
+                                            <h6 class="mb-0">{{ badge.badge_name }}</h6>
+                                            <p class="text-muted mb-0"><small>{{ badge.earned_date|date:"M d" }}</small></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% empty %}
+                                <div class="col-12">
+                                    <p class="text-muted mb-0">No achievements yet</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="alert alert-warning">
+                    <i class="ri-information-line"></i> No students linked to your account yet.
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

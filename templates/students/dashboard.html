@@ -1,0 +1,271 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block PageTitle %}Student Dashboard - PolymathYLE{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Title -->
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                <h4 class="mb-sm-0">Welcome, {{ student.full_name }}!</h4>
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="/">Home</a></li>
+                        <li class="breadcrumb-item active">Dashboard</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Card -->
+    <div class="row">
+        <div class="col-lg-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    {% if student.profile_picture %}
+                        <img src="{{ student.profile_picture.url }}" alt="Profile" class="avatar-xl rounded-circle mb-3">
+                    {% else %}
+                        <div class="avatar-xl mx-auto mb-3">
+                            <div class="avatar-title bg-primary-subtle text-primary fs-1 rounded-circle">
+                                {{ student.full_name|first }}
+                            </div>
+                        </div>
+                    {% endif %}
+                    <h5 class="mb-1">{{ student.full_name }}</h5>
+                    <p class="text-muted">{{ student.admission_number }}</p>
+
+                    <div class="badge bg-primary mb-3">{{ student.current_level }}</div>
+
+                    <div class="row text-center mt-3">
+                        <div class="col-6 border-end">
+                            <h5 class="mb-1">{{ student.total_points }}</h5>
+                            <p class="text-muted mb-0"><small>Points</small></p>
+                        </div>
+                        <div class="col-6">
+                            <h5 class="mb-1">{{ student.streak_days }}</h5>
+                            <p class="text-muted mb-0"><small>Day Streak</small></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Info -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">Quick Info</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-2">
+                        <small class="text-muted">Age</small>
+                        <p class="mb-0">{{ student.age }} years</p>
+                    </div>
+                    <div class="mb-2">
+                        <small class="text-muted">Email</small>
+                        <p class="mb-0">{{ student.student_email|default:"Not provided" }}</p>
+                    </div>
+                    <div class="mb-2">
+                        <small class="text-muted">Current School</small>
+                        <p class="mb-0">{{ student.current_school|default:"Not provided" }}</p>
+                    </div>
+                    <div class="mb-2">
+                        <small class="text-muted">Enrolled Since</small>
+                        <p class="mb-0">{{ student.enrollment_date }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-9">
+            <!-- Stats Cards -->
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="card card-animate">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-grow-1">
+                                    <p class="text-uppercase fw-medium text-muted mb-0">Lessons</p>
+                                </div>
+                                <div class="flex-shrink-0">
+                                    <h5 class="text-success fs-14 mb-0">
+                                        <i class="ri-book-open-line align-middle"></i>
+                                    </h5>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-end justify-content-between mt-2">
+                                <div>
+                                    <h4 class="fs-22 fw-semibold ff-secondary mb-0">
+                                        <span class="counter-value" data-target="{{ lessons_completed }}">0</span>/{{ total_lessons }}
+                                    </h4>
+                                    <p class="text-muted mb-0">Completed</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card card-animate">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-grow-1">
+                                    <p class="text-uppercase fw-medium text-muted mb-0">Badges</p>
+                                </div>
+                                <div class="flex-shrink-0">
+                                    <h5 class="text-warning fs-14 mb-0">
+                                        <i class="ri-medal-line align-middle"></i>
+                                    </h5>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-end justify-content-between mt-2">
+                                <div>
+                                    <h4 class="fs-22 fw-semibold ff-secondary mb-0">
+                                        <span class="counter-value" data-target="{{ student.badges.count }}">0</span>
+                                    </h4>
+                                    <p class="text-muted mb-0">Earned</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card card-animate">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-grow-1">
+                                    <p class="text-uppercase fw-medium text-muted mb-0">Attendance</p>
+                                </div>
+                                <div class="flex-shrink-0">
+                                    <h5 class="text-info fs-14 mb-0">
+                                        <i class="ri-calendar-check-line align-middle"></i>
+                                    </h5>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-end justify-content-between mt-2">
+                                <div>
+                                    <h4 class="fs-22 fw-semibold ff-secondary mb-0">
+                                        <span class="counter-value" data-target="{{ attendance_percentage }}">0</span>%
+                                    </h4>
+                                    <p class="text-muted mb-0">This Month</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card card-animate">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-grow-1">
+                                    <p class="text-uppercase fw-medium text-muted mb-0">Avg Score</p>
+                                </div>
+                                <div class="flex-shrink-0">
+                                    <h5 class="text-primary fs-14 mb-0">
+                                        <i class="ri-star-line align-middle"></i>
+                                    </h5>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-end justify-content-between mt-2">
+                                <div>
+                                    <h4 class="fs-22 fw-semibold ff-secondary mb-0">
+                                        <span class="counter-value" data-target="{{ average_score }}">0</span>%
+                                    </h4>
+                                    <p class="text-muted mb-0">Overall</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Badges -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="ri-medal-fill text-warning"></i> Recent Achievements
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if student.badges.all %}
+                        <div class="row">
+                            {% for badge in student.badges.all|slice:":6" %}
+                                <div class="col-md-4 mb-3">
+                                    <div class="d-flex align-items-center p-3 border rounded">
+                                        <div class="flex-shrink-0">
+                                            <div class="avatar-sm">
+                                                <div class="avatar-title bg-warning-subtle text-warning rounded fs-3">
+                                                    {{ badge.badge_icon|default:"🏆" }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="flex-grow-1 ms-3">
+                                            <h6 class="mb-1">{{ badge.badge_name }}</h6>
+                                            <p class="text-muted mb-0"><small>{{ badge.earned_date|date:"M d, Y" }}</small></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <img src="{% static 'assets/images/empty-badge.png' %}" alt="No badges" class="mb-3" style="max-width: 150px;">
+                            <p class="text-muted">No badges earned yet. Keep learning to unlock achievements!</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Skill Progress -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="ri-bar-chart-line"></i> Skill Progress
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <h6 class="mb-0">Listening</h6>
+                            <span class="text-muted">{{ listening_progress|default:0 }}%</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: {{ listening_progress|default:0 }}%" aria-valuenow="{{ listening_progress|default:0 }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <h6 class="mb-0">Reading</h6>
+                            <span class="text-muted">{{ reading_progress|default:0 }}%</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ reading_progress|default:0 }}%" aria-valuenow="{{ reading_progress|default:0 }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <h6 class="mb-0">Writing</h6>
+                            <span class="text-muted">{{ writing_progress|default:0 }}%</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar bg-warning" role="progressbar" style="width: {{ writing_progress|default:0 }}%" aria-valuenow="{{ writing_progress|default:0 }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                    <div class="mb-0">
+                        <div class="d-flex justify-content-between mb-2">
+                            <h6 class="mb-0">Speaking</h6>
+                            <span class="text-muted">{{ speaking_progress|default:0 }}%</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar bg-info" role="progressbar" style="width: {{ speaking_progress|default:0 }}%" aria-valuenow="{{ speaking_progress|default:0 }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

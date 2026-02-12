@@ -1,0 +1,100 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>Login | Polymath School of English</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta content="Polymath School of English - Learning Management System" name="description" />
+    <meta content="Polymath" name="author" />
+    <!-- App favicon -->
+    <link rel="shortcut icon" href="{% static 'assets/images/favicon.ico' %}">
+
+    <!-- Bootstrap Css -->
+    <link href="{% static 'assets/css/bootstrap.min.css' %}" id="bootstrap-style" rel="stylesheet" type="text/css" />
+    <!-- Icons Css -->
+    <link href="{% static 'assets/css/icons.min.css' %}" rel="stylesheet" type="text/css" />
+    <!-- App Css-->
+    <link href="{% static 'assets/css/app.min.css' %}" id="app-style" rel="stylesheet" type="text/css" />
+    <!-- YLE Custom Styles -->
+    <link href="{% static 'assets/css/yle-custom.css' %}" rel="stylesheet" type="text/css"/>
+</head>
+
+<body>
+    <div class="login-container">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-12">
+                    <!-- Logo -->
+                    <div class="login-logo">
+                        <img src="{% static 'assets/images/logo-auth.jpg' %}" alt="Polymath School of English">
+                    </div>
+
+                    <!-- Login Card -->
+                    <div class="login-card">
+                        <h4 class="login-title">Welcome Back !</h4>
+                        <p class="login-subtitle">Sign in to continue to Polymath School of English.</p>
+
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+
+                        <form method="post" action="{% url 'login' %}">
+                            {% csrf_token %}
+
+                            <div class="mb-3">
+                                <label for="username" class="form-label">Username</label>
+                                <input type="text" class="form-control" id="username" name="username" placeholder="Enter username" required autofocus>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Password</label>
+                                <div class="password-field-wrapper">
+                                    <input type="password" class="form-control" name="password" id="password" placeholder="Enter password" required>
+                                    <i class="mdi mdi-eye-outline password-toggle" id="password-toggle"></i>
+                                </div>
+                            </div>
+
+                            <button class="btn btn-login" type="submit">Sign In</button>
+                        </form>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="footer-text">
+                        © 2026 Polymath School of English. Powered by Polymath IT Department
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT -->
+    <script src="{% static 'assets/libs/jquery/jquery.min.js' %}"></script>
+    <script src="{% static 'assets/libs/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+
+    <!-- Password toggle script -->
+    <script>
+        document.getElementById('password-toggle').addEventListener('click', function() {
+            var passwordInput = document.getElementById('password');
+            var icon = this;
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.remove('mdi-eye-outline');
+                icon.classList.add('mdi-eye-off-outline');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.remove('mdi-eye-off-outline');
+                icon.classList.add('mdi-eye-outline');
+            }
+        });
+    </script>
+</body>
+
+</html>

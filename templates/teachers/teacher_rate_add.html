@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block PageTitle %}Add Hourly Rate - Polymath School of English{% endblock %}
+{% block pageTitle %}Add Hourly Rate{% endblock %}
+{% block Title %}Teachers{% endblock %}
+{% block functionTitle %}Set New Hourly Rate for {{ teacher.full_name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="ri-money-dollar-circle-line me-2"></i>
+                    New Hourly Rate
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if current_rate %}
+                <div class="alert alert-info">
+                    <i class="ri-information-line me-2"></i>
+                    <strong>Current Rate:</strong> {{ current_rate.currency }} {{ current_rate.hourly_rate }}/hour
+                    (Effective from {{ current_rate.effective_from|date:"M d, Y" }})
+                </div>
+                {% endif %}
+
+                <form method="post" action="{% url 'teacher_rate_add' teacher.id %}">
+                    {% csrf_token %}
+
+                    <!-- Rate Amount -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="hourly_rate" class="form-label">Hourly Rate <span class="text-danger">*</span></label>
+                            <input type="number" step="0.01" class="form-control" id="hourly_rate" name="hourly_rate" required>
+                            <small class="text-muted">Enter the rate amount</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="currency" class="form-label">Currency <span class="text-danger">*</span></label>
+                            <select class="form-select" id="currency" name="currency" required>
+                                {% for code, name in currencies %}
+                                    <option value="{{ code }}" {% if code == 'LKR' %}selected{% endif %}>{{ name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Effective Period -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="effective_from" class="form-label">Effective From <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="effective_from" name="effective_from" required>
+                            <small class="text-muted">Date when this rate becomes active</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="effective_until" class="form-label">Effective Until</label>
+                            <input type="date" class="form-control" id="effective_until" name="effective_until">
+                            <small class="text-muted">Leave blank if this is the current rate</small>
+                        </div>
+                    </div>
+
+                    <!-- Current Status -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="is_current" name="is_current" checked>
+                                <label class="form-check-label" for="is_current">
+                                    Mark as Current Rate
+                                </label>
+                            </div>
+                            <small class="text-muted">If checked, this will become the active hourly rate</small>
+                        </div>
+                    </div>
+
+                    <!-- Reason -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <label for="reason" class="form-label">Reason for Rate Change</label>
+                            <textarea class="form-control" id="reason" name="reason" rows="3" placeholder="E.g., Annual increment, Performance bonus, Initial rate, etc."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-success btn-lg me-2">
+                            <i class="ri-save-line me-1"></i> Save Rate
+                        </button>
+                        <button type="button" onclick="window.history.back()" class="btn btn-secondary btn-lg me-2">
+                            <i class="ri-arrow-left-line me-1"></i> Cancel
+                        </button>
+                        <a href="{% url 'teacher_detail' teacher.id %}" class="btn btn-info btn-lg">
+                            <i class="ri-eye-line me-1"></i> View Teacher
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Card -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="ri-question-line me-2"></i>
+                    Rate Management Guide
+                </h6>
+            </div>
+            <div class="card-body">
+                <h6 class="fw-semibold">About Hourly Rates:</h6>
+                <ul class="mb-3">
+                    <li>All historical rates are preserved for audit purposes</li>
+                    <li>Only one rate can be marked as "current" at a time</li>
+                    <li>Previous rates are automatically marked as historical</li>
+                </ul>
+
+                <h6 class="fw-semibold">Best Practices:</h6>
+                <ul>
+                    <li>Always provide a reason for rate changes</li>
+                    <li>Set effective dates carefully</li>
+                    <li>Review current rate before adding new one</li>
+                    <li>Use consistent currency for each teacher</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

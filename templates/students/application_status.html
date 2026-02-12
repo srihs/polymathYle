@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block PageTitle %}Check Application Status - PolymathYLE{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                <h4 class="mb-sm-0">Check Application Status</h4>
+            </div>
+
+            <!-- Search Form -->
+            <div class="card">
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row align-items-end">
+                            <div class="col-md-5 mb-3">
+                                <label for="admission_number" class="form-label">Admission Number</label>
+                                <input type="text" class="form-control" name="admission_number" id="admission_number" placeholder="FCE-2026-0001" required>
+                            </div>
+                            <div class="col-md-5 mb-3">
+                                <label for="email" class="form-label">Email Address</label>
+                                <input type="email" class="form-control" name="email" id="email" placeholder="parent@email.com" required>
+                            </div>
+                            <div class="col-md-2 mb-3">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="ri-search-line"></i> Search
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Application Details (if found) -->
+            {% if application %}
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Application Details</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <h6 class="text-muted">Application Number</h6>
+                                <p class="fs-5"><strong>{{ application.admission_number }}</strong></p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="text-muted">Status</h6>
+                                <p>
+                                    {% if application.status == 'APPROVED' %}
+                                        <span class="badge bg-success fs-6">
+                                            <i class="ri-checkbox-circle-line"></i> Approved
+                                        </span>
+                                    {% elif application.status == 'PENDING' %}
+                                        <span class="badge bg-warning fs-6">
+                                            <i class="ri-time-line"></i> Pending Review
+                                        </span>
+                                    {% elif application.status == 'REJECTED' %}
+                                        <span class="badge bg-danger fs-6">
+                                            <i class="ri-close-circle-line"></i> Rejected
+                                        </span>
+                                    {% elif application.status == 'WAITLIST' %}
+                                        <span class="badge bg-info fs-6">
+                                            <i class="ri-list-check"></i> Waitlisted
+                                        </span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <h6 class="text-muted">Student Name</h6>
+                                <p>{{ application.full_name }}</p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <h6 class="text-muted">Date of Birth</h6>
+                                <p>{{ application.date_of_birth }}</p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <h6 class="text-muted">Application Date</h6>
+                                <p>{{ application.application_date }}</p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <h6 class="text-muted">Contact Email</h6>
+                                <p>{{ application.primary_contact_email }}</p>
+                            </div>
+                        </div>
+
+                        {% if application.status == 'APPROVED' %}
+                            <div class="alert alert-success">
+                                <h5 class="alert-heading"><i class="ri-check-line"></i> Congratulations!</h5>
+                                <p>Your application has been approved. Our team will contact you shortly with enrollment details.</p>
+                                {% if application.authorized_by %}
+                                    <hr>
+                                    <p class="mb-0"><small>Authorized by: {{ application.authorized_by }} on {{ application.authorization_date }}</small></p>
+                                {% endif %}
+                            </div>
+                        {% elif application.status == 'PENDING' %}
+                            <div class="alert alert-warning">
+                                <h5 class="alert-heading"><i class="ri-time-line"></i> Under Review</h5>
+                                <p class="mb-0">Your application is currently being reviewed by our admissions team. We will update you within 2-3 business days.</p>
+                            </div>
+                        {% elif application.status == 'WAITLIST' %}
+                            <div class="alert alert-info">
+                                <h5 class="alert-heading"><i class="ri-list-check"></i> Waitlisted</h5>
+                                <p class="mb-0">Your application has been placed on the waitlist. We will contact you if a spot becomes available.</p>
+                            </div>
+                        {% elif application.status == 'REJECTED' %}
+                            <div class="alert alert-danger">
+                                <h5 class="alert-heading"><i class="ri-close-circle-line"></i> Application Not Approved</h5>
+                                <p class="mb-0">Unfortunately, we are unable to approve your application at this time. Please contact our admissions office for more information.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% elif searched %}
+                <div class="alert alert-warning">
+                    <i class="ri-alert-line"></i> <strong>Application not found.</strong> Please check your admission number and email address and try again.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

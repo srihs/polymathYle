@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block PageTitle %}Edit Teacher - Polymath School of English{% endblock %}
+{% block pageTitle %}Edit Teacher{% endblock %}
+{% block Title %}Teachers{% endblock %}
+{% block functionTitle %}Edit Teacher Profile{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Teacher Information</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data" action="{% url 'teacher_edit' teacher.id %}">
+                    {% csrf_token %}
+
+                    <!-- Basic Information -->
+                    <h6 class="mb-3 text-uppercase fw-semibold">Basic Information</h6>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="full_name" class="form-label">Full Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="full_name" name="full_name" value="{{ teacher.full_name }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="employee_id" class="form-label">Employee ID <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="employee_id" name="employee_id" value="{{ teacher.employee_id }}" required>
+                        </div>
+                    </div>
+
+                    <!-- Contact Information -->
+                    <h6 class="mb-3 text-uppercase fw-semibold mt-4">Contact Information</h6>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ teacher.email }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="contact_number" class="form-label">Contact Number <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="contact_number" name="contact_number" value="{{ teacher.contact_number }}" required>
+                        </div>
+                    </div>
+
+                    <!-- Account Information -->
+                    <h6 class="mb-3 text-uppercase fw-semibold mt-4">Login Account</h6>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="username" class="form-label">Username <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="username" name="username" value="{{ teacher.user.username }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="text" class="form-control" id="password" name="password" placeholder="Leave blank to keep current password">
+                            <small class="form-text text-muted">Only fill if you want to change the password</small>
+                        </div>
+                    </div>
+
+                    <!-- Professional Details -->
+                    <h6 class="mb-3 text-uppercase fw-semibold mt-4">Professional Details</h6>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="years_of_experience" class="form-label">Years of Experience</label>
+                            <input type="number" class="form-control" id="years_of_experience" name="years_of_experience" value="{{ teacher.years_of_experience }}" min="0">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="date_joined" class="form-label">Date Joined <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="date_joined" name="date_joined" value="{{ teacher.date_joined|date:'Y-m-d' }}" required>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="employment_type" class="form-label">Employment Type</label>
+                            <select class="form-select" id="employment_type" name="employment_type">
+                                <option value="FULL_TIME" {% if teacher.employment_type == 'FULL_TIME' %}selected{% endif %}>Full Time</option>
+                                <option value="PART_TIME" {% if teacher.employment_type == 'PART_TIME' %}selected{% endif %}>Part Time</option>
+                                <option value="CONTRACT" {% if teacher.employment_type == 'CONTRACT' %}selected{% endif %}>Contract</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="profile_picture" class="form-label">Profile Picture</label>
+                            <input type="file" class="form-control" id="profile_picture" name="profile_picture" accept="image/*">
+                            {% if teacher.profile_picture %}
+                                <small class="form-text text-muted">Current: {{ teacher.profile_picture.name }}</small>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <label for="qualifications" class="form-label">Qualifications</label>
+                            <textarea class="form-control" id="qualifications" name="qualifications" rows="2">{{ teacher.qualifications }}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <label for="bio" class="form-label">Biography</label>
+                            <textarea class="form-control" id="bio" name="bio" rows="3">{{ teacher.bio }}</textarea>
+                        </div>
+                    </div>
+
+                    <!-- YLE Level Specializations -->
+                    <h6 class="mb-3 text-uppercase fw-semibold mt-4">YLE Level Specializations</h6>
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="teaches_starters" name="teaches_starters" {% if teacher.teaches_starters %}checked{% endif %}>
+                                <label class="form-check-label" for="teaches_starters">Pre A1 Starters</label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="teaches_movers" name="teaches_movers" {% if teacher.teaches_movers %}checked{% endif %}>
+                                <label class="form-check-label" for="teaches_movers">A1 Movers</label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="teaches_flyers" name="teaches_flyers" {% if teacher.teaches_flyers %}checked{% endif %}>
+                                <label class="form-check-label" for="teaches_flyers">A2 Flyers</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Skill Specializations -->
+                    <h6 class="mb-3 text-uppercase fw-semibold mt-4">Skill Specializations</h6>
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="specializes_listening" name="specializes_listening" {% if teacher.specializes_listening %}checked{% endif %}>
+                                <label class="form-check-label" for="specializes_listening">Listening</label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="specializes_reading" name="specializes_reading" {% if teacher.specializes_reading %}checked{% endif %}>
+                                <label class="form-check-label" for="specializes_reading">Reading</label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="specializes_writing" name="specializes_writing" {% if teacher.specializes_writing %}checked{% endif %}>
+                                <label class="form-check-label" for="specializes_writing">Writing</label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="specializes_speaking" name="specializes_speaking" {% if teacher.specializes_speaking %}checked{% endif %}>
+                                <label class="form-check-label" for="specializes_speaking">Speaking</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Status -->
+                    <h6 class="mb-3 text-uppercase fw-semibold mt-4">Account Status</h6>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="is_active" name="is_active" {% if teacher.is_active %}checked{% endif %}>
+                                <label class="form-check-label" for="is_active">Active</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-success btn-lg me-2">
+                            <i class="ri-save-line me-1"></i> Save Changes
+                        </button>
+                        <button type="button" onclick="window.history.back()" class="btn btn-secondary btn-lg me-2">
+                            <i class="ri-arrow-left-line me-1"></i> Back
+                        </button>
+                        <a href="{% url 'teacher_detail' teacher.id %}" class="btn btn-info btn-lg me-2">
+                            <i class="ri-eye-line me-1"></i> View Profile
+                        </a>
+                        <a href="{% url 'teacher_list' %}" class="btn btn-primary btn-lg">
+                            <i class="ri-team-line me-1"></i> All Teachers
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
