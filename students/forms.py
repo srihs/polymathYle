@@ -6,6 +6,10 @@ class ApplicationForm(forms.ModelForm):
     """
     Online application form for Cambridge English Young Learners program
     """
+    gender = forms.ChoiceField(
+        choices=[('', 'Gender')] + Application.GENDER_CHOICES,
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
 
     class Meta:
         model = Application
@@ -21,82 +25,84 @@ class ApplicationForm(forms.ModelForm):
         widgets = {
             'name_with_initials': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Y.M. Minuli Sanindi Liyansha Yapa'
+                'placeholder': 'Name with Initials'
             }),
             'full_name': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Minuli Sanindi Liyansha Yapa'
+                'placeholder': 'Full Name'
             }),
-            'date_of_birth': forms.DateInput(attrs={
-                'class': 'form-control',
-                'type': 'date'
+            'date_of_birth': forms.TextInput(attrs={
+                'class': 'form-control flatpickr-input',
+                'placeholder': 'Date of Birth',
+                'data-provider': 'flatpickr',
+                'data-date-format': 'Y-m-d'
             }),
             'gender': forms.Select(attrs={
                 'class': 'form-select'
             }),
             'nationality': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Sinhalese'
+                'placeholder': 'Nationality'
             }),
             'student_email': forms.EmailInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'student@email.com'
+                'placeholder': 'Student Email'
             }),
             'student_nic': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': '200012345678 or 901234567V'
+                'placeholder': 'Student NIC'
             }),
             'current_school': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Polymath College'
+                'placeholder': 'Current School'
             }),
             'siblings_info': forms.Textarea(attrs={
                 'class': 'form-control',
-                'rows': 3,
-                'placeholder': 'Names and levels of siblings currently attending (if any)'
+                'rows': 2,
+                'placeholder': 'Siblings at Polymath'
             }),
 
             # Mother's Information
             'mother_name': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'K.G. Pradeepa Udayangani Jayalath'
+                'placeholder': "Mother's Name"
             }),
             'mother_contact_number': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': '0771234567'
+                'placeholder': "Mother's Contact Number"
             }),
             'mother_occupation': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Teacher'
+                'placeholder': "Mother's Occupation"
             }),
 
             # Father's Information
             'father_name': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Y.M. Jagath Manjula Yapa'
+                'placeholder': "Father's Name"
             }),
             'father_contact_number': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': '0771234567'
+                'placeholder': "Father's Contact Number"
             }),
             'father_occupation': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Business'
+                'placeholder': "Father's Occupation"
             }),
 
             # Contact Information
             'home_address': forms.Textarea(attrs={
                 'class': 'form-control',
-                'rows': 3,
-                'placeholder': 'No. 20, 2nd Lane, Gammana Rd, Maharagama'
+                'rows': 2,
+                'placeholder': 'Home Address'
             }),
             'whatsapp_number': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': '0771234567'
+                'placeholder': 'WhatsApp Number'
             }),
             'primary_contact_email': forms.EmailInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'parent@email.com'
+                'placeholder': 'Primary Contact Email'
             }),
 
             # Schedule Preferences
@@ -105,8 +111,8 @@ class ApplicationForm(forms.ModelForm):
             # Special Comments
             'special_comments': forms.Textarea(attrs={
                 'class': 'form-control',
-                'rows': 4,
-                'placeholder': 'Any additional information...'
+                'rows': 3,
+                'placeholder': 'Additional Information'
             }),
 
             # Terms

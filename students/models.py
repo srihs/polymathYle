@@ -55,7 +55,7 @@ class Application(models.Model):
     # STUDENT PERSONAL INFORMATION
     name_with_initials = models.CharField(max_length=200)
     full_name = models.CharField(max_length=200)
-    nationality = models.CharField(max_length=100, default='Sinhalese')
+    nationality = models.CharField(max_length=100, blank=True)
     date_of_birth = models.DateField()
     age = models.IntegerField(blank=True, null=True)  # Auto-calculated
 

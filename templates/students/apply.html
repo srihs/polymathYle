@@ -7,423 +7,1193 @@
 {% block functionTitle %}Online Application Form{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-lg-8">
-        <div class="card">
-            <div class="card-header border-bottom">
-                <div class="d-flex align-items-center">
-                    <div class="avatar-sm me-3">
-                        <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
-                            <i class="ri-file-add-line fs-4"></i>
-                        </span>
+<style>
+/* ========================================
+   Wizard Stepper Styles
+   ======================================== */
+.wizard-steps {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: 0.5rem 0;
+    gap: 0;
+}
+
+.wizard-step {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center;
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    min-width: 100px;
+    transition: all 0.3s ease;
+}
+
+.wizard-step:hover:not(.active) {
+    opacity: 0.8;
+}
+
+.wizard-step:focus {
+    outline: 2px solid #660066;
+    outline-offset: 2px;
+    border-radius: 8px;
+}
+
+.wizard-step-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    background: #e9ecef;
+    color: #6c757d;
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.wizard-step-icon .step-check {
+    display: none;
+}
+
+.wizard-step.active .wizard-step-icon {
+    background: linear-gradient(135deg, #660066 0%, #993399 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(102, 0, 102, 0.3);
+    transform: scale(1.1);
+}
+
+.wizard-step.completed .wizard-step-icon {
+    background: #198754;
+    color: white;
+}
+
+.wizard-step.completed .wizard-step-icon .step-number {
+    display: none;
+}
+
+.wizard-step.completed .wizard-step-icon .step-check {
+    display: block;
+}
+
+.wizard-step-label {
+    text-align: center;
+}
+
+.step-title {
+    display: block;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #495057;
+}
+
+.wizard-step.active .step-title {
+    color: #660066;
+}
+
+.wizard-step.completed .step-title {
+    color: #198754;
+}
+
+.step-subtitle {
+    display: block;
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+
+.wizard-step-connector {
+    flex: 0 0 auto;
+    width: 40px;
+    height: 3px;
+    background: #e9ecef;
+    margin: 0;
+    margin-bottom: 2rem;
+    transition: background 0.3s ease;
+    align-self: flex-start;
+    margin-top: 22px;
+}
+
+.wizard-step-connector.completed {
+    background: #198754;
+}
+
+/* ========================================
+   Wizard Panels
+   ======================================== */
+.wizard-panel {
+    display: none !important;
+}
+
+.wizard-panel.active {
+    display: block !important;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.step-header {
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e9ecef;
+    margin-bottom: 1.5rem;
+}
+
+/* ========================================
+   Schedule Picker Styles
+   ======================================== */
+.schedule-table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.schedule-table th,
+.schedule-table td {
+    border: 1px solid #dee2e6;
+    vertical-align: middle;
+}
+
+.schedule-table thead th {
+    background: #f8f9fa;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.schedule-btn {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px !important;
+    transition: all 0.2s ease;
+    margin: auto;
+}
+
+.schedule-btn i {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.btn-check:checked + .schedule-btn {
+    background: #660066 !important;
+    border-color: #660066 !important;
+    color: white !important;
+}
+
+.btn-check:checked + .schedule-btn i {
+    opacity: 1;
+}
+
+.btn-check:checked + .btn-outline-warning {
+    background: #ffc107 !important;
+    border-color: #ffc107 !important;
+    color: #000 !important;
+}
+
+.table-warning-subtle {
+    background-color: rgba(255, 193, 7, 0.08) !important;
+}
+
+/* ========================================
+   Parent Section Styles
+   ======================================== */
+.parent-section {
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
+}
+
+/* ========================================
+   Review Summary Styles
+   ======================================== */
+.review-section .card {
+    transition: box-shadow 0.2s ease;
+}
+
+.review-section .card:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.terms-scroll {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 1rem;
+    background: #f8f9fa;
+}
+
+/* ========================================
+   Form Enhancements
+   ======================================== */
+.form-control:focus,
+.form-select:focus {
+    border-color: #660066;
+    box-shadow: 0 0 0 0.2rem rgba(102, 0, 102, 0.15);
+}
+
+.form-control.is-valid,
+.form-select.is-valid {
+    border-color: #198754;
+}
+
+.form-control.is-invalid,
+.form-select.is-invalid {
+    border-color: #dc3545;
+}
+
+/* ========================================
+   Alert Styles
+   ======================================== */
+.alert-info-subtle {
+    background-color: rgba(13, 202, 240, 0.1);
+    color: #055160;
+}
+
+/* ========================================
+   Avatar Styles
+   ======================================== */
+.avatar-md {
+    width: 56px;
+    height: 56px;
+}
+
+.avatar-sm {
+    width: 32px;
+    height: 32px;
+}
+
+.avatar-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+/* Pink color for mother section */
+.bg-pink-subtle {
+    background-color: rgba(255, 105, 180, 0.15) !important;
+}
+.text-pink {
+    color: #e91e8c !important;
+}
+
+/* ========================================
+   Responsive Adjustments
+   ======================================== */
+@media (max-width: 768px) {
+    .wizard-step {
+        min-width: 70px;
+        padding: 0.25rem 0.5rem;
+    }
+
+    .wizard-step-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 0.9rem;
+    }
+
+    .step-title {
+        font-size: 0.7rem;
+    }
+
+    .wizard-step-connector {
+        width: 20px;
+        margin-top: 16px;
+    }
+
+    .schedule-btn {
+        width: 36px;
+        height: 36px;
+    }
+
+    .schedule-table thead th small {
+        display: none;
+    }
+}
+
+@media (max-width: 576px) {
+    .wizard-step-label {
+        display: none;
+    }
+
+    .wizard-step-icon {
+        margin-bottom: 0;
+    }
+
+    .wizard-step-connector {
+        margin-bottom: 0;
+        margin-top: 16px;
+    }
+
+    .wizard-step {
+        min-width: auto;
+        padding: 0.25rem;
+    }
+}
+
+/* ========================================
+   Print Styles
+   ======================================== */
+@media print {
+    .wizard-nav,
+    .wizard-steps,
+    .edit-section-btn {
+        display: none !important;
+    }
+
+    .wizard-panel {
+        display: block !important;
+        page-break-inside: avoid;
+    }
+}
+</style>
+<div class="row justify-content-center">
+    <div class="col-xl-10 col-lg-11">
+        <!-- Application Header -->
+        <div class="card mb-4 border-0 shadow-sm">
+            <div class="card-body py-4">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-md me-3 d-none d-sm-block">
+                                <span class="avatar-title bg-primary-subtle text-primary rounded-circle fs-2">
+                                    <i class="ri-graduation-cap-line"></i>
+                                </span>
+                            </div>
+                            <div>
+                                <h4 class="mb-1">Cambridge English Young Learners</h4>
+                                <p class="text-muted mb-0">Complete this application to enroll your child in our program</p>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <h5 class="card-title mb-0">Cambridge English Young Learners Application</h5>
-                        <p class="text-muted mb-0 small">Fill in the details below to apply for enrollment</p>
+                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                        <span class="badge bg-info-subtle text-info fs-6 py-2 px-3">
+                            <i class="ri-time-line me-1"></i>Takes about 5 minutes
+                        </span>
                     </div>
                 </div>
             </div>
-            <div class="card-body">
-                <!-- Form Progress Indicator -->
-                <div class="mb-4">
-                    <div class="d-flex justify-content-between mb-2 flex-wrap gap-1">
-                        <span class="badge bg-primary-subtle text-primary" id="step1Badge">Step 1: Student Info</span>
-                        <span class="badge bg-light text-muted" id="step2Badge">Step 2: Parents</span>
-                        <span class="badge bg-light text-muted" id="step3Badge">Step 3: Contact</span>
-                        <span class="badge bg-light text-muted" id="step4Badge">Step 4: Submit</span>
+        </div>
+
+        <!-- Progress Stepper -->
+        <nav class="card mb-4 border-0 shadow-sm" aria-label="Application progress">
+            <div class="card-body py-3">
+                <div class="wizard-steps" role="tablist">
+                    <div class="wizard-step active" data-step="1" role="tab" aria-selected="true" aria-controls="step1-panel" tabindex="0">
+                        <div class="wizard-step-icon">
+                            <span class="step-number">1</span>
+                            <i class="ri-check-line step-check"></i>
+                        </div>
+                        <div class="wizard-step-label">
+                            <span class="step-title">Child's Info</span>
+                            <span class="step-subtitle d-none d-md-block">Basic details</span>
+                        </div>
                     </div>
-                    <div class="progress" style="height: 4px;" role="progressbar" aria-label="Form progress" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
-                        <div class="progress-bar" id="formProgress" style="width: 25%"></div>
+                    <div class="wizard-step-connector"></div>
+                    <div class="wizard-step" data-step="2" role="tab" aria-selected="false" aria-controls="step2-panel" tabindex="-1">
+                        <div class="wizard-step-icon">
+                            <span class="step-number">2</span>
+                            <i class="ri-check-line step-check"></i>
+                        </div>
+                        <div class="wizard-step-label">
+                            <span class="step-title">Parents</span>
+                            <span class="step-subtitle d-none d-md-block">Guardian info</span>
+                        </div>
+                    </div>
+                    <div class="wizard-step-connector"></div>
+                    <div class="wizard-step" data-step="3" role="tab" aria-selected="false" aria-controls="step3-panel" tabindex="-1">
+                        <div class="wizard-step-icon">
+                            <span class="step-number">3</span>
+                            <i class="ri-check-line step-check"></i>
+                        </div>
+                        <div class="wizard-step-label">
+                            <span class="step-title">Contact</span>
+                            <span class="step-subtitle d-none d-md-block">Address & phone</span>
+                        </div>
+                    </div>
+                    <div class="wizard-step-connector"></div>
+                    <div class="wizard-step" data-step="4" role="tab" aria-selected="false" aria-controls="step4-panel" tabindex="-1">
+                        <div class="wizard-step-icon">
+                            <span class="step-number">4</span>
+                            <i class="ri-check-line step-check"></i>
+                        </div>
+                        <div class="wizard-step-label">
+                            <span class="step-title">Schedule</span>
+                            <span class="step-subtitle d-none d-md-block">Preferences</span>
+                        </div>
+                    </div>
+                    <div class="wizard-step-connector"></div>
+                    <div class="wizard-step" data-step="5" role="tab" aria-selected="false" aria-controls="step5-panel" tabindex="-1">
+                        <div class="wizard-step-icon">
+                            <span class="step-number">5</span>
+                            <i class="ri-check-line step-check"></i>
+                        </div>
+                        <div class="wizard-step-label">
+                            <span class="step-title">Review</span>
+                            <span class="step-subtitle d-none d-md-block">Submit</span>
+                        </div>
                     </div>
                 </div>
+                <!-- Mobile Progress Bar -->
+                <div class="d-md-none mt-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <small class="text-muted">Step <span id="currentStepMobile">1</span> of 5</small>
+                        <small class="text-muted"><span id="progressPercent">20</span>% complete</small>
+                    </div>
+                    <div class="progress" style="height: 6px;" role="progressbar" aria-label="Form progress" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100">
+                        <div class="progress-bar bg-primary" id="mobileProgress" style="width: 20%"></div>
+                    </div>
+                </div>
+            </div>
+        </nav>
 
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                            <i class="ri-{% if message.tags == 'success' %}check{% elif message.tags == 'error' %}error-warning{% else %}information{% endif %}-line me-2"></i>
-                            {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    {% endfor %}
-                {% endif %}
+        <!-- Alert Messages -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    <i class="ri-{% if message.tags == 'success' %}checkbox-circle{% elif message.tags == 'error' %}error-warning{% else %}information{% endif %}-line me-2"></i>
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
 
+        <!-- Form Error Summary -->
+        <div class="alert alert-danger d-none" id="errorSummary" role="alert" aria-live="polite">
+            <h6 class="alert-heading mb-2">
+                <i class="ri-error-warning-line me-2"></i>Please correct the following errors:
+            </h6>
+            <ul class="mb-0 ps-3" id="errorList"></ul>
+        </div>
+
+        <!-- Main Form Card -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4 p-md-5">
                 <form method="post" enctype="multipart/form-data" id="applicationForm" novalidate>
                     {% csrf_token %}
+                    {{ form.schedule_preferences }}
 
-                    <!-- Student Personal Information -->
-                    <fieldset class="mb-4">
-                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
-                            <i class="ri-user-line me-2"></i>Student Information
-                        </legend>
+                    <!-- Step 1: Child's Information -->
+                    <div class="wizard-panel active" id="step1-panel" role="tabpanel" aria-labelledby="step1">
+                        <div class="step-header mb-4">
+                            <h5 class="mb-1">
+                                <i class="ri-user-smile-line text-primary me-2"></i>
+                                Tell us about your child
+                            </h5>
+                            <p class="text-muted mb-0">Please provide accurate information as it will appear on certificates</p>
+                        </div>
+
                         <div class="row g-3">
+                            <!-- Name with Initials -->
                             <div class="col-md-6">
-                                <label for="name_with_initials" class="form-label">
-                                    Name with Initials <span class="text-danger" aria-label="required">*</span>
-                                </label>
-                                <div class="input-group has-validation">
-                                    <span class="input-group-text"><i class="ri-text"></i></span>
-                                    {{ form.name_with_initials }}
-                                    <div class="invalid-feedback">
-                                        {% if form.name_with_initials.errors %}{{ form.name_with_initials.errors }}{% else %}Please enter name with initials.{% endif %}
-                                    </div>
-                                </div>
-                                <div class="form-text">e.g., K.M. Silva</div>
+                                {{ form.name_with_initials }}
+                                <div class="invalid-feedback" id="name_with_initials-error"></div>
                             </div>
 
+                            <!-- Full Name -->
                             <div class="col-md-6">
-                                <label for="full_name" class="form-label">
-                                    Full Name <span class="text-danger" aria-label="required">*</span>
-                                </label>
-                                <div class="input-group has-validation">
-                                    <span class="input-group-text"><i class="ri-user-line"></i></span>
-                                    {{ form.full_name }}
-                                    <div class="invalid-feedback">
-                                        {% if form.full_name.errors %}{{ form.full_name.errors }}{% else %}Please enter full name.{% endif %}
-                                    </div>
-                                </div>
-                                <div class="form-text">e.g., Kamal Mahinda Silva</div>
+                                {{ form.full_name }}
+                                <div class="invalid-feedback" id="full_name-error"></div>
                             </div>
 
+                            <!-- Date of Birth -->
                             <div class="col-md-4">
-                                <label for="date_of_birth" class="form-label">
-                                    Date of Birth <span class="text-danger" aria-label="required">*</span>
-                                </label>
-                                <div class="input-group has-validation">
-                                    <span class="input-group-text"><i class="ri-calendar-line"></i></span>
-                                    {{ form.date_of_birth }}
-                                    <div class="invalid-feedback">
-                                        {% if form.date_of_birth.errors %}{{ form.date_of_birth.errors }}{% else %}Please select date of birth.{% endif %}
-                                    </div>
-                                </div>
+                                {{ form.date_of_birth }}
+                                <div class="invalid-feedback" id="date_of_birth-error"></div>
                             </div>
 
+                            <!-- Gender -->
                             <div class="col-md-4">
-                                <label for="gender" class="form-label">
-                                    Gender <span class="text-danger" aria-label="required">*</span>
-                                </label>
-                                <div class="input-group has-validation">
-                                    <span class="input-group-text"><i class="ri-genderless-line"></i></span>
-                                    {{ form.gender }}
-                                    <div class="invalid-feedback">
-                                        {% if form.gender.errors %}{{ form.gender.errors }}{% else %}Please select gender.{% endif %}
-                                    </div>
-                                </div>
+                                {{ form.gender }}
+                                <div class="invalid-feedback" id="gender-error"></div>
                             </div>
 
+                            <!-- Nationality -->
                             <div class="col-md-4">
-                                <label for="nationality" class="form-label">Nationality</label>
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="ri-global-line"></i></span>
-                                    {{ form.nationality }}
-                                </div>
+                                {{ form.nationality }}
                             </div>
 
-                            <div class="col-md-4">
-                                <label for="student_email" class="form-label">Student Email (if any)</label>
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="ri-mail-line"></i></span>
-                                    {{ form.student_email }}
-                                </div>
-                                <div class="form-text">Optional - for older students</div>
+                            <!-- Current School -->
+                            <div class="col-md-6">
+                                {{ form.current_school }}
                             </div>
 
-                            <div class="col-md-4">
-                                <label for="student_nic" class="form-label">Student NIC (if any)</label>
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="ri-bank-card-line"></i></span>
-                                    {{ form.student_nic }}
-                                </div>
-                                <div class="form-text">National Identity Card number</div>
+                            <!-- Student Email (Optional) -->
+                            <div class="col-md-6">
+                                {{ form.student_email }}
+                                <div class="invalid-feedback" id="student_email-error"></div>
                             </div>
 
-                            <div class="col-md-4">
-                                <label for="current_school" class="form-label">Current School</label>
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="ri-school-line"></i></span>
-                                    {{ form.current_school }}
-                                </div>
+                            <!-- Student NIC (Optional) -->
+                            <div class="col-md-6">
+                                {{ form.student_nic }}
                             </div>
 
-                            <div class="col-12">
-                                <label for="siblings_info" class="form-label">Siblings Currently Attending (if any)</label>
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="ri-group-line"></i></span>
-                                    {{ form.siblings_info }}
-                                </div>
-                                <div class="form-text">Please provide names and levels of siblings</div>
+                            <!-- Siblings Info -->
+                            <div class="col-md-6">
+                                {{ form.siblings_info }}
                             </div>
                         </div>
-                    </fieldset>
 
-                    <!-- Mother Information -->
-                    <fieldset class="mb-4">
-                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
-                            <i class="ri-women-line me-2"></i>Mother's Information
-                        </legend>
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <label for="mother_name" class="form-label">
-                                    Mother's Name <span class="text-danger" aria-label="required">*</span>
-                                </label>
-                                <div class="input-group has-validation">
-                                    <span class="input-group-text"><i class="ri-user-line"></i></span>
+                        <!-- Step 1 Helpful Info -->
+                        <div class="alert alert-light border mt-4 mb-0" role="note">
+                            <div class="d-flex">
+                                <div class="flex-shrink-0">
+                                    <i class="ri-information-line fs-4 text-primary"></i>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="mb-1">Why we need this information</h6>
+                                    <p class="mb-0 small text-muted">
+                                        Your child's name and date of birth will be used for Cambridge certification.
+                                        Please ensure accuracy as certificates cannot be easily corrected.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Parent/Guardian Information -->
+                    <div class="wizard-panel" id="step2-panel" role="tabpanel" aria-labelledby="step2">
+                        <div class="step-header mb-4">
+                            <h5 class="mb-1">
+                                <i class="ri-parent-line text-primary me-2"></i>
+                                Parent/Guardian Information
+                            </h5>
+                            <p class="text-muted mb-0">We need at least one parent's contact details</p>
+                        </div>
+
+                        <!-- Mother's Information -->
+                        <div class="parent-section mb-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <span class="avatar-sm bg-pink-subtle text-pink rounded-circle me-2 d-flex align-items-center justify-content-center">
+                                    <i class="ri-women-line"></i>
+                                </span>
+                                <h6 class="mb-0">Mother's Information</h6>
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-md-4">
                                     {{ form.mother_name }}
-                                    <div class="invalid-feedback">
-                                        {% if form.mother_name.errors %}{{ form.mother_name.errors }}{% else %}Please enter mother's name.{% endif %}
-                                    </div>
+                                    <div class="invalid-feedback" id="mother_name-error"></div>
                                 </div>
-                            </div>
-
-                            <div class="col-md-4">
-                                <label for="mother_contact_number" class="form-label">
-                                    Contact Number <span class="text-danger" aria-label="required">*</span>
-                                </label>
-                                <div class="input-group has-validation">
-                                    <span class="input-group-text"><i class="ri-phone-line"></i></span>
+                                <div class="col-md-4">
                                     {{ form.mother_contact_number }}
-                                    <div class="invalid-feedback">
-                                        {% if form.mother_contact_number.errors %}{{ form.mother_contact_number.errors }}{% else %}Please enter contact number.{% endif %}
-                                    </div>
+                                    <div class="invalid-feedback" id="mother_contact_number-error"></div>
                                 </div>
-                                <div class="form-text">e.g., +94 77 123 4567</div>
-                            </div>
-
-                            <div class="col-md-4">
-                                <label for="mother_occupation" class="form-label">Occupation</label>
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="ri-briefcase-line"></i></span>
+                                <div class="col-md-4">
                                     {{ form.mother_occupation }}
                                 </div>
                             </div>
                         </div>
-                    </fieldset>
 
-                    <!-- Father Information -->
-                    <fieldset class="mb-4">
-                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
-                            <i class="ri-men-line me-2"></i>Father's Information
-                        </legend>
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <label for="father_name" class="form-label">
-                                    Father's Name <span class="text-danger" aria-label="required">*</span>
-                                </label>
-                                <div class="input-group has-validation">
-                                    <span class="input-group-text"><i class="ri-user-line"></i></span>
+                        <!-- Father's Information -->
+                        <div class="parent-section">
+                            <div class="d-flex align-items-center mb-3">
+                                <span class="avatar-sm bg-info-subtle text-info rounded-circle me-2 d-flex align-items-center justify-content-center">
+                                    <i class="ri-men-line"></i>
+                                </span>
+                                <h6 class="mb-0">Father's Information</h6>
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-md-4">
                                     {{ form.father_name }}
-                                    <div class="invalid-feedback">
-                                        {% if form.father_name.errors %}{{ form.father_name.errors }}{% else %}Please enter father's name.{% endif %}
-                                    </div>
+                                    <div class="invalid-feedback" id="father_name-error"></div>
                                 </div>
-                            </div>
-
-                            <div class="col-md-4">
-                                <label for="father_contact_number" class="form-label">
-                                    Contact Number <span class="text-danger" aria-label="required">*</span>
-                                </label>
-                                <div class="input-group has-validation">
-                                    <span class="input-group-text"><i class="ri-phone-line"></i></span>
+                                <div class="col-md-4">
                                     {{ form.father_contact_number }}
-                                    <div class="invalid-feedback">
-                                        {% if form.father_contact_number.errors %}{{ form.father_contact_number.errors }}{% else %}Please enter contact number.{% endif %}
-                                    </div>
+                                    <div class="invalid-feedback" id="father_contact_number-error"></div>
                                 </div>
-                                <div class="form-text">e.g., +94 77 123 4567</div>
-                            </div>
-
-                            <div class="col-md-4">
-                                <label for="father_occupation" class="form-label">Occupation</label>
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="ri-briefcase-line"></i></span>
+                                <div class="col-md-4">
                                     {{ form.father_occupation }}
                                 </div>
                             </div>
                         </div>
-                    </fieldset>
 
-                    <!-- Contact Information -->
-                    <fieldset class="mb-4">
-                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
-                            <i class="ri-map-pin-line me-2"></i>Contact Information
-                        </legend>
-                        <div class="row g-3">
-                            <div class="col-12">
-                                <label for="home_address" class="form-label">
-                                    Home Address <span class="text-danger" aria-label="required">*</span>
-                                </label>
-                                <div class="input-group has-validation">
-                                    <span class="input-group-text"><i class="ri-home-line"></i></span>
-                                    {{ form.home_address }}
-                                    <div class="invalid-feedback">
-                                        {% if form.home_address.errors %}{{ form.home_address.errors }}{% else %}Please enter home address.{% endif %}
-                                    </div>
+                        <!-- Step 2 Note -->
+                        <div class="alert alert-light border mt-4 mb-0" role="note">
+                            <div class="d-flex">
+                                <div class="flex-shrink-0">
+                                    <i class="ri-shield-check-line fs-4 text-success"></i>
                                 </div>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label for="whatsapp_number" class="form-label">
-                                    WhatsApp Number <span class="text-danger" aria-label="required">*</span>
-                                </label>
-                                <div class="input-group has-validation">
-                                    <span class="input-group-text"><i class="ri-whatsapp-line text-success"></i></span>
-                                    {{ form.whatsapp_number }}
-                                    <div class="invalid-feedback">
-                                        {% if form.whatsapp_number.errors %}{{ form.whatsapp_number.errors }}{% else %}Please enter WhatsApp number.{% endif %}
-                                    </div>
-                                </div>
-                                <div class="form-text">We'll use this for quick updates</div>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label for="primary_contact_email" class="form-label">
-                                    Primary Email <span class="text-danger" aria-label="required">*</span>
-                                </label>
-                                <div class="input-group has-validation">
-                                    <span class="input-group-text"><i class="ri-mail-line"></i></span>
-                                    {{ form.primary_contact_email }}
-                                    <div class="invalid-feedback">
-                                        {% if form.primary_contact_email.errors %}{{ form.primary_contact_email.errors }}{% else %}Please enter email address.{% endif %}
-                                    </div>
-                                </div>
-                                <div class="form-text">For official correspondence</div>
-                            </div>
-                        </div>
-                    </fieldset>
-
-                    <!-- Class Schedule Preferences -->
-                    <fieldset class="mb-4">
-                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
-                            <i class="ri-calendar-schedule-line me-2"></i>Class Schedule Preferences
-                        </legend>
-                        <p class="text-muted small mb-3">Please select your preferred class days and times. We will try to accommodate your preferences.</p>
-
-                        {{ form.schedule_preferences }}
-
-                        <div class="row g-3">
-                            <!-- Weekdays -->
-                            <div class="col-12">
-                                <label class="form-label fw-medium">Weekday Preferences</label>
-                                <div class="d-flex flex-wrap gap-2">
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input schedule-check" type="checkbox" id="pref_mon" data-day="monday">
-                                        <label class="form-check-label" for="pref_mon">Monday</label>
-                                    </div>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input schedule-check" type="checkbox" id="pref_tue" data-day="tuesday">
-                                        <label class="form-check-label" for="pref_tue">Tuesday</label>
-                                    </div>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input schedule-check" type="checkbox" id="pref_wed" data-day="wednesday">
-                                        <label class="form-check-label" for="pref_wed">Wednesday</label>
-                                    </div>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input schedule-check" type="checkbox" id="pref_thu" data-day="thursday">
-                                        <label class="form-check-label" for="pref_thu">Thursday</label>
-                                    </div>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input schedule-check" type="checkbox" id="pref_fri" data-day="friday">
-                                        <label class="form-check-label" for="pref_fri">Friday</label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Saturday -->
-                            <div class="col-md-6">
-                                <label class="form-label fw-medium">Saturday Preferences</label>
-                                <div class="d-flex flex-column gap-1">
-                                    <div class="form-check">
-                                        <input class="form-check-input schedule-check" type="checkbox" id="pref_sat_morning" data-day="saturday" data-slot="morning">
-                                        <label class="form-check-label" for="pref_sat_morning">Morning Class</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input schedule-check" type="checkbox" id="pref_sat_afternoon" data-day="saturday" data-slot="afternoon">
-                                        <label class="form-check-label" for="pref_sat_afternoon">Afternoon Class</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input schedule-check" type="checkbox" id="pref_sat_evening" data-day="saturday" data-slot="evening">
-                                        <label class="form-check-label" for="pref_sat_evening">Evening Class</label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Sunday -->
-                            <div class="col-md-6">
-                                <label class="form-label fw-medium">Sunday Preferences</label>
-                                <div class="d-flex flex-column gap-1">
-                                    <div class="form-check">
-                                        <input class="form-check-input schedule-check" type="checkbox" id="pref_sun_morning" data-day="sunday" data-slot="morning">
-                                        <label class="form-check-label" for="pref_sun_morning">Morning Class</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input schedule-check" type="checkbox" id="pref_sun_afternoon" data-day="sunday" data-slot="afternoon">
-                                        <label class="form-check-label" for="pref_sun_afternoon">Afternoon Class</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input schedule-check" type="checkbox" id="pref_sun_evening" data-day="sunday" data-slot="evening">
-                                        <label class="form-check-label" for="pref_sun_evening">Evening Class</label>
-                                    </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="mb-1">Your privacy matters</h6>
+                                    <p class="mb-0 small text-muted">
+                                        Contact information is used only for program-related communication.
+                                        We do not share your details with third parties.
+                                    </p>
                                 </div>
                             </div>
                         </div>
-                    </fieldset>
+                    </div>
 
-                    <!-- Special Comments -->
-                    <fieldset class="mb-4">
-                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
-                            <i class="ri-chat-3-line me-2"></i>Additional Information
-                        </legend>
+                    <!-- Step 3: Contact Information -->
+                    <div class="wizard-panel" id="step3-panel" role="tabpanel" aria-labelledby="step3">
+                        <div class="step-header mb-4">
+                            <h5 class="mb-1">
+                                <i class="ri-map-pin-line text-primary me-2"></i>
+                                Contact Details
+                            </h5>
+                            <p class="text-muted mb-0">How should we reach you?</p>
+                        </div>
+
                         <div class="row g-3">
+                            <!-- Home Address -->
                             <div class="col-12">
-                                <label for="special_comments" class="form-label">Special Comments</label>
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="ri-edit-line"></i></span>
-                                    {{ form.special_comments }}
-                                </div>
-                                <div class="form-text">Any allergies, medical conditions, learning needs, or other information</div>
+                                {{ form.home_address }}
+                                <div class="invalid-feedback" id="home_address-error"></div>
+                            </div>
+
+                            <!-- WhatsApp Number -->
+                            <div class="col-md-6">
+                                {{ form.whatsapp_number }}
+                                <div class="invalid-feedback" id="whatsapp_number-error"></div>
+                            </div>
+
+                            <!-- Primary Email -->
+                            <div class="col-md-6">
+                                {{ form.primary_contact_email }}
+                                <div class="invalid-feedback" id="primary_contact_email-error"></div>
                             </div>
                         </div>
-                    </fieldset>
 
-                    <!-- Terms and Conditions -->
-                    <fieldset class="mb-4">
-                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
-                            <i class="ri-file-list-3-line me-2"></i>Terms & Conditions
-                        </legend>
-                        <div class="card bg-light border-0">
+                        <!-- Communication Preferences -->
+                        <div class="card bg-light border-0 mt-4 mb-0">
                             <div class="card-body">
-                                <div class="form-check">
-                                    {{ form.terms_accepted }}
-                                    <label class="form-check-label" for="{{ form.terms_accepted.id_for_label }}">
-                                        I have read and agree to the
-                                        <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal" class="text-primary fw-medium">
-                                            Terms and Conditions
-                                        </a>
-                                        <span class="text-danger" aria-label="required">*</span>
-                                    </label>
-                                    {% if form.terms_accepted.errors %}
-                                        <div class="invalid-feedback d-block">{{ form.terms_accepted.errors }}</div>
-                                    {% endif %}
+                                <h6 class="card-title mb-3">
+                                    <i class="ri-notification-3-line me-2"></i>How we'll contact you
+                                </h6>
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <div class="d-flex align-items-start">
+                                            <i class="ri-whatsapp-line text-success fs-4 me-2"></i>
+                                            <div>
+                                                <strong class="small">WhatsApp</strong>
+                                                <p class="text-muted small mb-0">Class schedules, reminders</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="d-flex align-items-start">
+                                            <i class="ri-mail-line text-primary fs-4 me-2"></i>
+                                            <div>
+                                                <strong class="small">Email</strong>
+                                                <p class="text-muted small mb-0">Reports, certificates, invoices</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="d-flex align-items-start">
+                                            <i class="ri-phone-line text-warning fs-4 me-2"></i>
+                                            <div>
+                                                <strong class="small">Phone</strong>
+                                                <p class="text-muted small mb-0">Urgent matters only</p>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </fieldset>
+                    </div>
 
-                    <!-- Form Actions -->
-                    <div class="border-top pt-4 mt-4">
-                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
-                            <div class="text-muted small">
-                                <span class="text-danger">*</span> indicates required fields
+                    <!-- Step 4: Schedule Preferences -->
+                    <div class="wizard-panel" id="step4-panel" role="tabpanel" aria-labelledby="step4">
+                        <div class="step-header mb-4">
+                            <h5 class="mb-1">
+                                <i class="ri-calendar-schedule-line text-primary me-2"></i>
+                                Class Schedule Preferences
+                            </h5>
+                            <p class="text-muted mb-0">Select the days and times that work best for your family</p>
+                        </div>
+
+                        <div class="alert alert-info-subtle border-0 mb-4" role="note">
+                            <i class="ri-information-line me-2"></i>
+                            <strong>Tip:</strong> Select multiple options to help us find the best class for your child.
+                            We'll do our best to accommodate your preferences.
+                        </div>
+
+                        <!-- Schedule Picker Grid -->
+                        <div class="schedule-picker mb-4">
+                            <div class="table-responsive">
+                                <table class="table table-bordered schedule-table mb-0" role="grid" aria-label="Schedule preference selection">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th scope="col" class="text-center" style="width: 100px;">Day</th>
+                                            <th scope="col" class="text-center">
+                                                <i class="ri-sun-line text-warning me-1"></i>Morning
+                                                <small class="d-block text-muted fw-normal">8:00 - 12:00</small>
+                                            </th>
+                                            <th scope="col" class="text-center">
+                                                <i class="ri-sun-cloudy-line text-info me-1"></i>Afternoon
+                                                <small class="d-block text-muted fw-normal">13:00 - 17:00</small>
+                                            </th>
+                                            <th scope="col" class="text-center">
+                                                <i class="ri-moon-line text-primary me-1"></i>Evening
+                                                <small class="d-block text-muted fw-normal">17:00 - 20:00</small>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Weekdays -->
+                                        <tr>
+                                            <th scope="row" class="align-middle text-center">
+                                                <span class="badge bg-secondary-subtle text-secondary">Mon</span>
+                                            </th>
+                                            <td class="text-center p-2">
+                                                <div class="schedule-slot" data-day="monday" data-slot="morning">
+                                                    <input type="checkbox" class="btn-check schedule-check" id="mon_morning" autocomplete="off">
+                                                    <label class="btn btn-outline-primary btn-sm schedule-btn" for="mon_morning">
+                                                        <i class="ri-check-line"></i>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-center p-2">
+                                                <div class="schedule-slot" data-day="monday" data-slot="afternoon">
+                                                    <input type="checkbox" class="btn-check schedule-check" id="mon_afternoon" autocomplete="off">
+                                                    <label class="btn btn-outline-primary btn-sm schedule-btn" for="mon_afternoon">
+                                                        <i class="ri-check-line"></i>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-center p-2">
+                                                <div class="schedule-slot" data-day="monday" data-slot="evening">
+                                                    <input type="checkbox" class="btn-check schedule-check" id="mon_evening" autocomplete="off">
+                                                    <label class="btn btn-outline-primary btn-sm schedule-btn" for="mon_evening">
+                                                        <i class="ri-check-line"></i>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row" class="align-middle text-center">
+                                                <span class="badge bg-secondary-subtle text-secondary">Tue</span>
+                                            </th>
+                                            <td class="text-center p-2">
+                                                <div class="schedule-slot" data-day="tuesday" data-slot="morning">
+                                                    <input type="checkbox" class="btn-check schedule-check" id="tue_morning" autocomplete="off">
+                                                    <label class="btn btn-outline-primary btn-sm schedule-btn" for="tue_morning">
+                                                        <i class="ri-check-line"></i>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-center p-2">
+                                                <div class="schedule-slot" data-day="tuesday" data-slot="afternoon">
+                                                    <input type="checkbox" class="btn-check schedule-check" id="tue_afternoon" autocomplete="off">
+                                                    <label class="btn btn-outline-primary btn-sm schedule-btn" for="tue_afternoon">
+                                                        <i class="ri-check-line"></i>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-center p-2">
+                                                <div class="schedule-slot" data-day="tuesday" data-slot="evening">
+                                                    <input type="checkbox" class="btn-check schedule-check" id="tue_evening" autocomplete="off">
+                                                    <label class="btn btn-outline-primary btn-sm schedule-btn" for="tue_evening">
+                                                        <i class="ri-check-line"></i>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row" class="align-middle text-center">
+                                                <span class="badge bg-secondary-subtle text-secondary">Wed</span>
+                                            </th>
+                                            <td class="text-center p-2">
+                                                <div class="schedule-slot" data-day="wednesday" data-slot="morning">
+                                                    <input type="checkbox" class="btn-check schedule-check" id="wed_morning" autocomplete="off">
+                                                    <label class="btn btn-outline-primary btn-sm schedule-btn" for="wed_morning">
+                                                        <i class="ri-check-line"></i>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-center p-2">
+                                                <div class="schedule-slot" data-day="wednesday" data-slot="afternoon">
+                                                    <input type="checkbox" class="btn-check schedule-check" id="wed_afternoon" autocomplete="off">
+                                                    <label class="btn btn-outline-primary btn-sm schedule-btn" for="wed_afternoon">
+                                                        <i class="ri-check-line"></i>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-center p-2">
+                                                <div class="schedule-slot" data-day="wednesday" data-slot="evening">
+                                                    <input type="checkbox" class="btn-check schedule-check" id="wed_evening" autocomplete="off">
+                                                    <label class="btn btn-outline-primary btn-sm schedule-btn" for="wed_evening">
+                                                        <i class="ri-check-line"></i>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row" class="align-middle text-center">
+                                                <span class="badge bg-secondary-subtle text-secondary">Thu</span>
+                                            </th>
+                                            <td class="text-center p-2">
+                                                <div class="schedule-slot" data-day="thursday" data-slot="morning">
+                                                    <input type="checkbox" class="btn-check schedule-check" id="thu_morning" autocomplete="off">
+                                                    <label class="btn btn-outline-primary btn-sm schedule-btn" for="thu_morning">
+                                                        <i class="ri-check-line"></i>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-center p-2">
+                                                <div class="schedule-slot" data-day="thursday" data-slot="afternoon">
+                                                    <input type="checkbox" class="btn-check schedule-check" id="thu_afternoon" autocomplete="off">
+                                                    <label class="btn btn-outline-primary btn-sm schedule-btn" for="thu_afternoon">
+                                                        <i class="ri-check-line"></i>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-center p-2">
+                                                <div class="schedule-slot" data-day="thursday" data-slot="evening">
+                                                    <input type="checkbox" class="btn-check schedule-check" id="thu_evening" autocomplete="off">
+                                                    <label class="btn btn-outline-primary btn-sm schedule-btn" for="thu_evening">
+                                                        <i class="ri-check-line"></i>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row" class="align-middle text-center">
+                                                <span class="badge bg-secondary-subtle text-secondary">Fri</span>
+                                            </th>
+                                            <td class="text-center p-2">
+                                                <div class="schedule-slot" data-day="friday" data-slot="morning">
+                                                    <input type="checkbox" class="btn-check schedule-check" id="fri_morning" autocomplete="off">
+                                                    <label class="btn btn-outline-primary btn-sm schedule-btn" for="fri_morning">
+                                                        <i class="ri-check-line"></i>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-center p-2">
+                                                <div class="schedule-slot" data-day="friday" data-slot="afternoon">
+                                                    <input type="checkbox" class="btn-check schedule-check" id="fri_afternoon" autocomplete="off">
+                                                    <label class="btn btn-outline-primary btn-sm schedule-btn" for="fri_afternoon">
+                                                        <i class="ri-check-line"></i>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-center p-2">
+                                                <div class="schedule-slot" data-day="friday" data-slot="evening">
+                                                    <input type="checkbox" class="btn-check schedule-check" id="fri_evening" autocomplete="off">
+                                                    <label class="btn btn-outline-primary btn-sm schedule-btn" for="fri_evening">
+                                                        <i class="ri-check-line"></i>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <!-- Weekend -->
+                                        <tr class="table-warning-subtle">
+                                            <th scope="row" class="align-middle text-center">
+                                                <span class="badge bg-warning-subtle text-warning">Sat</span>
+                                            </th>
+                                            <td class="text-center p-2">
+                                                <div class="schedule-slot" data-day="saturday" data-slot="morning">
+                                                    <input type="checkbox" class="btn-check schedule-check" id="sat_morning" autocomplete="off">
+                                                    <label class="btn btn-outline-warning btn-sm schedule-btn" for="sat_morning">
+                                                        <i class="ri-check-line"></i>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-center p-2">
+                                                <div class="schedule-slot" data-day="saturday" data-slot="afternoon">
+                                                    <input type="checkbox" class="btn-check schedule-check" id="sat_afternoon" autocomplete="off">
+                                                    <label class="btn btn-outline-warning btn-sm schedule-btn" for="sat_afternoon">
+                                                        <i class="ri-check-line"></i>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-center p-2">
+                                                <div class="schedule-slot" data-day="saturday" data-slot="evening">
+                                                    <input type="checkbox" class="btn-check schedule-check" id="sat_evening" autocomplete="off">
+                                                    <label class="btn btn-outline-warning btn-sm schedule-btn" for="sat_evening">
+                                                        <i class="ri-check-line"></i>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr class="table-warning-subtle">
+                                            <th scope="row" class="align-middle text-center">
+                                                <span class="badge bg-warning-subtle text-warning">Sun</span>
+                                            </th>
+                                            <td class="text-center p-2">
+                                                <div class="schedule-slot" data-day="sunday" data-slot="morning">
+                                                    <input type="checkbox" class="btn-check schedule-check" id="sun_morning" autocomplete="off">
+                                                    <label class="btn btn-outline-warning btn-sm schedule-btn" for="sun_morning">
+                                                        <i class="ri-check-line"></i>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-center p-2">
+                                                <div class="schedule-slot" data-day="sunday" data-slot="afternoon">
+                                                    <input type="checkbox" class="btn-check schedule-check" id="sun_afternoon" autocomplete="off">
+                                                    <label class="btn btn-outline-warning btn-sm schedule-btn" for="sun_afternoon">
+                                                        <i class="ri-check-line"></i>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-center p-2">
+                                                <div class="schedule-slot" data-day="sunday" data-slot="evening">
+                                                    <input type="checkbox" class="btn-check schedule-check" id="sun_evening" autocomplete="off">
+                                                    <label class="btn btn-outline-warning btn-sm schedule-btn" for="sun_evening">
+                                                        <i class="ri-check-line"></i>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </div>
-                            <div class="d-flex flex-wrap gap-2">
-                                <a href="/" class="btn btn-outline-secondary">
-                                    <i class="ri-close-line me-1"></i> Cancel
-                                </a>
-                                <button type="reset" class="btn btn-light">
-                                    <i class="ri-refresh-line me-1"></i> Reset Form
+                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                <small class="text-muted">
+                                    <span id="selectedCount">0</span> time slots selected
+                                </small>
+                                <button type="button" class="btn btn-link btn-sm text-muted p-0" id="clearSchedule">
+                                    <i class="ri-delete-bin-line me-1"></i>Clear all
                                 </button>
-                                <button type="submit" class="btn btn-success" id="submitBtn">
+                            </div>
+                        </div>
+
+                        <!-- Special Comments -->
+                        <div class="mb-0">
+                            {{ form.special_comments }}
+                        </div>
+                    </div>
+
+                    <!-- Step 5: Review & Submit -->
+                    <div class="wizard-panel" id="step5-panel" role="tabpanel" aria-labelledby="step5">
+                        <div class="step-header mb-4">
+                            <h5 class="mb-1">
+                                <i class="ri-file-list-3-line text-primary me-2"></i>
+                                Review Your Application
+                            </h5>
+                            <p class="text-muted mb-0">Please verify all information before submitting</p>
+                        </div>
+
+                        <!-- Review Summary -->
+                        <div class="review-summary">
+                            <!-- Child Info Review -->
+                            <div class="review-section mb-4">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="mb-0">
+                                        <i class="ri-user-smile-line text-primary me-2"></i>Child's Information
+                                    </h6>
+                                    <button type="button" class="btn btn-link btn-sm p-0 edit-section-btn" data-step="1">
+                                        <i class="ri-pencil-line me-1"></i>Edit
+                                    </button>
+                                </div>
+                                <div class="card bg-light border-0">
+                                    <div class="card-body">
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <small class="text-muted d-block">Name with Initials</small>
+                                                <strong id="review-name-initials">-</strong>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <small class="text-muted d-block">Full Name</small>
+                                                <strong id="review-full-name">-</strong>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <small class="text-muted d-block">Date of Birth</small>
+                                                <strong id="review-dob">-</strong>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <small class="text-muted d-block">Gender</small>
+                                                <strong id="review-gender">-</strong>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <small class="text-muted d-block">Current School</small>
+                                                <strong id="review-school">-</strong>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Parents Review -->
+                            <div class="review-section mb-4">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="mb-0">
+                                        <i class="ri-parent-line text-primary me-2"></i>Parent/Guardian
+                                    </h6>
+                                    <button type="button" class="btn btn-link btn-sm p-0 edit-section-btn" data-step="2">
+                                        <i class="ri-pencil-line me-1"></i>Edit
+                                    </button>
+                                </div>
+                                <div class="card bg-light border-0">
+                                    <div class="card-body">
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <small class="text-muted d-block">Mother</small>
+                                                <strong id="review-mother">-</strong>
+                                                <small class="text-muted d-block" id="review-mother-phone"></small>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <small class="text-muted d-block">Father</small>
+                                                <strong id="review-father">-</strong>
+                                                <small class="text-muted d-block" id="review-father-phone"></small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Contact Review -->
+                            <div class="review-section mb-4">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="mb-0">
+                                        <i class="ri-map-pin-line text-primary me-2"></i>Contact Information
+                                    </h6>
+                                    <button type="button" class="btn btn-link btn-sm p-0 edit-section-btn" data-step="3">
+                                        <i class="ri-pencil-line me-1"></i>Edit
+                                    </button>
+                                </div>
+                                <div class="card bg-light border-0">
+                                    <div class="card-body">
+                                        <div class="row g-3">
+                                            <div class="col-12">
+                                                <small class="text-muted d-block">Address</small>
+                                                <strong id="review-address">-</strong>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <small class="text-muted d-block">WhatsApp</small>
+                                                <strong id="review-whatsapp">-</strong>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <small class="text-muted d-block">Email</small>
+                                                <strong id="review-email">-</strong>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Schedule Review -->
+                            <div class="review-section mb-4">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="mb-0">
+                                        <i class="ri-calendar-schedule-line text-primary me-2"></i>Schedule Preferences
+                                    </h6>
+                                    <button type="button" class="btn btn-link btn-sm p-0 edit-section-btn" data-step="4">
+                                        <i class="ri-pencil-line me-1"></i>Edit
+                                    </button>
+                                </div>
+                                <div class="card bg-light border-0">
+                                    <div class="card-body">
+                                        <div id="review-schedule">
+                                            <span class="text-muted">No preferences selected</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Terms and Conditions -->
+                        <div class="terms-section mb-4">
+                            <div class="card border-primary">
+                                <div class="card-header bg-primary-subtle">
+                                    <h6 class="mb-0 text-primary">
+                                        <i class="ri-file-list-3-line me-2"></i>Terms and Conditions
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="terms-scroll mb-3" style="max-height: 200px; overflow-y: auto;">
+                                        <ol class="text-muted small ps-3 mb-0">
+                                            <li class="mb-2">I/We agree to understand, accept and support the mission of the institution and be bound by the rules governing the institution, the authority of the Chairman and Board of Management of the institution.</li>
+                                            <li class="mb-2">I/We agree to pay all fees as detailed on fee invoices and I/We understand that the non-payment or on or before the requested date excludes the student from attending classes. It is our obligation to ensure the fees are paid on time.</li>
+                                            <li class="mb-2">I/We agree to accept and be bound by the rules governing health and medical requirements for the safety of all students and the institution.</li>
+                                            <li class="mb-2">I/We agree that the institution has the authority to terminate the students in accordance with the guidelines set down in the institution's discipline policy.</li>
+                                            <li class="mb-2">I/We agree the institution may at its discretion, suspend or terminate a student's enrollment for failure to comply with the conditions of this agreement, as well as for other serious breaches of the institution's rules and regulations.</li>
+                                            <li class="mb-2">I/We agree that the institution is not liable for any loss or damage to the student's personal belongings.</li>
+                                            <li class="mb-2">I/We agree to allow my/our children to involve themselves in all of the institution's activities, including excursions/field trips arranged by the institution.</li>
+                                            <li class="mb-2">I/We agree that in case of an emergency, the institution is permitted to give appropriate medical attention and/or treatment.</li>
+                                            <li class="mb-2">I/We agree to have our contact details published in the institution directory unless otherwise notified by us in writing to the institution.</li>
+                                            <li class="mb-2">I/We agree that student photographs, images and recordings can be used for institution's marketing materials.</li>
+                                            <li class="mb-2">I/We agree that the admission fee paid, in the enrollment is non-refundable.</li>
+                                            <li>I/We understand that the semester fee will be increased accordingly with the decision of management.</li>
+                                        </ol>
+                                    </div>
+                                    <div class="form-check">
+                                        {{ form.terms_accepted }}
+                                        <label class="form-check-label" for="{{ form.terms_accepted.id_for_label }}">
+                                            I have read and agree to the Terms and Conditions
+                                            <span class="text-danger" aria-hidden="true">*</span>
+                                            <span class="visually-hidden">(required)</span>
+                                        </label>
+                                        <div class="invalid-feedback" id="terms_accepted-error">
+                                            You must accept the terms and conditions to submit this application.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- What Happens Next -->
+                        <div class="card bg-success-subtle border-0 mb-0">
+                            <div class="card-body">
+                                <h6 class="text-success mb-3">
+                                    <i class="ri-checkbox-circle-line me-2"></i>What happens after you submit?
+                                </h6>
+                                <div class="row g-3">
+                                    <div class="col-md-3 col-6 text-center">
+                                        <div class="avatar-sm bg-white rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center">
+                                            <span class="text-success fw-bold">1</span>
+                                        </div>
+                                        <small class="text-success">Confirmation email sent</small>
+                                    </div>
+                                    <div class="col-md-3 col-6 text-center">
+                                        <div class="avatar-sm bg-white rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center">
+                                            <span class="text-success fw-bold">2</span>
+                                        </div>
+                                        <small class="text-success">Review (2-3 days)</small>
+                                    </div>
+                                    <div class="col-md-3 col-6 text-center">
+                                        <div class="avatar-sm bg-white rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center">
+                                            <span class="text-success fw-bold">3</span>
+                                        </div>
+                                        <small class="text-success">Placement assessment</small>
+                                    </div>
+                                    <div class="col-md-3 col-6 text-center">
+                                        <div class="avatar-sm bg-white rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center">
+                                            <span class="text-success fw-bold">4</span>
+                                        </div>
+                                        <small class="text-success">Class assignment</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Navigation Buttons -->
+                    <div class="wizard-nav border-top pt-4 mt-4">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                            <div>
+                                <button type="button" class="btn btn-light" id="prevBtn" disabled>
+                                    <i class="ri-arrow-left-line me-1"></i>Previous
+                                </button>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <small class="text-muted d-none d-sm-block">
+                                    <span class="text-danger">*</span> Required fields
+                                </small>
+                                <button type="button" class="btn btn-primary" id="nextBtn">
+                                    Next<i class="ri-arrow-right-line ms-1"></i>
+                                </button>
+                                <button type="submit" class="btn btn-success d-none" id="submitBtn">
                                     <span class="spinner-border spinner-border-sm d-none me-1" role="status" aria-hidden="true" id="submitSpinner"></span>
-                                    <i class="ri-file-add-line me-1" id="submitIcon"></i>
+                                    <i class="ri-check-line me-1" id="submitIcon"></i>
                                     <span id="submitText">Submit Application</span>
                                 </button>
                             </div>
@@ -432,298 +1202,632 @@
                 </form>
             </div>
         </div>
-    </div>
 
-    <!-- Help Sidebar -->
-    <div class="col-lg-4">
-        <!-- Quick Tips Card -->
-        <div class="card sticky-top" style="top: 80px;">
-            <div class="card-header bg-primary bg-opacity-10">
-                <h6 class="card-title mb-0 text-primary">
-                    <i class="ri-lightbulb-line me-2"></i>Application Tips
-                </h6>
-            </div>
-            <div class="card-body">
-                <div class="d-flex mb-3">
-                    <div class="flex-shrink-0">
-                        <span class="avatar-xs avatar-title bg-success-subtle text-success rounded-circle">1</span>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <h6 class="mb-1">Accurate Information</h6>
-                        <p class="text-muted small mb-0">Ensure all details match official documents</p>
-                    </div>
-                </div>
-                <div class="d-flex mb-3">
-                    <div class="flex-shrink-0">
-                        <span class="avatar-xs avatar-title bg-success-subtle text-success rounded-circle">2</span>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <h6 class="mb-1">Contact Numbers</h6>
-                        <p class="text-muted small mb-0">Provide active WhatsApp number for quick updates</p>
-                    </div>
-                </div>
-                <div class="d-flex mb-3">
-                    <div class="flex-shrink-0">
-                        <span class="avatar-xs avatar-title bg-success-subtle text-success rounded-circle">3</span>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <h6 class="mb-1">Email Address</h6>
-                        <p class="text-muted small mb-0">Check email regularly for application updates</p>
-                    </div>
-                </div>
-                <div class="d-flex">
-                    <div class="flex-shrink-0">
-                        <span class="avatar-xs avatar-title bg-success-subtle text-success rounded-circle">4</span>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <h6 class="mb-1">Review Before Submit</h6>
-                        <p class="text-muted small mb-0">Double-check all information before submitting</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Cambridge YLE Info Card -->
-        <div class="card mt-3">
-            <div class="card-header bg-info bg-opacity-10">
-                <h6 class="card-title mb-0 text-info">
-                    <i class="ri-graduation-cap-line me-2"></i>About Cambridge YLE
-                </h6>
-            </div>
-            <div class="card-body">
-                <p class="small text-muted mb-3">Cambridge Young Learners English tests are designed for children aged 6-12 learning English.</p>
-
-                <div class="d-flex align-items-center mb-2">
-                    <span class="badge bg-info-subtle text-info me-2">
-                        <i class="ri-seedling-line"></i>
-                    </span>
-                    <div>
-                        <strong class="small">Pre A1 Starters</strong>
-                        <p class="text-muted small mb-0">Ages 6-8, Beginner level</p>
-                    </div>
-                </div>
-
-                <div class="d-flex align-items-center mb-2">
-                    <span class="badge bg-warning-subtle text-warning me-2">
-                        <i class="ri-run-line"></i>
-                    </span>
-                    <div>
-                        <strong class="small">A1 Movers</strong>
-                        <p class="text-muted small mb-0">Ages 8-10, Elementary level</p>
-                    </div>
-                </div>
-
-                <div class="d-flex align-items-center">
-                    <span class="badge bg-success-subtle text-success me-2">
-                        <i class="ri-rocket-line"></i>
-                    </span>
-                    <div>
-                        <strong class="small">A2 Flyers</strong>
-                        <p class="text-muted small mb-0">Ages 10-12, Pre-Intermediate</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Process Info Card -->
-        <div class="card mt-3">
-            <div class="card-header bg-warning bg-opacity-10">
-                <h6 class="card-title mb-0 text-warning">
-                    <i class="ri-flow-chart me-2"></i>What Happens Next?
-                </h6>
-            </div>
-            <div class="card-body">
-                <ol class="small text-muted ps-3 mb-0">
-                    <li class="mb-2">Application submitted and confirmation sent</li>
-                    <li class="mb-2">Review by admissions team (2-3 days)</li>
-                    <li class="mb-2">Placement assessment scheduled</li>
-                    <li class="mb-2">Level recommendation provided</li>
-                    <li>Enrollment and class assignment</li>
-                </ol>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Terms Modal -->
-<div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="termsModalLabel">
-                    <i class="ri-file-list-3-line me-2"></i>Terms and Conditions
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <h6 class="text-primary">Terms and Conditions of the Institution</h6>
-                <ol class="text-muted">
-                    <li class="mb-2">I/We agree to understand, accept and support the mission of the institution and be bound by the rules governing the institution, the authority of the Chairman and Board of Management of the institution.</li>
-                    <li class="mb-2">I/We agree to pay all fees as detailed on fee invoices and I/We understand that the non-payment or on or before the requested date excludes the student from attending classes. It is our obligation to ensure the fees are paid on time.</li>
-                    <li class="mb-2">I/We agree to accept and be bound by the rules governing health and medical requirements for the safety of all students and the institution.</li>
-                    <li class="mb-2">I/We agree that the institution has the authority to terminate the students in accordance with the guidelines set down in the institution's discipline policy.</li>
-                    <li class="mb-2">I/We agree the institution may at its discretion, suspend or terminate a student's enrollment for failure to comply with the conditions of this agreement, as well as for other serious breaches of the institution's rules and regulations.</li>
-                    <li class="mb-2">I/We agree that the institution is not liable for any loss or damage to the student's personal belongings.</li>
-                    <li class="mb-2">I/We agree to allow my/our children to involve themselves in all of the institution's activities, including excursions/field trips arranged by the institution.</li>
-                    <li class="mb-2">I/We agree that in case of an emergency, the institution is permitted to give appropriate medical attention and/or treatment.</li>
-                    <li class="mb-2">I/We agree to have our contact details published in the institution directory unless otherwise notified by us in writing to the institution.</li>
-                    <li class="mb-2">I/We agree that student photographs, images and recordings can be used for institution's marketing materials.</li>
-                    <li class="mb-2">I/We agree that the admission fee paid, in the enrollment is non-refundable.</li>
-                    <li>I/We understand that the semester fee will be increased accordingly with the decision of management.</li>
-                </ol>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
-                    <i class="ri-check-line me-1"></i>I Understand
-                </button>
-            </div>
+        <!-- Save Draft Info -->
+        <div class="text-center mt-3 mb-4">
+            <small class="text-muted">
+                <i class="ri-save-line me-1"></i>
+                Your progress is automatically saved in your browser
+            </small>
         </div>
     </div>
 </div>
 {% endblock %}
 
-{% block extra_js %}
+{% block scripts %}
+{{ block.super }}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<style>
+/* Make year input a proper dropdown */
+.flatpickr-current-month {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+.flatpickr-current-month .flatpickr-monthDropdown-months {
+    font-size: 14px;
+    font-weight: 500;
+    background: transparent;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 2px 5px;
+    cursor: pointer;
+}
+.flatpickr-current-month .numInputWrapper {
+    display: none !important;
+}
+.flatpickr-current-month .custom-year-select {
+    font-size: 14px;
+    font-weight: 500;
+    background: transparent;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 2px 8px;
+    cursor: pointer;
+    appearance: auto;
+    -webkit-appearance: menulist;
+}
+.flatpickr-current-month .custom-year-select:focus {
+    outline: none;
+    border-color: #660066;
+}
+</style>
 <script>
 $(document).ready(function() {
-    // Form validation
-    var form = document.getElementById('applicationForm');
+    // Initialize Flatpickr for date of birth with custom year dropdown
+    var today = new Date();
+    var minYear = today.getFullYear() - 18;
+    var maxYear = today.getFullYear() - 4;
+    var minDate = new Date(minYear, 0, 1);
+    var maxDate = new Date(maxYear, 11, 31);
 
-    form.addEventListener('submit', function(event) {
-        if (!form.checkValidity()) {
-            event.preventDefault();
-            event.stopPropagation();
-        } else {
+    var fp = flatpickr("#id_date_of_birth", {
+        dateFormat: "Y-m-d",
+        altInput: true,
+        altFormat: "F j, Y",
+        minDate: minDate,
+        maxDate: maxDate,
+        defaultDate: new Date(maxYear, 0, 1),
+        disableMobile: true,
+        onReady: function(selectedDates, dateStr, instance) {
+            // Wait for DOM to be fully ready
+            setTimeout(function() {
+                var monthContainer = instance.calendarContainer.querySelector('.flatpickr-current-month');
+                if (!monthContainer) return;
+
+                // Hide the original year input
+                var numInputWrapper = monthContainer.querySelector('.numInputWrapper');
+                if (numInputWrapper) {
+                    numInputWrapper.style.display = 'none';
+                }
+
+                // Check if year select already exists
+                if (monthContainer.querySelector('.custom-year-select')) return;
+
+                // Create year dropdown
+                var yearSelect = document.createElement('select');
+                yearSelect.className = 'custom-year-select';
+                yearSelect.setAttribute('aria-label', 'Select year');
+
+                for (var y = maxYear; y >= minYear; y--) {
+                    var opt = document.createElement('option');
+                    opt.value = y;
+                    opt.textContent = y;
+                    if (y === instance.currentYear) opt.selected = true;
+                    yearSelect.appendChild(opt);
+                }
+
+                yearSelect.addEventListener('change', function(e) {
+                    e.stopPropagation();
+                    instance.changeYear(parseInt(this.value));
+                });
+
+                // Prevent calendar from closing when clicking year select
+                yearSelect.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                });
+
+                // Insert after the month dropdown
+                monthContainer.appendChild(yearSelect);
+            }, 0);
+        },
+        onYearChange: function(selectedDates, dateStr, instance) {
+            var yearSelect = instance.calendarContainer.querySelector('.custom-year-select');
+            if (yearSelect) {
+                yearSelect.value = instance.currentYear;
+            }
+        },
+        onMonthChange: function(selectedDates, dateStr, instance) {
+            // Ensure year dropdown stays in sync
+            var yearSelect = instance.calendarContainer.querySelector('.custom-year-select');
+            if (yearSelect) {
+                yearSelect.value = instance.currentYear;
+            }
+        }
+    });
+    // ========================================
+    // Wizard State Management
+    // ========================================
+    var currentStep = 1;
+    var totalSteps = 5;
+    var formDirty = false;
+    var STORAGE_KEY = 'polymath_application_draft';
+
+    // ========================================
+    // DOM Elements
+    // ========================================
+    var $form = $('#applicationForm');
+    var $prevBtn = $('#prevBtn');
+    var $nextBtn = $('#nextBtn');
+    var $submitBtn = $('#submitBtn');
+    var $errorSummary = $('#errorSummary');
+    var $errorList = $('#errorList');
+
+    // ========================================
+    // Step Validation Rules
+    // ========================================
+    var stepFields = {
+        1: ['id_name_with_initials', 'id_full_name', 'id_date_of_birth', 'id_gender'],
+        2: ['id_mother_name', 'id_mother_contact_number', 'id_father_name', 'id_father_contact_number'],
+        3: ['id_home_address', 'id_whatsapp_number', 'id_primary_contact_email'],
+        4: [], // Schedule preferences - optional
+        5: ['id_terms_accepted']
+    };
+
+    // ========================================
+    // Initialize Form
+    // ========================================
+    function init() {
+        // Add form-control class to Django form widgets
+        $('input:not([type="checkbox"]):not([type="radio"]):not(.btn-check), textarea').addClass('form-control');
+        $('select').addClass('form-select');
+
+        // Set up event listeners
+        setupNavigation();
+        setupValidation();
+        setupSchedulePicker();
+        setupDraftSaving();
+        setupStepperClicks();
+
+        // Load saved draft
+        loadDraft();
+
+        // Initial state
+        updateUI();
+    }
+
+    // ========================================
+    // Navigation Functions
+    // ========================================
+    function setupNavigation() {
+        $prevBtn.on('click', function() {
+            if (currentStep > 1) {
+                goToStep(currentStep - 1);
+            }
+        });
+
+        $nextBtn.on('click', function() {
+            if (validateStep(currentStep)) {
+                if (currentStep < totalSteps) {
+                    goToStep(currentStep + 1);
+                }
+            }
+        });
+
+        // Form submission
+        $form.on('submit', function(e) {
+            if (!validateStep(5)) {
+                e.preventDefault();
+                return false;
+            }
+
             // Show loading state
-            $('#submitBtn').prop('disabled', true);
+            $submitBtn.prop('disabled', true);
             $('#submitSpinner').removeClass('d-none');
             $('#submitIcon').addClass('d-none');
             $('#submitText').text('Submitting...');
-        }
-        form.classList.add('was-validated');
-    }, false);
 
-    // Update progress bar based on filled sections
-    function updateProgress() {
-        var progress = 0;
-        var sections = 4;
-
-        // Check Student Info
-        var studentFields = ['#id_name_with_initials', '#id_full_name', '#id_date_of_birth', '#id_gender'];
-        var studentFilled = studentFields.every(function(field) { return $(field).val(); });
-        if (studentFilled) {
-            progress += 1;
-            $('#step1Badge').removeClass('bg-primary-subtle text-primary bg-light text-muted').addClass('bg-success text-white');
-        } else {
-            $('#step1Badge').removeClass('bg-success text-white bg-light text-muted').addClass('bg-primary-subtle text-primary');
-        }
-
-        // Check Parents Info
-        var parentFields = ['#id_mother_name', '#id_mother_contact_number', '#id_father_name', '#id_father_contact_number'];
-        var parentFilled = parentFields.every(function(field) { return $(field).val(); });
-        if (parentFilled) {
-            progress += 1;
-            $('#step2Badge').removeClass('bg-light text-muted bg-primary-subtle text-primary').addClass('bg-success text-white');
-        } else if (studentFilled) {
-            $('#step2Badge').removeClass('bg-success text-white bg-light text-muted').addClass('bg-primary-subtle text-primary');
-        } else {
-            $('#step2Badge').removeClass('bg-success text-white bg-primary-subtle text-primary').addClass('bg-light text-muted');
-        }
-
-        // Check Contact Info
-        var contactFields = ['#id_home_address', '#id_whatsapp_number', '#id_primary_contact_email'];
-        var contactFilled = contactFields.every(function(field) { return $(field).val(); });
-        if (contactFilled) {
-            progress += 1;
-            $('#step3Badge').removeClass('bg-light text-muted bg-primary-subtle text-primary').addClass('bg-success text-white');
-        } else if (parentFilled) {
-            $('#step3Badge').removeClass('bg-success text-white bg-light text-muted').addClass('bg-primary-subtle text-primary');
-        } else {
-            $('#step3Badge').removeClass('bg-success text-white bg-primary-subtle text-primary').addClass('bg-light text-muted');
-        }
-
-        // Check Terms
-        var termsAccepted = $('#id_terms_accepted').is(':checked');
-        if (termsAccepted && contactFilled) {
-            progress += 1;
-            $('#step4Badge').removeClass('bg-light text-muted bg-primary-subtle text-primary').addClass('bg-success text-white');
-        } else if (contactFilled) {
-            $('#step4Badge').removeClass('bg-success text-white bg-light text-muted').addClass('bg-primary-subtle text-primary');
-        } else {
-            $('#step4Badge').removeClass('bg-success text-white bg-primary-subtle text-primary').addClass('bg-light text-muted');
-        }
-
-        var percentage = (progress / sections) * 100;
-        $('#formProgress').css('width', percentage + '%').attr('aria-valuenow', percentage);
+            // Clear draft on successful submission
+            localStorage.removeItem(STORAGE_KEY);
+        });
     }
 
-    // Bind progress update to input changes
-    $('input, select, textarea').on('input change', updateProgress);
+    function setupStepperClicks() {
+        $('.wizard-step').on('click keypress', function(e) {
+            if (e.type === 'keypress' && e.which !== 13 && e.which !== 32) return;
 
-    // Initial progress check
-    updateProgress();
+            var targetStep = parseInt($(this).data('step'));
 
-    // Add form-control class to Django form widgets if missing
-    $('input:not([type="checkbox"]):not([type="radio"]), select, textarea').addClass('form-control');
-    $('select').addClass('form-select').removeClass('form-control');
+            // Only allow going to completed steps or next uncompleted step
+            if (targetStep < currentStep) {
+                goToStep(targetStep);
+            } else if (targetStep === currentStep + 1 && validateStep(currentStep)) {
+                goToStep(targetStep);
+            }
+        });
+    }
 
-    // Handle schedule preferences
+    function goToStep(step) {
+        // Hide current panel
+        $('.wizard-panel').removeClass('active');
+
+        // Show target panel
+        $('#step' + step + '-panel').addClass('active');
+
+        // Update step indicators
+        updateStepIndicators(step);
+
+        // Update current step
+        currentStep = step;
+
+        // Update buttons
+        updateUI();
+
+        // Update review if going to step 5
+        if (step === 5) {
+            updateReviewSummary();
+        }
+
+        // Scroll to top of form
+        $('html, body').animate({
+            scrollTop: $('.wizard-steps').offset().top - 100
+        }, 300);
+
+        // Focus first input in new step
+        setTimeout(function() {
+            var $firstInput = $('#step' + step + '-panel').find('input, select, textarea').filter(':visible').first();
+            if ($firstInput.length) {
+                $firstInput.focus();
+            }
+        }, 350);
+
+        // Save current step
+        saveDraft();
+    }
+
+    function updateStepIndicators(step) {
+        $('.wizard-step').each(function() {
+            var stepNum = parseInt($(this).data('step'));
+            var $this = $(this);
+
+            $this.removeClass('active completed');
+            $this.attr('aria-selected', 'false').attr('tabindex', '-1');
+
+            if (stepNum < step) {
+                $this.addClass('completed');
+            } else if (stepNum === step) {
+                $this.addClass('active');
+                $this.attr('aria-selected', 'true').attr('tabindex', '0');
+            }
+        });
+
+        // Update connectors
+        $('.wizard-step-connector').each(function(index) {
+            if (index < step - 1) {
+                $(this).addClass('completed');
+            } else {
+                $(this).removeClass('completed');
+            }
+        });
+
+        // Update mobile progress
+        $('#currentStepMobile').text(step);
+        var percent = Math.round((step / totalSteps) * 100);
+        $('#progressPercent').text(percent);
+        $('#mobileProgress').css('width', percent + '%').attr('aria-valuenow', percent);
+    }
+
+    function updateUI() {
+        // Previous button
+        $prevBtn.prop('disabled', currentStep === 1);
+
+        // Next/Submit buttons
+        if (currentStep === totalSteps) {
+            $nextBtn.addClass('d-none');
+            $submitBtn.removeClass('d-none');
+        } else {
+            $nextBtn.removeClass('d-none');
+            $submitBtn.addClass('d-none');
+        }
+    }
+
+    // ========================================
+    // Validation Functions
+    // ========================================
+    function setupValidation() {
+        // Real-time validation on blur
+        $form.find('input, select, textarea').on('blur', function() {
+            validateField($(this));
+        });
+
+        // Clear error on input
+        $form.find('input, select, textarea').on('input change', function() {
+            var $field = $(this);
+            if ($field.hasClass('is-invalid')) {
+                validateField($field);
+            }
+            formDirty = true;
+        });
+    }
+
+    function validateStep(step) {
+        var isValid = true;
+        var errors = [];
+        var fields = stepFields[step];
+
+        fields.forEach(function(fieldId) {
+            var $field = $('#' + fieldId);
+            if (!validateField($field)) {
+                isValid = false;
+                var label = $('label[for="' + fieldId + '"]').text().replace('*', '').trim();
+                errors.push(label + ' is required');
+            }
+        });
+
+        // Show/hide error summary
+        if (!isValid) {
+            showErrorSummary(errors);
+        } else {
+            hideErrorSummary();
+        }
+
+        return isValid;
+    }
+
+    function validateField($field) {
+        var value = $field.val();
+        var isRequired = $field.prop('required') || stepFields[currentStep].indexOf($field.attr('id')) > -1;
+        var isValid = true;
+        var errorMsg = '';
+
+        // Check if required field is empty
+        if (isRequired) {
+            if ($field.is(':checkbox')) {
+                isValid = $field.is(':checked');
+                errorMsg = 'This field is required';
+            } else if (!value || value.trim() === '') {
+                isValid = false;
+                errorMsg = 'This field is required';
+            }
+        }
+
+        // Email validation
+        if (value && $field.attr('type') === 'email') {
+            var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(value)) {
+                isValid = false;
+                errorMsg = 'Please enter a valid email address';
+            }
+        }
+
+        // Phone validation (Sri Lankan format)
+        if (value && ($field.attr('id') || '').includes('contact') || ($field.attr('id') || '').includes('whatsapp')) {
+            var phoneRegex = /^(\+94|0)?[0-9]{9,10}$/;
+            var cleanPhone = value.replace(/[\s-]/g, '');
+            if (!phoneRegex.test(cleanPhone)) {
+                isValid = false;
+                errorMsg = 'Please enter a valid phone number';
+            }
+        }
+
+        // Update UI
+        if (isValid) {
+            $field.removeClass('is-invalid').addClass('is-valid');
+        } else {
+            $field.removeClass('is-valid').addClass('is-invalid');
+            var $feedback = $field.siblings('.invalid-feedback');
+            if ($feedback.length === 0) {
+                $feedback = $('#' + $field.attr('id') + '-error');
+            }
+            if ($feedback.length && errorMsg) {
+                $feedback.text(errorMsg);
+            }
+        }
+
+        return isValid;
+    }
+
+    function showErrorSummary(errors) {
+        $errorList.empty();
+        errors.forEach(function(error) {
+            $errorList.append('<li>' + error + '</li>');
+        });
+        $errorSummary.removeClass('d-none');
+
+        // Scroll to error summary
+        $('html, body').animate({
+            scrollTop: $errorSummary.offset().top - 100
+        }, 300);
+
+        // Focus first invalid field
+        setTimeout(function() {
+            $('.is-invalid').first().focus();
+        }, 350);
+    }
+
+    function hideErrorSummary() {
+        $errorSummary.addClass('d-none');
+        $errorList.empty();
+    }
+
+    // ========================================
+    // Schedule Picker Functions
+    // ========================================
+    function setupSchedulePicker() {
+        $('.schedule-check').on('change', function() {
+            updateSchedulePreferences();
+            updateSelectedCount();
+            formDirty = true;
+        });
+
+        $('#clearSchedule').on('click', function() {
+            $('.schedule-check').prop('checked', false);
+            updateSchedulePreferences();
+            updateSelectedCount();
+        });
+    }
+
     function updateSchedulePreferences() {
         var preferences = {};
 
         $('.schedule-check:checked').each(function() {
-            var day = $(this).data('day');
-            var slot = $(this).data('slot');
+            var $slot = $(this).closest('.schedule-slot');
+            var day = $slot.data('day');
+            var slot = $slot.data('slot');
 
             if (!preferences[day]) {
-                preferences[day] = slot ? [slot] : true;
-            } else if (slot && Array.isArray(preferences[day])) {
-                preferences[day].push(slot);
-            } else if (slot) {
-                preferences[day] = [slot];
+                preferences[day] = [];
             }
+            preferences[day].push(slot);
         });
 
         $('#id_schedule_preferences').val(JSON.stringify(preferences));
     }
 
-    // Bind schedule checkbox changes
-    $('.schedule-check').on('change', updateSchedulePreferences);
+    function updateSelectedCount() {
+        var count = $('.schedule-check:checked').length;
+        $('#selectedCount').text(count);
+    }
 
-    // Initial schedule update
-    updateSchedulePreferences();
+    // ========================================
+    // Draft Saving Functions
+    // ========================================
+    function setupDraftSaving() {
+        // Auto-save every 30 seconds if form is dirty
+        setInterval(function() {
+            if (formDirty) {
+                saveDraft();
+                formDirty = false;
+            }
+        }, 30000);
+
+        // Save on step change (already in goToStep)
+
+        // Warn before leaving if form has data
+        $(window).on('beforeunload', function() {
+            if (formDirty) {
+                return 'You have unsaved changes. Are you sure you want to leave?';
+            }
+        });
+    }
+
+    function saveDraft() {
+        var draft = {
+            step: currentStep,
+            data: {},
+            schedule: []
+        };
+
+        // Save all form fields
+        $form.find('input:not([type="checkbox"]):not(.btn-check), select, textarea').each(function() {
+            var $field = $(this);
+            if ($field.attr('id') && $field.attr('id') !== 'id_schedule_preferences') {
+                draft.data[$field.attr('id')] = $field.val();
+            }
+        });
+
+        // Save terms checkbox
+        draft.data['id_terms_accepted'] = $('#id_terms_accepted').is(':checked');
+
+        // Save schedule checkboxes
+        $('.schedule-check:checked').each(function() {
+            draft.schedule.push($(this).attr('id'));
+        });
+
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
+        } catch (e) {
+            console.warn('Could not save draft to localStorage');
+        }
+    }
+
+    function loadDraft() {
+        try {
+            var saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                var draft = JSON.parse(saved);
+
+                // Restore form fields
+                if (draft.data) {
+                    Object.keys(draft.data).forEach(function(fieldId) {
+                        var $field = $('#' + fieldId);
+                        if ($field.length) {
+                            if ($field.is(':checkbox')) {
+                                $field.prop('checked', draft.data[fieldId]);
+                            } else {
+                                $field.val(draft.data[fieldId]);
+                            }
+                        }
+                    });
+                }
+
+                // Restore schedule checkboxes
+                if (draft.schedule && draft.schedule.length) {
+                    draft.schedule.forEach(function(checkId) {
+                        $('#' + checkId).prop('checked', true);
+                    });
+                    updateSchedulePreferences();
+                    updateSelectedCount();
+                }
+
+                // Go to saved step
+                if (draft.step && draft.step > 1) {
+                    goToStep(draft.step);
+                }
+            }
+        } catch (e) {
+            console.warn('Could not load draft from localStorage');
+        }
+    }
+
+    // ========================================
+    // Review Summary Functions
+    // ========================================
+    function updateReviewSummary() {
+        // Child info
+        $('#review-name-initials').text($('#id_name_with_initials').val() || '-');
+        $('#review-full-name').text($('#id_full_name').val() || '-');
+        $('#review-dob').text(formatDate($('#id_date_of_birth').val()));
+        $('#review-gender').text($('#id_gender option:selected').text() || '-');
+        $('#review-school').text($('#id_current_school').val() || '-');
+
+        // Parents
+        $('#review-mother').text($('#id_mother_name').val() || '-');
+        $('#review-mother-phone').text($('#id_mother_contact_number').val() || '');
+        $('#review-father').text($('#id_father_name').val() || '-');
+        $('#review-father-phone').text($('#id_father_contact_number').val() || '');
+
+        // Contact
+        $('#review-address').text($('#id_home_address').val() || '-');
+        $('#review-whatsapp').text($('#id_whatsapp_number').val() || '-');
+        $('#review-email').text($('#id_primary_contact_email').val() || '-');
+
+        // Schedule
+        var scheduleHtml = '';
+        var preferences = {};
+        try {
+            preferences = JSON.parse($('#id_schedule_preferences').val() || '{}');
+        } catch (e) {}
+
+        if (Object.keys(preferences).length > 0) {
+            Object.keys(preferences).forEach(function(day) {
+                var dayName = day.charAt(0).toUpperCase() + day.slice(1);
+                var slots = preferences[day].map(function(s) {
+                    return s.charAt(0).toUpperCase() + s.slice(1);
+                }).join(', ');
+                scheduleHtml += '<span class="badge bg-primary-subtle text-primary me-1 mb-1">' + dayName + ': ' + slots + '</span>';
+            });
+        } else {
+            scheduleHtml = '<span class="text-muted">No preferences selected</span>';
+        }
+        $('#review-schedule').html(scheduleHtml);
+    }
+
+    function formatDate(dateStr) {
+        if (!dateStr) return '-';
+        try {
+            var date = new Date(dateStr);
+            return date.toLocaleDateString('en-GB', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            });
+        } catch (e) {
+            return dateStr;
+        }
+    }
+
+    // Edit section buttons
+    $('.edit-section-btn').on('click', function() {
+        var step = $(this).data('step');
+        goToStep(step);
+    });
+
+    // ========================================
+    // Initialize
+    // ========================================
+    init();
 });
 </script>
-
-<style>
-fieldset {
-    border: none;
-    padding: 0;
-    margin: 0;
-}
-
-legend {
-    border-bottom: 2px solid var(--bs-primary);
-    padding-bottom: 0.5rem;
-    margin-bottom: 1rem;
-}
-
-.avatar-xs {
-    width: 24px;
-    height: 24px;
-}
-
-.avatar-xs .avatar-title {
-    font-size: 12px;
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.form-check-input:checked {
-    background-color: var(--bs-success);
-    border-color: var(--bs-success);
-}
-</style>
 {% endblock %}
