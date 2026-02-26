@@ -1,0 +1,708 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block PageTitle %}Certification Report - PolymathYLE{% endblock %}
+{% block pageTitle %}Certification Report{% endblock %}
+{% block Title %}Certification{% endblock %}
+{% block functionTitle %}Reports & Analytics{% endblock %}
+
+{% block content %}
+<!-- Report Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card bg-primary bg-gradient">
+            <div class="card-body">
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <div class="avatar-lg">
+                                <span class="avatar-title bg-white bg-opacity-25 text-white rounded-circle">
+                                    <i class="ri-bar-chart-grouped-line fs-2"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="text-white mb-1">Certification Report</h4>
+                            <p class="text-white-75 mb-0">Analytics and insights for certificate issuance</p>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-light" onclick="window.print();">
+                            <i class="ri-printer-line me-1"></i> Print Report
+                        </button>
+                        <a href="{% url 'certification_report_export' %}" class="btn btn-outline-light">
+                            <i class="ri-download-line me-1"></i> Export CSV
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Date Range Filter -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <form method="get" class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label for="date_from" class="form-label">From Date</label>
+                        <input type="date" class="form-control flatpickr-date" id="date_from" name="date_from"
+                               value="{{ request.GET.date_from|default:default_start_date }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="date_to" class="form-label">To Date</label>
+                        <input type="date" class="form-control flatpickr-date" id="date_to" name="date_to"
+                               value="{{ request.GET.date_to|default:default_end_date }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="level" class="form-label">Level</label>
+                        <select class="form-select" id="level" name="level">
+                            <option value="">All Levels</option>
+                            <option value="STARTERS" {% if request.GET.level == 'STARTERS' %}selected{% endif %}>Pre A1 Starters</option>
+                            <option value="MOVERS" {% if request.GET.level == 'MOVERS' %}selected{% endif %}>A1 Movers</option>
+                            <option value="FLYERS" {% if request.GET.level == 'FLYERS' %}selected{% endif %}>A2 Flyers</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary flex-grow-1">
+                                <i class="ri-filter-line me-1"></i> Apply
+                            </button>
+                            <a href="{% url 'certification_report' %}" class="btn btn-outline-secondary">
+                                <i class="ri-refresh-line"></i>
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Summary Statistics -->
+<div class="row">
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Total Certificates</p>
+                        <h2 class="mt-3 mb-0 ff-secondary fw-semibold">
+                            <span class="counter-value" data-target="{{ total_certificates|default:0 }}">{{ total_certificates|default:0 }}</span>
+                        </h2>
+                        <p class="text-muted mb-0 mt-2">
+                            {% if certificate_growth >= 0 %}
+                            <span class="badge bg-success-subtle text-success me-1">
+                                <i class="ri-arrow-up-line align-middle"></i> {{ certificate_growth|default:0 }}%
+                            </span>
+                            {% else %}
+                            <span class="badge bg-danger-subtle text-danger me-1">
+                                <i class="ri-arrow-down-line align-middle"></i> {{ certificate_growth|default:0 }}%
+                            </span>
+                            {% endif %}
+                            <span class="text-muted">vs last period</span>
+                        </p>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-primary-subtle rounded-circle fs-2">
+                            <i class="ri-award-fill text-primary"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Average Shields</p>
+                        <h2 class="mt-3 mb-0 ff-secondary fw-semibold">
+                            <span class="counter-value" data-target="{{ average_shields|default:0 }}">{{ average_shields|default:0 }}</span>
+                            <span class="text-muted fs-6">/ 20</span>
+                        </h2>
+                        <p class="text-muted mb-0 mt-2">
+                            <span class="badge bg-info-subtle text-info me-1">
+                                <i class="ri-shield-star-line align-middle"></i>
+                            </span>
+                            <span class="text-muted">across all skills</span>
+                        </p>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-info-subtle rounded-circle fs-2">
+                            <i class="ri-shield-star-fill text-info"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Achievements Awarded</p>
+                        <h2 class="mt-3 mb-0 ff-secondary fw-semibold">
+                            <span class="counter-value" data-target="{{ total_achievements|default:0 }}">{{ total_achievements|default:0 }}</span>
+                        </h2>
+                        <p class="text-muted mb-0 mt-2">
+                            <span class="badge bg-warning-subtle text-warning me-1">
+                                <i class="ri-trophy-line align-middle"></i>
+                            </span>
+                            <span class="text-muted">in this period</span>
+                        </p>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-warning-subtle rounded-circle fs-2">
+                            <i class="ri-trophy-fill text-warning"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Certified Students</p>
+                        <h2 class="mt-3 mb-0 ff-secondary fw-semibold">
+                            <span class="counter-value" data-target="{{ certified_students|default:0 }}">{{ certified_students|default:0 }}</span>
+                        </h2>
+                        <p class="text-muted mb-0 mt-2">
+                            <span class="badge bg-success-subtle text-success me-1">
+                                <i class="ri-user-star-line align-middle"></i>
+                            </span>
+                            <span class="text-muted">unique recipients</span>
+                        </p>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-success-subtle rounded-circle fs-2">
+                            <i class="ri-user-star-fill text-success"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row">
+    <!-- Monthly Certificates Chart -->
+    <div class="col-xl-8">
+        <div class="card">
+            <div class="card-header border-bottom">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0 me-3">
+                        <div class="avatar-sm">
+                            <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                <i class="ri-line-chart-line"></i>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h5 class="card-title mb-0">Monthly Certificates Issued</h5>
+                        <p class="text-muted mb-0 small">Certificate issuance trends over time</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="monthly-certificates-chart" style="min-height: 350px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Certificates by Level -->
+    <div class="col-xl-4">
+        <div class="card h-100">
+            <div class="card-header border-bottom">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0 me-3">
+                        <div class="avatar-sm">
+                            <span class="avatar-title bg-info-subtle text-info rounded-circle">
+                                <i class="ri-pie-chart-line"></i>
+                            </span>
+                        </div>
+                    </div>
+                    <div>
+                        <h5 class="card-title mb-0">By Level</h5>
+                        <p class="text-muted mb-0 small">Distribution across YLE levels</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="level-distribution-chart" style="min-height: 300px;"></div>
+                <div class="row g-3 mt-3">
+                    <div class="col-4 text-center">
+                        <div class="p-2 bg-info-subtle rounded">
+                            <h5 class="mb-1 text-info">{{ starters_count|default:0 }}</h5>
+                            <small class="text-muted">Starters</small>
+                        </div>
+                    </div>
+                    <div class="col-4 text-center">
+                        <div class="p-2 bg-warning-subtle rounded">
+                            <h5 class="mb-1 text-warning">{{ movers_count|default:0 }}</h5>
+                            <small class="text-muted">Movers</small>
+                        </div>
+                    </div>
+                    <div class="col-4 text-center">
+                        <div class="p-2 bg-success-subtle rounded">
+                            <h5 class="mb-1 text-success">{{ flyers_count|default:0 }}</h5>
+                            <small class="text-muted">Flyers</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Average Shields by Level -->
+<div class="row">
+    <div class="col-xl-6">
+        <div class="card">
+            <div class="card-header border-bottom">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0 me-3">
+                        <div class="avatar-sm">
+                            <span class="avatar-title bg-warning-subtle text-warning rounded-circle">
+                                <i class="ri-bar-chart-horizontal-line"></i>
+                            </span>
+                        </div>
+                    </div>
+                    <div>
+                        <h5 class="card-title mb-0">Average Shields by Level</h5>
+                        <p class="text-muted mb-0 small">Performance comparison across levels</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="shields-by-level-chart" style="min-height: 300px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-6">
+        <div class="card">
+            <div class="card-header border-bottom">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0 me-3">
+                        <div class="avatar-sm">
+                            <span class="avatar-title bg-success-subtle text-success rounded-circle">
+                                <i class="ri-radar-line"></i>
+                            </span>
+                        </div>
+                    </div>
+                    <div>
+                        <h5 class="card-title mb-0">Average Shields by Skill</h5>
+                        <p class="text-muted mb-0 small">Performance breakdown by skill area</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="shields-by-skill-chart" style="min-height: 300px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top Certified Students -->
+<div class="row">
+    <div class="col-xl-6">
+        <div class="card">
+            <div class="card-header border-bottom">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <div class="avatar-sm">
+                                <span class="avatar-title bg-success-subtle text-success rounded-circle">
+                                    <i class="ri-star-line"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div>
+                            <h5 class="card-title mb-0">Top Certified Students</h5>
+                            <p class="text-muted mb-0 small">Students with highest total shields</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if top_students %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 50px;">#</th>
+                                <th>Student</th>
+                                <th class="text-center">Certificates</th>
+                                <th class="text-center">Avg Shields</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in top_students %}
+                            <tr>
+                                <td>
+                                    {% if forloop.counter == 1 %}
+                                    <span class="badge bg-warning fs-6"><i class="ri-medal-fill"></i></span>
+                                    {% elif forloop.counter == 2 %}
+                                    <span class="badge bg-secondary fs-6"><i class="ri-medal-fill"></i></span>
+                                    {% elif forloop.counter == 3 %}
+                                    <span class="badge bg-danger fs-6"><i class="ri-medal-fill"></i></span>
+                                    {% else %}
+                                    <span class="badge bg-light text-dark">{{ forloop.counter }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        {% if student.profile_picture %}
+                                        <img src="{{ student.profile_picture.url }}" alt="{{ student.full_name }}"
+                                             class="avatar-sm rounded-circle me-2 object-fit-cover">
+                                        {% else %}
+                                        <div class="avatar-sm me-2">
+                                            <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                                {{ student.full_name|first|upper }}
+                                            </span>
+                                        </div>
+                                        {% endif %}
+                                        <div>
+                                            <h6 class="mb-0">{{ student.full_name }}</h6>
+                                            <small class="text-muted">{{ student.admission_number }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-primary">{{ student.certificate_count }}</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-warning">{{ student.avg_shields|floatformat:1 }}/20</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="ri-user-star-line fs-1 text-muted opacity-50"></i>
+                    <p class="text-muted mb-0">No certified students in this period</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Certificates -->
+    <div class="col-xl-6">
+        <div class="card">
+            <div class="card-header border-bottom">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <div class="avatar-sm">
+                                <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                    <i class="ri-time-line"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div>
+                            <h5 class="card-title mb-0">Recent Certificates</h5>
+                            <p class="text-muted mb-0 small">Latest certificates issued</p>
+                        </div>
+                    </div>
+                    <a href="{% url 'certificate_list' %}" class="btn btn-sm btn-soft-primary">
+                        View All <i class="ri-arrow-right-line ms-1"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if recent_certificates %}
+                <div class="d-flex flex-column gap-3">
+                    {% for cert in recent_certificates %}
+                    <div class="d-flex align-items-center p-3 border rounded card-animate">
+                        <div class="avatar-sm flex-shrink-0 me-3">
+                            <span class="avatar-title bg-{% if cert.level == 'STARTERS' %}info{% elif cert.level == 'MOVERS' %}warning{% else %}success{% endif %}-subtle text-{% if cert.level == 'STARTERS' %}info{% elif cert.level == 'MOVERS' %}warning{% else %}success{% endif %} rounded-circle">
+                                {% if cert.level == 'STARTERS' %}
+                                <i class="ri-seedling-line"></i>
+                                {% elif cert.level == 'MOVERS' %}
+                                <i class="ri-run-line"></i>
+                                {% else %}
+                                <i class="ri-rocket-line"></i>
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">{{ cert.student.full_name }}</h6>
+                            <div class="d-flex flex-wrap gap-2">
+                                <span class="badge bg-{% if cert.level == 'STARTERS' %}info{% elif cert.level == 'MOVERS' %}warning{% else %}success{% endif %}-subtle text-{% if cert.level == 'STARTERS' %}info{% elif cert.level == 'MOVERS' %}warning{% else %}success{% endif %}">
+                                    {{ cert.get_level_display }}
+                                </span>
+                                <small class="text-muted">
+                                    <i class="ri-calendar-line me-1"></i>{{ cert.issue_date|date:"M d, Y" }}
+                                </small>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-warning fs-6">{{ cert.total_shields }}/20</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="ri-award-line fs-1 text-muted opacity-50"></i>
+                    <p class="text-muted mb-0">No certificates in this period</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script>
+$(document).ready(function() {
+    // Initialize Flatpickr
+    if (typeof flatpickr !== 'undefined') {
+        flatpickr('.flatpickr-date', {
+            dateFormat: 'Y-m-d',
+            allowInput: true
+        });
+    }
+
+    // Counter animation
+    $('.counter-value').each(function() {
+        var $this = $(this);
+        var target = parseFloat($this.attr('data-target'));
+
+        if (isNaN(target)) {
+            target = 0;
+        }
+
+        $({ Counter: 0 }).animate({ Counter: target }, {
+            duration: 1500,
+            easing: 'swing',
+            step: function() {
+                $this.text(Math.ceil(this.Counter));
+            },
+            complete: function() {
+                $this.text(target);
+            }
+        });
+    });
+
+    // Monthly Certificates Chart
+    var monthlyOptions = {
+        series: [{
+            name: 'Starters',
+            data: {{ monthly_starters|default:"[0,0,0,0,0,0,0,0,0,0,0,0]"|safe }}
+        }, {
+            name: 'Movers',
+            data: {{ monthly_movers|default:"[0,0,0,0,0,0,0,0,0,0,0,0]"|safe }}
+        }, {
+            name: 'Flyers',
+            data: {{ monthly_flyers|default:"[0,0,0,0,0,0,0,0,0,0,0,0]"|safe }}
+        }],
+        chart: {
+            type: 'bar',
+            height: 350,
+            stacked: true,
+            toolbar: {
+                show: false
+            }
+        },
+        colors: ['#0dcaf0', '#ffc107', '#198754'],
+        plotOptions: {
+            bar: {
+                horizontal: false,
+                columnWidth: '55%',
+                borderRadius: 4
+            }
+        },
+        dataLabels: {
+            enabled: false
+        },
+        xaxis: {
+            categories: {{ months|default:"['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']"|safe }}
+        },
+        legend: {
+            position: 'top'
+        },
+        fill: {
+            opacity: 1
+        }
+    };
+
+    var monthlyChart = new ApexCharts(document.querySelector("#monthly-certificates-chart"), monthlyOptions);
+    monthlyChart.render();
+
+    // Level Distribution Chart
+    var levelOptions = {
+        series: [{{ starters_count|default:0 }}, {{ movers_count|default:0 }}, {{ flyers_count|default:0 }}],
+        chart: {
+            type: 'donut',
+            height: 280
+        },
+        labels: ['Starters', 'Movers', 'Flyers'],
+        colors: ['#0dcaf0', '#ffc107', '#198754'],
+        legend: {
+            show: false
+        },
+        plotOptions: {
+            pie: {
+                donut: {
+                    size: '70%',
+                    labels: {
+                        show: true,
+                        total: {
+                            show: true,
+                            label: 'Total',
+                            formatter: function(w) {
+                                return w.globals.seriesTotals.reduce((a, b) => a + b, 0);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    var levelChart = new ApexCharts(document.querySelector("#level-distribution-chart"), levelOptions);
+    levelChart.render();
+
+    // Shields by Level Chart
+    var shieldsByLevelOptions = {
+        series: [{
+            name: 'Average Shields',
+            data: [{{ starters_avg_shields|default:0 }}, {{ movers_avg_shields|default:0 }}, {{ flyers_avg_shields|default:0 }}]
+        }],
+        chart: {
+            type: 'bar',
+            height: 300,
+            toolbar: {
+                show: false
+            }
+        },
+        colors: ['#0dcaf0', '#ffc107', '#198754'],
+        plotOptions: {
+            bar: {
+                horizontal: true,
+                distributed: true,
+                borderRadius: 4,
+                dataLabels: {
+                    position: 'top'
+                }
+            }
+        },
+        dataLabels: {
+            enabled: true,
+            formatter: function(val) {
+                return val + '/20';
+            },
+            offsetX: 30
+        },
+        xaxis: {
+            categories: ['Pre A1 Starters', 'A1 Movers', 'A2 Flyers'],
+            max: 20
+        },
+        legend: {
+            show: false
+        }
+    };
+
+    var shieldsByLevelChart = new ApexCharts(document.querySelector("#shields-by-level-chart"), shieldsByLevelOptions);
+    shieldsByLevelChart.render();
+
+    // Shields by Skill Chart (Radar)
+    var shieldsBySkillOptions = {
+        series: [{
+            name: 'Average Shields',
+            data: [{{ listening_avg|default:3 }}, {{ reading_avg|default:3 }}, {{ writing_avg|default:3 }}, {{ speaking_avg|default:3 }}]
+        }],
+        chart: {
+            type: 'radar',
+            height: 300,
+            toolbar: {
+                show: false
+            }
+        },
+        colors: ['#660066'],
+        xaxis: {
+            categories: ['Listening', 'Reading', 'Writing', 'Speaking']
+        },
+        yaxis: {
+            max: 5,
+            tickAmount: 5
+        },
+        markers: {
+            size: 5,
+            colors: ['#660066'],
+            strokeWidth: 2
+        },
+        fill: {
+            opacity: 0.2
+        }
+    };
+
+    var shieldsBySkillChart = new ApexCharts(document.querySelector("#shields-by-skill-chart"), shieldsBySkillOptions);
+    shieldsBySkillChart.render();
+});
+</script>
+
+<style>
+.avatar-lg {
+    width: 64px;
+    height: 64px;
+}
+
+.avatar-sm {
+    width: 32px;
+    height: 32px;
+}
+
+.avatar-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.text-white-75 {
+    color: rgba(255, 255, 255, 0.75) !important;
+}
+
+.object-fit-cover {
+    object-fit: cover;
+}
+
+.card-animate:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+}
+
+@media print {
+    .btn,
+    form,
+    .card-header .avatar-sm {
+        display: none !important;
+    }
+
+    .card {
+        break-inside: avoid;
+        border: 1px solid #dee2e6 !important;
+    }
+}
+</style>
+{% endblock %}

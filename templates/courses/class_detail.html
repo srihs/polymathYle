@@ -1,0 +1,623 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block PageTitle %}{{ class.class_name }} - Polymath School of English{% endblock %}
+{% block pageTitle %}Class Details{% endblock %}
+{% block Title %}Courses{% endblock %}
+{% block functionTitle %}{{ class.class_name }}{% endblock %}
+
+{% block content %}
+<!-- Class Profile Header -->
+<div class="row">
+    <div class="col-12">
+        <div class="card overflow-hidden">
+            <div class="card-body position-relative"
+                 style="background: linear-gradient(135deg, {{ class.level.color_theme|default:'#660066' }} 0%, {{ class.level.color_theme|default:'#660066' }}99 100%); min-height: 120px;">
+            </div>
+            <div class="card-body pt-0">
+                <div class="row align-items-end">
+                    <div class="col-auto" style="margin-top: -50px;">
+                        <div class="avatar-xxl border border-4 border-white shadow rounded-circle bg-white">
+                            <span class="avatar-title rounded-circle" style="background-color: {{ class.level.color_theme|default:'#660066' }}; font-size: 2.5rem; width: 120px; height: 120px;">
+                                {{ class.class_name|first|upper }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="d-flex flex-wrap justify-content-between align-items-start">
+                            <div>
+                                <h3 class="mb-1">{{ class.class_name }}</h3>
+                                <p class="text-muted mb-2">{{ class.level.name }} - {{ class.level.cefr_level }}</p>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <span class="badge bg-primary-subtle text-primary">
+                                        <i class="ri-code-line me-1"></i>{{ class.class_code }}
+                                    </span>
+                                    {% if class.level.short_code == 'STARTERS' %}
+                                    <span class="badge bg-info-subtle text-info">
+                                        <i class="ri-seedling-line me-1"></i>Starters
+                                    </span>
+                                    {% elif class.level.short_code == 'MOVERS' %}
+                                    <span class="badge bg-warning-subtle text-warning">
+                                        <i class="ri-run-line me-1"></i>Movers
+                                    </span>
+                                    {% else %}
+                                    <span class="badge bg-success-subtle text-success">
+                                        <i class="ri-rocket-line me-1"></i>Flyers
+                                    </span>
+                                    {% endif %}
+                                    {% if class.is_active %}
+                                    <span class="badge bg-success-subtle text-success">
+                                        <i class="ri-check-line me-1"></i>Active
+                                    </span>
+                                    {% else %}
+                                    <span class="badge bg-danger-subtle text-danger">
+                                        <i class="ri-close-line me-1"></i>Inactive
+                                    </span>
+                                    {% endif %}
+                                    {% if class.is_full %}
+                                    <span class="badge bg-danger">
+                                        <i class="ri-user-forbid-line me-1"></i>Full
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2 mt-3 mt-md-0">
+                                <a href="{% url 'attendance_mark' %}?class={{ class.id }}" class="btn btn-info">
+                                    <i class="ri-checkbox-multiple-line me-1"></i> Mark Attendance
+                                </a>
+                                {% if perms.courses.change_class %}
+                                <a href="{% url 'class_edit' class.id %}" class="btn btn-warning">
+                                    <i class="ri-edit-line me-1"></i> Edit Class
+                                </a>
+                                {% endif %}
+                                <a href="{% url 'class_list' %}" class="btn btn-outline-secondary">
+                                    <i class="ri-arrow-left-line me-1"></i> All Classes
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row">
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-3">Enrolled Students</p>
+                        <h4 class="fs-22 fw-semibold mb-1">
+                            <span class="counter-value">{{ class.current_enrollment }}</span>
+                            <span class="text-muted fs-6">/ {{ class.max_students }}</span>
+                        </h4>
+                        <p class="text-muted mb-0">
+                            {% widthratio class.current_enrollment class.max_students 100 as percent %}
+                            {{ percent }}% capacity
+                        </p>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-primary-subtle rounded-circle fs-3">
+                            <i class="ri-user-line text-primary"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-3">Available Seats</p>
+                        <h4 class="fs-22 fw-semibold mb-1">
+                            <span class="counter-value">{% widthratio class.max_students 1 1 as max %}{{ class.max_students|add:"-"|add:class.current_enrollment }}</span>
+                        </h4>
+                        <p class="text-muted mb-0">Open for enrollment</p>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-success-subtle rounded-circle fs-3">
+                            <i class="ri-user-add-line text-success"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-3">Class Duration</p>
+                        <h4 class="fs-22 fw-semibold mb-1">
+                            {% widthratio 1 1 1 %}
+                            <span class="counter-value">{{ duration_weeks|default:"--" }}</span>
+                            <span class="text-muted fs-6">weeks</span>
+                        </h4>
+                        <p class="text-muted mb-0">{{ class.start_date|date:"M d" }} - {{ class.end_date|date:"M d, Y" }}</p>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-info-subtle rounded-circle fs-3">
+                            <i class="ri-calendar-line text-info"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-3">Attendance Rate</p>
+                        <h4 class="fs-22 fw-semibold mb-1">
+                            <span class="counter-value">{{ attendance_rate|default:"--" }}</span>
+                            {% if attendance_rate %}<span class="text-muted fs-6">%</span>{% endif %}
+                        </h4>
+                        <p class="text-muted mb-0">Overall class average</p>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-warning-subtle rounded-circle fs-3">
+                            <i class="ri-checkbox-multiple-line text-warning"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Left Column -->
+    <div class="col-xl-4">
+        <!-- Class Information Card -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="ri-information-line me-2 text-primary"></i>Class Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-borderless mb-0">
+                        <tbody>
+                            <tr>
+                                <th class="ps-0 text-muted" style="width: 40%;">
+                                    <i class="ri-code-line me-2"></i>Class Code
+                                </th>
+                                <td class="fw-medium">
+                                    <span class="badge bg-primary">{{ class.class_code }}</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-stack-line me-2"></i>Level
+                                </th>
+                                <td class="fw-medium">
+                                    <a href="{% url 'level_detail' class.level.id %}">{{ class.level.name }}</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-map-pin-line me-2"></i>Room
+                                </th>
+                                <td class="fw-medium">{{ class.room_number|default:"Not assigned" }}</td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-calendar-line me-2"></i>Start Date
+                                </th>
+                                <td class="fw-medium">{{ class.start_date|date:"F d, Y" }}</td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-calendar-check-line me-2"></i>End Date
+                                </th>
+                                <td class="fw-medium">{{ class.end_date|date:"F d, Y" }}</td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-user-settings-line me-2"></i>Max Students
+                                </th>
+                                <td class="fw-medium">{{ class.max_students }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Teacher Card -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="ri-user-star-line me-2 text-primary"></i>Assigned Teacher
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if class.teacher %}
+                <div class="d-flex align-items-center">
+                    {% if class.teacher.profile_picture %}
+                    <img src="{{ class.teacher.profile_picture.url }}"
+                         alt="{{ class.teacher.full_name }}"
+                         class="rounded-circle me-3"
+                         style="width: 64px; height: 64px; object-fit: cover;">
+                    {% else %}
+                    <div class="avatar-md me-3">
+                        <span class="avatar-title bg-primary-subtle text-primary rounded-circle fs-4">
+                            {{ class.teacher.full_name|first|upper }}
+                        </span>
+                    </div>
+                    {% endif %}
+                    <div class="flex-grow-1">
+                        <h5 class="mb-1">
+                            <a href="{% url 'teacher_detail' class.teacher.id %}" class="text-dark">
+                                {{ class.teacher.full_name }}
+                            </a>
+                        </h5>
+                        <p class="text-muted mb-2 small">{{ class.teacher.email }}</p>
+                        <div class="d-flex flex-wrap gap-1">
+                            {% if class.teacher.teaches_starters %}
+                            <span class="badge bg-info-subtle text-info" title="Starters">S</span>
+                            {% endif %}
+                            {% if class.teacher.teaches_movers %}
+                            <span class="badge bg-warning-subtle text-warning" title="Movers">M</span>
+                            {% endif %}
+                            {% if class.teacher.teaches_flyers %}
+                            <span class="badge bg-success-subtle text-success" title="Flyers">F</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <a href="{% url 'teacher_detail' class.teacher.id %}" class="btn btn-sm btn-outline-primary w-100">
+                        <i class="ri-eye-line me-1"></i> View Teacher Profile
+                    </a>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="ri-user-line fs-1 text-muted opacity-50"></i>
+                    <h6 class="mt-3">No Teacher Assigned</h6>
+                    <p class="text-muted mb-3">This class needs a teacher assignment.</p>
+                    {% if perms.courses.change_class %}
+                    <a href="{% url 'class_edit' class.id %}" class="btn btn-sm btn-primary">
+                        <i class="ri-user-add-line me-1"></i> Assign Teacher
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Schedule Card -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="ri-time-line me-2 text-primary"></i>Class Schedule
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if class.schedule %}
+                <div class="d-flex flex-column gap-2">
+                    {% for session in class.schedule %}
+                    <div class="d-flex align-items-center p-2 border rounded">
+                        <div class="avatar-xs me-3">
+                            <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                <i class="ri-calendar-line"></i>
+                            </span>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-0">{{ session.day }}</h6>
+                            <small class="text-muted">
+                                <i class="ri-time-line me-1"></i>{{ session.time }}
+                                {% if session.duration_minutes %}
+                                <span class="ms-2">| {{ session.duration_minutes }} mins</span>
+                                {% endif %}
+                            </small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="ri-time-line fs-1 text-muted opacity-50"></i>
+                    <p class="text-muted mb-0">No schedule configured</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column -->
+    <div class="col-xl-8">
+        <!-- Enrolled Students Card -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="ri-team-line me-2 text-primary"></i>Enrolled Students
+                    <span class="badge bg-primary-subtle text-primary ms-2">{{ students.count|default:0 }}</span>
+                </h5>
+                <div class="d-flex gap-2">
+                    {% if not class.is_full and perms.students.add_student %}
+                    <a href="{% url 'student_list' %}?enroll_class={{ class.id }}" class="btn btn-sm btn-success">
+                        <i class="ri-user-add-line me-1"></i> Enroll Student
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                {% if students %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Student</th>
+                                <th>Guardian</th>
+                                <th class="text-center">Attendance</th>
+                                <th>Progress</th>
+                                <th>Status</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in students %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        {% if student.profile_picture %}
+                                        <img src="{{ student.profile_picture.url }}"
+                                             alt="{{ student.full_name }}"
+                                             class="rounded-circle me-2"
+                                             style="width: 40px; height: 40px; object-fit: cover;">
+                                        {% else %}
+                                        <div class="avatar-sm me-2">
+                                            <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                                {{ student.full_name|first|upper }}
+                                            </span>
+                                        </div>
+                                        {% endif %}
+                                        <div>
+                                            <a href="{% url 'student_detail' student.id %}" class="text-dark fw-medium">
+                                                {{ student.full_name }}
+                                            </a>
+                                            <p class="text-muted mb-0 small">
+                                                {{ student.student_id }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if student.guardian %}
+                                    <span class="text-dark">{{ student.guardian.full_name }}</span>
+                                    <p class="text-muted mb-0 small">{{ student.guardian.relationship }}</p>
+                                    {% else %}
+                                    <span class="text-muted">Not assigned</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge {% if student.attendance_rate >= 90 %}bg-success{% elif student.attendance_rate >= 75 %}bg-warning{% else %}bg-danger{% endif %}">
+                                        {{ student.attendance_rate|default:"--" }}{% if student.attendance_rate %}%{% endif %}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="progress flex-grow-1" style="width: 60px; height: 6px;">
+                                            <div class="progress-bar bg-success"
+                                                 role="progressbar"
+                                                 style="width: {{ student.course_progress|default:0 }}%"
+                                                 aria-valuenow="{{ student.course_progress|default:0 }}"
+                                                 aria-valuemin="0"
+                                                 aria-valuemax="100">
+                                            </div>
+                                        </div>
+                                        <small class="text-muted">{{ student.course_progress|default:0 }}%</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if student.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <a href="{% url 'student_detail' student.id %}"
+                                       class="btn btn-sm btn-soft-primary"
+                                       title="View Student"
+                                       aria-label="View {{ student.full_name }}">
+                                        <i class="ri-eye-line"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="ri-team-line fs-1 text-muted opacity-50"></i>
+                    <h6 class="mt-3">No Students Enrolled</h6>
+                    <p class="text-muted mb-3">Start enrolling students to this class.</p>
+                    {% if not class.is_full and perms.students.add_student %}
+                    <a href="{% url 'student_list' %}?enroll_class={{ class.id }}" class="btn btn-primary">
+                        <i class="ri-user-add-line me-1"></i> Enroll First Student
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Recent Attendance Card -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="ri-checkbox-multiple-line me-2 text-primary"></i>Recent Attendance
+                </h5>
+                <a href="{% url 'attendance_report' %}?class={{ class.id }}" class="btn btn-sm btn-outline-primary">
+                    <i class="ri-file-chart-line me-1"></i> Full Report
+                </a>
+            </div>
+            <div class="card-body">
+                {% if recent_attendance %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date</th>
+                                <th class="text-center">Present</th>
+                                <th class="text-center">Absent</th>
+                                <th class="text-center">Late</th>
+                                <th class="text-center">Rate</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in recent_attendance %}
+                            <tr>
+                                <td>
+                                    <i class="ri-calendar-line me-2 text-muted"></i>
+                                    {{ record.date|date:"l, M d, Y" }}
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-success-subtle text-success">{{ record.present }}</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-danger-subtle text-danger">{{ record.absent }}</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-warning-subtle text-warning">{{ record.late }}</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="fw-medium">{{ record.rate }}%</span>
+                                </td>
+                                <td class="text-end">
+                                    <a href="{% url 'attendance_mark' %}?class={{ class.id }}&date={{ record.date|date:'Y-m-d' }}"
+                                       class="btn btn-sm btn-soft-primary"
+                                       title="Edit Attendance">
+                                        <i class="ri-edit-line"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="ri-checkbox-multiple-line fs-1 text-muted opacity-50"></i>
+                    <h6 class="mt-3">No Attendance Records</h6>
+                    <p class="text-muted mb-3">Start marking attendance for this class.</p>
+                    <a href="{% url 'attendance_mark' %}?class={{ class.id }}" class="btn btn-primary">
+                        <i class="ri-checkbox-multiple-line me-1"></i> Mark Attendance
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Class Activity/Quick Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="ri-flashlight-line me-2 text-primary"></i>Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <a href="{% url 'attendance_mark' %}?class={{ class.id }}" class="btn btn-soft-info w-100 py-3">
+                            <i class="ri-checkbox-multiple-line fs-4 d-block mb-2"></i>
+                            Mark Attendance
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="{% url 'attendance_report' %}?class={{ class.id }}" class="btn btn-soft-primary w-100 py-3">
+                            <i class="ri-file-chart-line fs-4 d-block mb-2"></i>
+                            Attendance Report
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="{% url 'unit_list' %}?level={{ class.level.id }}" class="btn btn-soft-success w-100 py-3">
+                            <i class="ri-book-2-line fs-4 d-block mb-2"></i>
+                            View Curriculum
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<style>
+.avatar-xxl {
+    width: 120px;
+    height: 120px;
+}
+
+.avatar-xxl .avatar-title {
+    width: 120px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.avatar-xs {
+    width: 28px;
+    height: 28px;
+}
+
+.avatar-xs .avatar-title {
+    width: 28px;
+    height: 28px;
+    font-size: 0.75rem;
+}
+
+.avatar-md {
+    width: 56px;
+    height: 56px;
+}
+
+.avatar-md .avatar-title {
+    width: 56px;
+    height: 56px;
+}
+
+.card-animate {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card-animate:hover {
+    transform: translateY(-5px);
+}
+
+.counter-value {
+    font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 768px) {
+    .avatar-xxl {
+        width: 80px;
+        height: 80px;
+    }
+
+    .avatar-xxl .avatar-title {
+        width: 80px;
+        height: 80px;
+        font-size: 1.75rem !important;
+    }
+}
+</style>
+{% endblock %}

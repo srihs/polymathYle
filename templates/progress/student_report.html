@@ -1,0 +1,657 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block PageTitle %}{{ student.full_name }} - Progress Report - PolymathYLE{% endblock %}
+{% block pageTitle %}Student Progress Report{% endblock %}
+{% block Title %}Reports{% endblock %}
+{% block functionTitle %}Progress Analytics{% endblock %}
+
+{% block content %}
+<!-- Student Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card overflow-hidden">
+            <div class="card-body bg-primary bg-opacity-10 position-relative" style="min-height: 120px;">
+                <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(135deg, var(--bs-primary) 0%, transparent 50%); opacity: 0.1;"></div>
+            </div>
+            <div class="card-body pt-0">
+                <div class="row align-items-end">
+                    <div class="col-auto" style="margin-top: -50px;">
+                        {% if student.profile_picture %}
+                            <img src="{{ student.profile_picture.url }}"
+                                 alt="{{ student.full_name }}"
+                                 class="rounded-circle border border-4 border-white shadow"
+                                 style="width: 120px; height: 120px; object-fit: cover;">
+                        {% else %}
+                            <div class="avatar-xxl border border-4 border-white shadow rounded-circle">
+                                <span class="avatar-title bg-primary text-white rounded-circle" style="font-size: 2.5rem;">
+                                    {{ student.full_name|first|upper }}
+                                </span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col">
+                        <div class="d-flex flex-wrap justify-content-between align-items-start">
+                            <div>
+                                <h3 class="mb-1">{{ student.full_name }}</h3>
+                                <p class="text-muted mb-2">{{ student.admission_number }}</p>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <span class="badge bg-primary-subtle text-primary">
+                                        <i class="ri-graduation-cap-line me-1"></i>{{ student.current_level }}
+                                    </span>
+                                    {% if student.current_class %}
+                                        <span class="badge bg-info-subtle text-info">
+                                            <i class="ri-group-line me-1"></i>{{ student.current_class }}
+                                        </span>
+                                    {% endif %}
+                                    <span class="badge bg-{% if student.is_active %}success{% else %}danger{% endif %}-subtle text-{% if student.is_active %}success{% else %}danger{% endif %}">
+                                        {% if student.is_active %}Active{% else %}Inactive{% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2 mt-3 mt-md-0">
+                                <button onclick="window.print()" class="btn btn-outline-secondary">
+                                    <i class="ri-printer-line me-1"></i> Print Report
+                                </button>
+                                <a href="{% url 'progress:class_report' %}?class_id={{ student.current_class.id }}" class="btn btn-soft-primary">
+                                    <i class="ri-team-line me-1"></i> Class Report
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Report Period Filter -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <form method="get" action="" class="row g-3 align-items-end">
+                    <div class="col-xl-3 col-lg-4 col-md-6">
+                        <label for="period" class="form-label">Report Period</label>
+                        <select class="form-select" id="period" name="period" aria-label="Select report period">
+                            <option value="week" {% if period == 'week' %}selected{% endif %}>This Week</option>
+                            <option value="month" {% if period == 'month' %}selected{% endif %}>This Month</option>
+                            <option value="term" {% if period == 'term' %}selected{% endif %}>This Term</option>
+                            <option value="all" {% if period == 'all' %}selected{% endif %}>All Time</option>
+                            <option value="custom" {% if period == 'custom' %}selected{% endif %}>Custom Range</option>
+                        </select>
+                    </div>
+                    <div class="col-xl-2 col-lg-3 col-md-6" id="customDateFrom" style="{% if period != 'custom' %}display: none;{% endif %}">
+                        <label for="date_from" class="form-label">From Date</label>
+                        <input type="date" class="form-control" id="date_from" name="date_from" value="{{ date_from|date:'Y-m-d' }}">
+                    </div>
+                    <div class="col-xl-2 col-lg-3 col-md-6" id="customDateTo" style="{% if period != 'custom' %}display: none;{% endif %}">
+                        <label for="date_to" class="form-label">To Date</label>
+                        <input type="date" class="form-control" id="date_to" name="date_to" value="{{ date_to|date:'Y-m-d' }}">
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="ri-filter-line me-1"></i> Apply Filter
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Key Statistics -->
+<div class="row">
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate bg-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="fw-medium text-white-75 mb-0">Overall Progress</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ overall_progress|default:0 }}%</h2>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-line-chart-line text-white"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate bg-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="fw-medium text-white-75 mb-0">Average Score</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ average_score|default:0 }}%</h2>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-award-line text-white"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate bg-info">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="fw-medium text-white-75 mb-0">Activities Completed</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ activities_completed|default:0 }}</h2>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-gamepad-line text-white"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate bg-warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="fw-medium text-white-75 mb-0">Points Earned</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ total_points|default:0 }}</h2>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-copper-coin-line text-white"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <!-- Skills Progress -->
+    <div class="col-xl-6">
+        <div class="card h-100">
+            <div class="card-header border-bottom">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0 me-3">
+                        <div class="avatar-sm">
+                            <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                <i class="ri-bar-chart-grouped-line"></i>
+                            </span>
+                        </div>
+                    </div>
+                    <div>
+                        <h5 class="card-title mb-0">Skills Breakdown</h5>
+                        <p class="text-muted mb-0 small">Progress in each Cambridge YLE skill</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Listening -->
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-xs me-2">
+                                <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                    <i class="ri-headphone-line"></i>
+                                </span>
+                            </div>
+                            <span class="fw-medium">Listening</span>
+                        </div>
+                        <div class="text-end">
+                            <span class="fw-bold text-primary">{{ listening_progress|default:0 }}%</span>
+                            <small class="text-muted d-block">Avg: {{ listening_avg|default:0 }}%</small>
+                        </div>
+                    </div>
+                    <div class="progress" style="height: 8px;" role="progressbar" aria-label="Listening progress" aria-valuenow="{{ listening_progress|default:0 }}" aria-valuemin="0" aria-valuemax="100">
+                        <div class="progress-bar bg-primary" style="width: {{ listening_progress|default:0 }}%"></div>
+                    </div>
+                </div>
+
+                <!-- Reading -->
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-xs me-2">
+                                <span class="avatar-title bg-success-subtle text-success rounded-circle">
+                                    <i class="ri-book-read-line"></i>
+                                </span>
+                            </div>
+                            <span class="fw-medium">Reading</span>
+                        </div>
+                        <div class="text-end">
+                            <span class="fw-bold text-success">{{ reading_progress|default:0 }}%</span>
+                            <small class="text-muted d-block">Avg: {{ reading_avg|default:0 }}%</small>
+                        </div>
+                    </div>
+                    <div class="progress" style="height: 8px;" role="progressbar" aria-label="Reading progress" aria-valuenow="{{ reading_progress|default:0 }}" aria-valuemin="0" aria-valuemax="100">
+                        <div class="progress-bar bg-success" style="width: {{ reading_progress|default:0 }}%"></div>
+                    </div>
+                </div>
+
+                <!-- Writing -->
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-xs me-2">
+                                <span class="avatar-title bg-warning-subtle text-warning rounded-circle">
+                                    <i class="ri-edit-line"></i>
+                                </span>
+                            </div>
+                            <span class="fw-medium">Writing</span>
+                        </div>
+                        <div class="text-end">
+                            <span class="fw-bold text-warning">{{ writing_progress|default:0 }}%</span>
+                            <small class="text-muted d-block">Avg: {{ writing_avg|default:0 }}%</small>
+                        </div>
+                    </div>
+                    <div class="progress" style="height: 8px;" role="progressbar" aria-label="Writing progress" aria-valuenow="{{ writing_progress|default:0 }}" aria-valuemin="0" aria-valuemax="100">
+                        <div class="progress-bar bg-warning" style="width: {{ writing_progress|default:0 }}%"></div>
+                    </div>
+                </div>
+
+                <!-- Speaking -->
+                <div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-xs me-2">
+                                <span class="avatar-title bg-info-subtle text-info rounded-circle">
+                                    <i class="ri-mic-line"></i>
+                                </span>
+                            </div>
+                            <span class="fw-medium">Speaking</span>
+                        </div>
+                        <div class="text-end">
+                            <span class="fw-bold text-info">{{ speaking_progress|default:0 }}%</span>
+                            <small class="text-muted d-block">Avg: {{ speaking_avg|default:0 }}%</small>
+                        </div>
+                    </div>
+                    <div class="progress" style="height: 8px;" role="progressbar" aria-label="Speaking progress" aria-valuenow="{{ speaking_progress|default:0 }}" aria-valuemin="0" aria-valuemax="100">
+                        <div class="progress-bar bg-info" style="width: {{ speaking_progress|default:0 }}%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Chart -->
+    <div class="col-xl-6 mt-4 mt-xl-0">
+        <div class="card h-100">
+            <div class="card-header border-bottom">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0 me-3">
+                        <div class="avatar-sm">
+                            <span class="avatar-title bg-success-subtle text-success rounded-circle">
+                                <i class="ri-line-chart-line"></i>
+                            </span>
+                        </div>
+                    </div>
+                    <div>
+                        <h5 class="card-title mb-0">Performance Trend</h5>
+                        <p class="text-muted mb-0 small">Score trends over time</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="performanceChart" style="min-height: 300px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Unit Progress & Recent Activities -->
+<div class="row mt-4">
+    <!-- Unit Progress Table -->
+    <div class="col-xl-6">
+        <div class="card h-100">
+            <div class="card-header border-bottom">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0 me-3">
+                        <div class="avatar-sm">
+                            <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                <i class="ri-folder-open-line"></i>
+                            </span>
+                        </div>
+                    </div>
+                    <div>
+                        <h5 class="card-title mb-0">Unit Progress</h5>
+                        <p class="text-muted mb-0 small">Completion status by unit</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                {% if unit_progress %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Unit</th>
+                                    <th class="text-center">Progress</th>
+                                    <th class="text-center">Lessons</th>
+                                    <th class="text-center">Score</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for unit in unit_progress %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-xs me-2">
+                                                    {% if unit.progress >= 100 %}
+                                                        <span class="avatar-title bg-success-subtle text-success rounded-circle">
+                                                            <i class="ri-check-line"></i>
+                                                        </span>
+                                                    {% else %}
+                                                        <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                                            {{ unit.order_number }}
+                                                        </span>
+                                                    {% endif %}
+                                                </div>
+                                                <span class="text-truncate" style="max-width: 150px;">{{ unit.title }}</span>
+                                            </div>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="d-flex align-items-center justify-content-center gap-2">
+                                                <div class="progress flex-grow-1" style="width: 60px; height: 6px;">
+                                                    <div class="progress-bar bg-{% if unit.progress >= 100 %}success{% else %}primary{% endif %}" style="width: {{ unit.progress }}%"></div>
+                                                </div>
+                                                <span class="small fw-medium">{{ unit.progress }}%</span>
+                                            </div>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-light text-dark">{{ unit.lessons_completed }}/{{ unit.total_lessons }}</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-{% if unit.avg_score >= 80 %}success{% elif unit.avg_score >= 60 %}warning{% else %}danger{% endif %}">{{ unit.avg_score|default:"-" }}%</span>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="ri-folder-open-line fs-1 text-muted opacity-50"></i>
+                        <p class="text-muted mb-0 mt-3">No unit progress data available.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activities -->
+    <div class="col-xl-6 mt-4 mt-xl-0">
+        <div class="card h-100">
+            <div class="card-header border-bottom">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0 me-3">
+                        <div class="avatar-sm">
+                            <span class="avatar-title bg-info-subtle text-info rounded-circle">
+                                <i class="ri-history-line"></i>
+                            </span>
+                        </div>
+                    </div>
+                    <div>
+                        <h5 class="card-title mb-0">Recent Activities</h5>
+                        <p class="text-muted mb-0 small">Latest activity attempts</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                {% if recent_activities %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Activity</th>
+                                    <th class="text-center">Score</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for activity in recent_activities|slice:":10" %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-xs me-2">
+                                                    <span class="avatar-title bg-{% if activity.skill == 'LISTENING' %}primary{% elif activity.skill == 'READING' %}success{% elif activity.skill == 'WRITING' %}warning{% else %}info{% endif %}-subtle text-{% if activity.skill == 'LISTENING' %}primary{% elif activity.skill == 'READING' %}success{% elif activity.skill == 'WRITING' %}warning{% else %}info{% endif %} rounded-circle">
+                                                        <i class="ri-{% if activity.skill == 'LISTENING' %}headphone{% elif activity.skill == 'READING' %}book-read{% elif activity.skill == 'WRITING' %}edit{% else %}mic{% endif %}-line"></i>
+                                                    </span>
+                                                </div>
+                                                <span class="text-truncate" style="max-width: 180px;">{{ activity.title }}</span>
+                                            </div>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-{% if activity.score >= 80 %}success{% elif activity.score >= 60 %}warning{% else %}danger{% endif %} fs-6">{{ activity.score }}%</span>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">{{ activity.completed_at|date:"M d, Y" }}</small>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="ri-history-line fs-1 text-muted opacity-50"></i>
+                        <p class="text-muted mb-0 mt-3">No recent activities found.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Strengths & Areas for Improvement -->
+<div class="row mt-4">
+    <div class="col-xl-6">
+        <div class="card border-success h-100">
+            <div class="card-header bg-success-subtle border-bottom">
+                <div class="d-flex align-items-center">
+                    <i class="ri-thumb-up-line text-success fs-4 me-2"></i>
+                    <h5 class="card-title mb-0 text-success">Strengths</h5>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if strengths %}
+                    <ul class="list-unstyled mb-0">
+                        {% for strength in strengths %}
+                            <li class="d-flex align-items-start mb-3">
+                                <i class="ri-check-double-line text-success me-2 mt-1"></i>
+                                <span>{{ strength }}</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted mb-0">Complete more activities to identify strengths.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-6 mt-4 mt-xl-0">
+        <div class="card border-warning h-100">
+            <div class="card-header bg-warning-subtle border-bottom">
+                <div class="d-flex align-items-center">
+                    <i class="ri-lightbulb-line text-warning fs-4 me-2"></i>
+                    <h5 class="card-title mb-0 text-warning">Areas for Improvement</h5>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if improvements %}
+                    <ul class="list-unstyled mb-0">
+                        {% for improvement in improvements %}
+                            <li class="d-flex align-items-start mb-3">
+                                <i class="ri-arrow-right-circle-line text-warning me-2 mt-1"></i>
+                                <span>{{ improvement }}</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted mb-0">Great progress! Keep up the good work.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script>
+$(document).ready(function() {
+    // Performance Trend Chart
+    var performanceOptions = {
+        series: [{
+            name: 'Score',
+            data: {{ performance_data|safe|default:"[72, 78, 75, 85, 82, 88, 90]" }}
+        }],
+        chart: {
+            type: 'area',
+            height: 300,
+            toolbar: {
+                show: false
+            }
+        },
+        colors: ['#660066'],
+        dataLabels: {
+            enabled: false
+        },
+        stroke: {
+            curve: 'smooth',
+            width: 2
+        },
+        fill: {
+            type: 'gradient',
+            gradient: {
+                shadeIntensity: 1,
+                opacityFrom: 0.4,
+                opacityTo: 0.1,
+                stops: [0, 100]
+            }
+        },
+        xaxis: {
+            categories: {{ performance_dates|safe|default:"['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6', 'Week 7']" }},
+            labels: {
+                style: {
+                    colors: '#6c757d'
+                }
+            }
+        },
+        yaxis: {
+            min: 0,
+            max: 100,
+            labels: {
+                formatter: function(val) {
+                    return val + '%';
+                }
+            }
+        },
+        tooltip: {
+            y: {
+                formatter: function(val) {
+                    return val + '%';
+                }
+            }
+        },
+        grid: {
+            borderColor: '#e9ecef'
+        }
+    };
+
+    var performanceChart = new ApexCharts(document.querySelector("#performanceChart"), performanceOptions);
+    performanceChart.render();
+
+    // Toggle custom date fields
+    $('#period').on('change', function() {
+        if ($(this).val() === 'custom') {
+            $('#customDateFrom, #customDateTo').show();
+        } else {
+            $('#customDateFrom, #customDateTo').hide();
+        }
+    });
+});
+</script>
+
+<style>
+.text-white-75 {
+    color: rgba(255, 255, 255, 0.75) !important;
+}
+
+.avatar-xxl {
+    width: 120px;
+    height: 120px;
+}
+
+.avatar-xxl .avatar-title {
+    width: 120px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.avatar-sm {
+    width: 32px;
+    height: 32px;
+}
+
+.avatar-xs {
+    width: 24px;
+    height: 24px;
+}
+
+.avatar-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.card-animate {
+    transition: all 0.3s ease;
+}
+
+.card-animate:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+}
+
+.progress {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+@media print {
+    .btn,
+    form,
+    .card-header .col-auto {
+        display: none !important;
+    }
+
+    .card {
+        border: 1px solid #dee2e6 !important;
+        box-shadow: none !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .avatar-xxl {
+        width: 80px;
+        height: 80px;
+    }
+
+    .avatar-xxl .avatar-title {
+        width: 80px;
+        height: 80px;
+        font-size: 1.5rem !important;
+    }
+}
+</style>
+{% endblock %}

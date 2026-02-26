@@ -1,0 +1,324 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block PageTitle %}Certificate Templates - PolymathYLE{% endblock %}
+{% block pageTitle %}Certificate Templates{% endblock %}
+{% block Title %}Certification{% endblock %}
+{% block functionTitle %}Template Management{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card bg-primary bg-gradient">
+            <div class="card-body">
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <div class="avatar-lg">
+                                <span class="avatar-title bg-white bg-opacity-25 text-white rounded-circle">
+                                    <i class="ri-file-copy-2-line fs-2"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="text-white mb-1">Certificate Templates</h4>
+                            <p class="text-white-75 mb-0">Manage certificate designs for different YLE levels</p>
+                        </div>
+                    </div>
+                    {% if perms.certification.add_certificatetemplate %}
+                    <a href="{% url 'template_create' %}" class="btn btn-light">
+                        <i class="ri-add-line me-1"></i> Create Template
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Templates Grid -->
+<div class="row">
+    {% for template in templates %}
+    <div class="col-xl-4 col-lg-6">
+        <div class="card card-animate h-100">
+            <!-- Template Preview Image -->
+            <div class="card-img-top bg-light position-relative" style="height: 200px;">
+                {% if template.preview_image %}
+                <img src="{{ template.preview_image.url }}" alt="{{ template.name }}"
+                     class="w-100 h-100 object-fit-cover">
+                {% else %}
+                <div class="d-flex align-items-center justify-content-center h-100
+                    {% if template.level == 'STARTERS' %}bg-info-subtle
+                    {% elif template.level == 'MOVERS' %}bg-warning-subtle
+                    {% else %}bg-success-subtle{% endif %}">
+                    <div class="text-center">
+                        <i class="ri-file-text-line fs-1
+                            {% if template.level == 'STARTERS' %}text-info
+                            {% elif template.level == 'MOVERS' %}text-warning
+                            {% else %}text-success{% endif %} mb-2 d-block"></i>
+                        <span class="text-muted small">No preview available</span>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Level Badge Overlay -->
+                <div class="position-absolute top-0 end-0 m-2">
+                    <span class="badge fs-6
+                        {% if template.level == 'STARTERS' %}bg-info
+                        {% elif template.level == 'MOVERS' %}bg-warning
+                        {% else %}bg-success{% endif %}">
+                        {% if template.level == 'STARTERS' %}
+                            <i class="ri-seedling-line me-1"></i>Starters
+                        {% elif template.level == 'MOVERS' %}
+                            <i class="ri-run-line me-1"></i>Movers
+                        {% else %}
+                            <i class="ri-rocket-line me-1"></i>Flyers
+                        {% endif %}
+                    </span>
+                </div>
+
+                <!-- Status Badge -->
+                <div class="position-absolute bottom-0 start-0 m-2">
+                    {% if template.is_active %}
+                    <span class="badge bg-success">
+                        <i class="ri-checkbox-circle-line me-1"></i>Active
+                    </span>
+                    {% else %}
+                    <span class="badge bg-secondary">
+                        <i class="ri-close-circle-line me-1"></i>Inactive
+                    </span>
+                    {% endif %}
+
+                    {% if template.is_default %}
+                    <span class="badge bg-primary ms-1">
+                        <i class="ri-star-fill me-1"></i>Default
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card-body">
+                <h5 class="card-title mb-2">{{ template.name }}</h5>
+                <p class="text-muted small mb-3">{{ template.description|truncatewords:15|default:"No description provided" }}</p>
+
+                <!-- Template Info -->
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <span class="badge bg-secondary-subtle text-secondary">
+                        <i class="ri-file-list-line me-1"></i>{{ template.get_certificate_type_display }}
+                    </span>
+                    <span class="badge bg-secondary-subtle text-secondary">
+                        <i class="ri-calendar-line me-1"></i>{{ template.created_at|date:"M d, Y" }}
+                    </span>
+                </div>
+
+                <!-- Usage Stats -->
+                <div class="d-flex align-items-center justify-content-between text-muted small mb-3 pb-3 border-bottom">
+                    <span>
+                        <i class="ri-award-line me-1"></i>Used {{ template.usage_count|default:0 }} times
+                    </span>
+                    <span>
+                        <i class="ri-user-line me-1"></i>By {{ template.created_by.get_full_name|default:"System" }}
+                    </span>
+                </div>
+
+                <!-- Actions -->
+                <div class="d-flex gap-2">
+                    <a href="{% url 'template_preview' template.id %}" class="btn btn-soft-primary btn-sm flex-grow-1">
+                        <i class="ri-eye-line me-1"></i> Preview
+                    </a>
+                    {% if perms.certification.change_certificatetemplate %}
+                    <a href="{% url 'template_edit' template.id %}" class="btn btn-soft-warning btn-sm">
+                        <i class="ri-edit-line"></i>
+                    </a>
+                    {% endif %}
+                    {% if perms.certification.delete_certificatetemplate %}
+                    <button type="button" class="btn btn-soft-danger btn-sm" data-bs-toggle="modal"
+                            data-bs-target="#deleteModal-{{ template.id }}">
+                        <i class="ri-delete-bin-line"></i>
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Delete Confirmation Modal -->
+        {% if perms.certification.delete_certificatetemplate %}
+        <div class="modal fade" id="deleteModal-{{ template.id }}" tabindex="-1"
+             aria-labelledby="deleteModalLabel-{{ template.id }}" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header border-bottom-0">
+                        <h5 class="modal-title" id="deleteModalLabel-{{ template.id }}">
+                            <i class="ri-error-warning-line text-danger me-2"></i>Delete Template
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body text-center py-4">
+                        <div class="avatar-lg mx-auto mb-4">
+                            <span class="avatar-title bg-danger-subtle text-danger rounded-circle">
+                                <i class="ri-delete-bin-line fs-1"></i>
+                            </span>
+                        </div>
+                        <h5>Are you sure?</h5>
+                        <p class="text-muted mb-0">
+                            You are about to delete the template "<strong>{{ template.name }}</strong>".
+                            This action cannot be undone.
+                        </p>
+                    </div>
+                    <div class="modal-footer border-top-0 justify-content-center">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <form method="post" action="{% url 'template_delete' template.id %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger">
+                                <i class="ri-delete-bin-line me-1"></i> Delete Template
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <div class="avatar-lg mx-auto mb-4">
+                    <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                        <i class="ri-file-copy-2-line fs-1"></i>
+                    </span>
+                </div>
+                <h5 class="text-muted mb-2">No Templates Found</h5>
+                <p class="text-muted mb-4">There are no certificate templates created yet.</p>
+                {% if perms.certification.add_certificatetemplate %}
+                <a href="{% url 'template_create' %}" class="btn btn-primary">
+                    <i class="ri-add-line me-1"></i> Create First Template
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Quick Reference Cards -->
+<div class="row mt-4">
+    <div class="col-12">
+        <h5 class="mb-3">
+            <i class="ri-information-line me-2 text-info"></i>YLE Level Guidelines
+        </h5>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card border-info h-100">
+            <div class="card-header bg-info-subtle border-info">
+                <div class="d-flex align-items-center">
+                    <i class="ri-seedling-line text-info fs-4 me-2"></i>
+                    <h6 class="card-title mb-0 text-info">Pre A1 Starters</h6>
+                </div>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <i class="ri-checkbox-circle-line text-info me-2"></i>Ages 6-8 years
+                    </li>
+                    <li class="mb-2">
+                        <i class="ri-checkbox-circle-line text-info me-2"></i>Beginner level
+                    </li>
+                    <li class="mb-2">
+                        <i class="ri-checkbox-circle-line text-info me-2"></i>Uses bright, playful colors
+                    </li>
+                    <li class="mb-0">
+                        <i class="ri-checkbox-circle-line text-info me-2"></i>Simple illustrations
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card border-warning h-100">
+            <div class="card-header bg-warning-subtle border-warning">
+                <div class="d-flex align-items-center">
+                    <i class="ri-run-line text-warning fs-4 me-2"></i>
+                    <h6 class="card-title mb-0 text-warning">A1 Movers</h6>
+                </div>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <i class="ri-checkbox-circle-line text-warning me-2"></i>Ages 8-10 years
+                    </li>
+                    <li class="mb-2">
+                        <i class="ri-checkbox-circle-line text-warning me-2"></i>Elementary level
+                    </li>
+                    <li class="mb-2">
+                        <i class="ri-checkbox-circle-line text-warning me-2"></i>Uses warm, encouraging colors
+                    </li>
+                    <li class="mb-0">
+                        <i class="ri-checkbox-circle-line text-warning me-2"></i>Dynamic imagery
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card border-success h-100">
+            <div class="card-header bg-success-subtle border-success">
+                <div class="d-flex align-items-center">
+                    <i class="ri-rocket-line text-success fs-4 me-2"></i>
+                    <h6 class="card-title mb-0 text-success">A2 Flyers</h6>
+                </div>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <i class="ri-checkbox-circle-line text-success me-2"></i>Ages 10-12 years
+                    </li>
+                    <li class="mb-2">
+                        <i class="ri-checkbox-circle-line text-success me-2"></i>Pre-intermediate level
+                    </li>
+                    <li class="mb-2">
+                        <i class="ri-checkbox-circle-line text-success me-2"></i>Uses accomplished, mature colors
+                    </li>
+                    <li class="mb-0">
+                        <i class="ri-checkbox-circle-line text-success me-2"></i>Achievement-focused design
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<style>
+.avatar-lg {
+    width: 64px;
+    height: 64px;
+}
+
+.avatar-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.text-white-75 {
+    color: rgba(255, 255, 255, 0.75) !important;
+}
+
+.object-fit-cover {
+    object-fit: cover;
+}
+
+.card-animate:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+</style>
+{% endblock %}

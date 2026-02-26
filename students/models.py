@@ -15,10 +15,14 @@ class Application(models.Model):
     application_date = models.DateField(auto_now_add=True)
     receipt_number = models.CharField(max_length=50, blank=True)
 
-    # APPLICATION STATUS
+    # APPLICATION STATUS - Workflow stages
     STATUS_CHOICES = [
         ('PENDING', 'Pending Review'),
-        ('APPROVED', 'Approved'),
+        ('AWAITING_TEST', 'Awaiting Baseline Test'),
+        ('TEST_COMPLETED', 'Baseline Test Completed'),
+        ('LEVEL_ASSIGNED', 'Level Assigned'),
+        ('APPROVED', 'Approved for Enrollment'),
+        ('ENROLLED', 'Enrolled'),
         ('REJECTED', 'Rejected'),
         ('WAITLIST', 'Waitlist'),
     ]
@@ -26,6 +30,16 @@ class Application(models.Model):
         max_length=20,
         choices=STATUS_CHOICES,
         default='PENDING'
+    )
+
+    # Processing information
+    processing_date = models.DateField(blank=True, null=True, help_text="Date application was processed")
+    processed_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='processed_applications'
     )
 
     APPLICATION_TYPE_CHOICES = [
@@ -87,6 +101,7 @@ class Application(models.Model):
     # TERMS AND CONDITIONS
     terms_accepted = models.BooleanField(default=False)
     terms_accepted_date = models.DateTimeField(blank=True, null=True)
+    guardian_signature_date = models.DateField(blank=True, null=True, help_text="Date guardian signed the form")
     signature_image = models.ImageField(upload_to='signatures/', blank=True)  # For online applications
 
     # SPECIAL COMMENTS
@@ -144,6 +159,89 @@ class Application(models.Model):
             new_num = 1
 
         return f'FCE-{year}-{new_num:04d}'
+
+
+class BaselineTest(models.Model):
+    """
+    Simple model to track offline baseline test results.
+    Used for level allocation (Starters/Movers/Flyers).
+    """
+    application = models.OneToOneField(
+        Application,
+        on_delete=models.CASCADE,
+        related_name='baseline_test'
+    )
+
+    # Test date and details
+    test_date = models.DateField()
+    tested_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='baseline_tests_conducted'
+    )
+
+    # Scores (out of 100 for each skill)
+    listening_score = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    reading_score = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    writing_score = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    speaking_score = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+
+    # Overall results
+    total_score = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+
+    # Level recommendation and assignment
+    LEVEL_CHOICES = [
+        ('STARTERS', 'Pre A1 Starters'),
+        ('MOVERS', 'A1 Movers'),
+        ('FLYERS', 'A2 Flyers'),
+    ]
+    recommended_level = models.CharField(
+        max_length=20,
+        choices=LEVEL_CHOICES,
+        blank=True
+    )
+    assigned_level = models.CharField(
+        max_length=20,
+        choices=LEVEL_CHOICES,
+        blank=True
+    )
+
+    # Notes
+    notes = models.TextField(blank=True, help_text="Test observations or special remarks")
+
+    # Meta
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-test_date']
+        verbose_name = 'Baseline Test'
+        verbose_name_plural = 'Baseline Tests'
+
+    def __str__(self):
+        return f"{self.application.full_name} - {self.test_date} ({self.assigned_level or 'Pending'})"
+
+    def save(self, *args, **kwargs):
+        # Calculate total and percentage
+        self.total_score = (
+            self.listening_score + self.reading_score +
+            self.writing_score + self.speaking_score
+        )
+        self.percentage = self.total_score / 4  # Average of 4 skills
+
+        # Auto-recommend level based on percentage
+        if not self.recommended_level:
+            if self.percentage >= 70:
+                self.recommended_level = 'FLYERS'
+            elif self.percentage >= 40:
+                self.recommended_level = 'MOVERS'
+            else:
+                self.recommended_level = 'STARTERS'
+
+        super().save(*args, **kwargs)
 
 
 class Guardian(models.Model):

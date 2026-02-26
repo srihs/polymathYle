@@ -98,7 +98,7 @@ def student_dashboard_view(request):
     writing_progress = 0
     speaking_progress = 0
 
-    return render(request, 'students/dashboard.html', {
+    return render(request, 'students/student_dashboard.html', {
         'student': student,
         'lessons_completed': lessons_completed,
         'total_lessons': total_lessons,

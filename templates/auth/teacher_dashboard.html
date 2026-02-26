@@ -5,196 +5,489 @@
 
 {% block pageTitle %}Teacher Dashboard{% endblock %}
 {% block Title %}Dashboard{% endblock %}
-{% block functionTitle %}Teacher{% endblock %}
+{% block functionTitle %}Teacher Portal{% endblock %}
 
 {% block content %}
-<!-- Welcome Section -->
-            <div class="row">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="d-flex align-items-center">
-                                {% if teacher.profile_picture %}
-                                    <img src="{{ teacher.profile_picture.url }}" alt="Teacher" class="avatar-lg rounded-circle me-3">
-                                {% else %}
-                                    <div class="avatar-lg bg-primary rounded-circle d-flex align-items-center justify-content-center me-3">
-                                        <h2 class="text-white mb-0">{{ teacher.full_name.0 }}</h2>
+<!-- Welcome Header Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card card-animate bg-info bg-gradient">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    {% if teacher.profile_picture %}
+                        <img src="{{ teacher.profile_picture.url }}"
+                             alt="{{ teacher.full_name }}"
+                             class="rounded-circle me-4 flex-shrink-0 border border-3 border-white"
+                             style="width: 80px; height: 80px; object-fit: cover;">
+                    {% else %}
+                        <div class="avatar-lg bg-white bg-opacity-25 rounded-circle d-flex align-items-center justify-content-center me-4 flex-shrink-0">
+                            <span class="text-white fw-bold" style="font-size: 2rem;">{{ teacher.full_name|first|upper }}</span>
+                        </div>
+                    {% endif %}
+                    <div class="flex-grow-1">
+                        <h4 class="text-white mb-1">Welcome back, {{ teacher.full_name }}!</h4>
+                        <p class="text-white-75 mb-2">
+                            <i class="ri-user-star-line me-1"></i> Employee ID: {{ teacher.employee_id }}
+                        </p>
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for spec in specializations %}
+                                <span class="badge bg-white bg-opacity-25 text-white">{{ spec }}</span>
+                            {% empty %}
+                                <span class="badge bg-white bg-opacity-25 text-white">General Teacher</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="d-none d-lg-block text-end">
+                        {% if current_rate %}
+                            <p class="text-white-75 mb-1"><small>Current Rate</small></p>
+                            <h4 class="text-white mb-0">{{ current_rate }}<small class="fs-6">/hour</small></h4>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards Row -->
+<div class="row">
+    <div class="col-xl-4 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">My Classes</p>
+                        <h2 class="mt-3 mb-0 ff-secondary fw-semibold">
+                            <span class="counter-value" data-target="{{ classes.count|default:0 }}">{{ classes.count|default:0 }}</span>
+                        </h2>
+                        <p class="text-muted mb-0 mt-2">
+                            <span class="badge bg-primary-subtle text-primary me-1">
+                                <i class="ri-calendar-line align-middle"></i>
+                            </span>
+                            <span class="text-muted">assigned</span>
+                        </p>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-primary-subtle rounded-circle fs-2">
+                            <i class="ri-home-4-line text-primary"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-4 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Total Students</p>
+                        <h2 class="mt-3 mb-0 ff-secondary fw-semibold">
+                            <span class="counter-value" data-target="{{ students_count|default:0 }}">{{ students_count|default:0 }}</span>
+                        </h2>
+                        <p class="text-muted mb-0 mt-2">
+                            <span class="badge bg-success-subtle text-success me-1">
+                                <i class="ri-team-line align-middle"></i>
+                            </span>
+                            <span class="text-muted">across all classes</span>
+                        </p>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-success-subtle rounded-circle fs-2">
+                            <i class="ri-team-line text-success"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-4 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Classes Taught</p>
+                        <h2 class="mt-3 mb-0 ff-secondary fw-semibold">
+                            <span class="counter-value" data-target="{{ teacher.total_classes_taught|default:0 }}">{{ teacher.total_classes_taught|default:0 }}</span>
+                        </h2>
+                        <p class="text-muted mb-0 mt-2">
+                            <span class="badge bg-info-subtle text-info me-1">
+                                <i class="ri-history-line align-middle"></i>
+                            </span>
+                            <span class="text-muted">lifetime</span>
+                        </p>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-info-subtle rounded-circle fs-2">
+                            <i class="ri-book-open-line text-info"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions Section -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header border-bottom">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0 me-3">
+                        <div class="avatar-sm">
+                            <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                <i class="ri-flashlight-line"></i>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h5 class="card-title mb-0">Quick Actions</h5>
+                        <p class="text-muted mb-0 small">Frequently used teaching tools</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-xl-3 col-lg-4 col-md-6">
+                        <a href="{% url 'attendance_mark' %}" class="btn btn-soft-primary w-100 py-3">
+                            <i class="ri-checkbox-line fs-4 d-block mb-2"></i>
+                            <span class="fw-medium">Mark Attendance</span>
+                        </a>
+                    </div>
+                    <div class="col-xl-3 col-lg-4 col-md-6">
+                        <a href="{% url 'assessment_list' %}" class="btn btn-soft-success w-100 py-3">
+                            <i class="ri-file-list-3-line fs-4 d-block mb-2"></i>
+                            <span class="fw-medium">View Assessments</span>
+                        </a>
+                    </div>
+                    <div class="col-xl-3 col-lg-4 col-md-6">
+                        <a href="{% url 'student_list' %}" class="btn btn-soft-info w-100 py-3">
+                            <i class="ri-user-search-line fs-4 d-block mb-2"></i>
+                            <span class="fw-medium">View Students</span>
+                        </a>
+                    </div>
+                    <div class="col-xl-3 col-lg-4 col-md-6">
+                        <a href="{% url 'level_list' %}" class="btn btn-soft-warning w-100 py-3">
+                            <i class="ri-book-2-line fs-4 d-block mb-2"></i>
+                            <span class="fw-medium">Browse Courses</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- My Classes Section -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header border-bottom">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0 me-3">
+                                <div class="avatar-sm">
+                                    <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                        <i class="ri-home-4-line"></i>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h5 class="card-title mb-0">My Classes</h5>
+                                <p class="text-muted mb-0 small">Classes assigned to you</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if classes %}
+                    <div class="row g-4">
+                        {% for class in classes %}
+                            <div class="col-xl-4 col-lg-6">
+                                <div class="card border h-100 card-animate">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-start mb-3">
+                                            <div class="avatar-sm me-3 flex-shrink-0">
+                                                <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                                    <i class="ri-home-4-line"></i>
+                                                </span>
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <h5 class="card-title mb-1">{{ class.class_name }}</h5>
+                                                <span class="badge bg-primary-subtle text-primary">{{ class.class_code }}</span>
+                                            </div>
+                                            {% if class.level %}
+                                                {% if class.level.name == 'Starters' or 'starters' in class.level.name|lower %}
+                                                    <span class="badge bg-info-subtle text-info" title="Pre A1 Starters">
+                                                        <i class="ri-seedling-line"></i>
+                                                    </span>
+                                                {% elif class.level.name == 'Movers' or 'movers' in class.level.name|lower %}
+                                                    <span class="badge bg-warning-subtle text-warning" title="A1 Movers">
+                                                        <i class="ri-run-line"></i>
+                                                    </span>
+                                                {% elif class.level.name == 'Flyers' or 'flyers' in class.level.name|lower %}
+                                                    <span class="badge bg-success-subtle text-success" title="A2 Flyers">
+                                                        <i class="ri-rocket-line"></i>
+                                                    </span>
+                                                {% endif %}
+                                            {% endif %}
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <div class="d-flex justify-content-between text-muted small mb-1">
+                                                <span>Enrollment</span>
+                                                <span class="fw-medium">{{ class.current_enrollment }}/{{ class.max_students }}</span>
+                                            </div>
+                                            <div class="progress" style="height: 6px;">
+                                                {% widthratio class.current_enrollment class.max_students 100 as enrollment_percent %}
+                                                <div class="progress-bar bg-primary" role="progressbar" style="width: {{ enrollment_percent }}%"></div>
+                                            </div>
+                                        </div>
+
+                                        <div class="border-top pt-3">
+                                            <div class="row g-2 text-center">
+                                                <div class="col-4">
+                                                    <p class="text-muted mb-1 small">Level</p>
+                                                    <h6 class="mb-0 text-truncate">{{ class.level.name|default:"N/A" }}</h6>
+                                                </div>
+                                                <div class="col-4">
+                                                    <p class="text-muted mb-1 small">Room</p>
+                                                    <h6 class="mb-0">{{ class.room_number|default:"N/A" }}</h6>
+                                                </div>
+                                                <div class="col-4">
+                                                    <p class="text-muted mb-1 small">Students</p>
+                                                    <h6 class="mb-0">{{ class.current_enrollment }}</h6>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="mt-3">
+                                            <p class="text-muted small mb-2">
+                                                <i class="ri-calendar-line me-1"></i>
+                                                {{ class.start_date|date:"M d, Y" }} - {{ class.end_date|date:"M d, Y" }}
+                                            </p>
+                                        </div>
+
+                                        <div class="d-flex gap-2 mt-3">
+                                            <a href="{% url 'class_detail' class.id %}" class="btn btn-sm btn-primary flex-grow-1">
+                                                <i class="ri-eye-line me-1"></i> View Details
+                                            </a>
+                                            <a href="{% url 'attendance_mark' %}?class={{ class.id }}" class="btn btn-sm btn-outline-success" title="Mark Attendance">
+                                                <i class="ri-checkbox-line"></i>
+                                            </a>
+                                        </div>
                                     </div>
-                                {% endif %}
-                                <div>
-                                    <h4 class="mb-1">Welcome back, {{ teacher.full_name }}!</h4>
-                                    <p class="text-muted mb-0">Employee ID: {{ teacher.employee_id }}</p>
-                                    <p class="text-muted mb-0">
-                                        <strong>Specializations:</strong>
-                                        {% for spec in specializations %}
-                                            <span class="badge bg-primary">{{ spec }}</span>
-                                        {% endfor %}
-                                    </p>
-                                    {% if current_rate %}
-                                        <p class="text-muted mb-0"><strong>Current Rate:</strong> {{ current_rate }}/hour</p>
-                                    {% endif %}
                                 </div>
                             </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <div class="avatar-lg mx-auto mb-3">
+                            <span class="avatar-title bg-info-subtle text-info rounded-circle">
+                                <i class="ri-home-4-line fs-1"></i>
+                            </span>
+                        </div>
+                        <h5 class="text-muted mb-2">No Classes Assigned</h5>
+                        <p class="text-muted mb-0">You have not been assigned to any classes yet.</p>
+                        <p class="text-muted">Contact the administration for class assignments.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Teaching Resources Section -->
+<div class="row mt-4">
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header border-bottom">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0 me-3">
+                        <div class="avatar-sm">
+                            <span class="avatar-title bg-success-subtle text-success rounded-circle">
+                                <i class="ri-book-3-line"></i>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h5 class="card-title mb-0">Teaching Resources</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'level_list' %}" class="btn btn-outline-success d-flex align-items-center justify-content-between">
+                        <span><i class="ri-stack-line me-2"></i>YLE Levels</span>
+                        <i class="ri-arrow-right-line"></i>
+                    </a>
+                    <a href="{% url 'class_list' %}" class="btn btn-outline-success d-flex align-items-center justify-content-between">
+                        <span><i class="ri-home-4-line me-2"></i>All Classes</span>
+                        <i class="ri-arrow-right-line"></i>
+                    </a>
+                    <a href="{% url 'assessment_list' %}" class="btn btn-outline-success d-flex align-items-center justify-content-between">
+                        <span><i class="ri-file-list-3-line me-2"></i>Assessments</span>
+                        <i class="ri-arrow-right-line"></i>
+                    </a>
+                    <a href="{% url 'progress_dashboard' %}" class="btn btn-outline-success d-flex align-items-center justify-content-between">
+                        <span><i class="ri-dashboard-line me-2"></i>Progress Dashboard</span>
+                        <i class="ri-arrow-right-line"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header border-bottom">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0 me-3">
+                        <div class="avatar-sm">
+                            <span class="avatar-title bg-info-subtle text-info rounded-circle">
+                                <i class="ri-bar-chart-box-line"></i>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h5 class="card-title mb-0">Progress & Reports</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'attendance_report' %}" class="btn btn-outline-info d-flex align-items-center justify-content-between">
+                        <span><i class="ri-calendar-check-line me-2"></i>Attendance Reports</span>
+                        <i class="ri-arrow-right-line"></i>
+                    </a>
+                    <a href="{% url 'skill_progress_list' %}" class="btn btn-outline-info d-flex align-items-center justify-content-between">
+                        <span><i class="ri-line-chart-line me-2"></i>Skill Progress</span>
+                        <i class="ri-arrow-right-line"></i>
+                    </a>
+                    <a href="{% url 'unit_progress_list' %}" class="btn btn-outline-info d-flex align-items-center justify-content-between">
+                        <span><i class="ri-file-chart-line me-2"></i>Unit Progress</span>
+                        <i class="ri-arrow-right-line"></i>
+                    </a>
+                    <a href="{% url 'certificate_list' %}" class="btn btn-outline-info d-flex align-items-center justify-content-between">
+                        <span><i class="ri-award-line me-2"></i>Certificates</span>
+                        <i class="ri-arrow-right-line"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Schedule Overview Placeholder -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header border-bottom">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0 me-3">
+                        <div class="avatar-sm">
+                            <span class="avatar-title bg-warning-subtle text-warning rounded-circle">
+                                <i class="ri-calendar-2-line"></i>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h5 class="card-title mb-0">This Week's Schedule</h5>
+                        <p class="text-muted mb-0 small">Upcoming classes and activities</p>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <a href="#" class="btn btn-sm btn-soft-warning">
+                            <i class="ri-calendar-line me-1"></i> Full Calendar
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="scheduleCalendar" style="min-height: 250px;">
+                    <!-- Calendar placeholder -->
+                    <div class="d-flex align-items-center justify-content-center h-100 py-5">
+                        <div class="text-center">
+                            <i class="ri-calendar-2-line fs-1 text-muted mb-3 d-block"></i>
+                            <h6 class="text-muted mb-2">Schedule Overview</h6>
+                            <p class="text-muted small mb-0">Your weekly teaching schedule will appear here</p>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
 
-            <!-- Statistics -->
-            <div class="row">
-                <div class="col-xl-4">
-                    <div class="card card-animate">
-                        <div class="card-body">
-                            <div class="d-flex align-items-center">
-                                <div class="flex-grow-1 overflow-hidden">
-                                    <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Total Classes</p>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-end justify-content-between mt-4">
-                                <div>
-                                    <h4 class="fs-22 fw-semibold ff-secondary mb-4"><span class="counter-value" data-target="{{ classes.count }}">{{ classes.count }}</span></h4>
-                                </div>
-                                <div class="avatar-sm flex-shrink-0">
-                                    <span class="avatar-title bg-primary-subtle rounded fs-3">
-                                        <i class="bx bx-chalkboard text-primary"></i>
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+{% endblock %}
 
-                <div class="col-xl-4">
-                    <div class="card card-animate">
-                        <div class="card-body">
-                            <div class="d-flex align-items-center">
-                                <div class="flex-grow-1 overflow-hidden">
-                                    <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Total Students</p>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-end justify-content-between mt-4">
-                                <div>
-                                    <h4 class="fs-22 fw-semibold ff-secondary mb-4"><span class="counter-value" data-target="{{ students_count }}">{{ students_count }}</span></h4>
-                                </div>
-                                <div class="avatar-sm flex-shrink-0">
-                                    <span class="avatar-title bg-success-subtle rounded fs-3">
-                                        <i class="bx bx-user-check text-success"></i>
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Counter animation
+    $('.counter-value').each(function() {
+        var $this = $(this);
+        var target = parseInt($this.attr('data-target'), 10);
 
-                <div class="col-xl-4">
-                    <div class="card card-animate">
-                        <div class="card-body">
-                            <div class="d-flex align-items-center">
-                                <div class="flex-grow-1 overflow-hidden">
-                                    <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Classes Taught</p>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-end justify-content-between mt-4">
-                                <div>
-                                    <h4 class="fs-22 fw-semibold ff-secondary mb-4"><span class="counter-value" data-target="{{ teacher.total_classes_taught }}">{{ teacher.total_classes_taught }}</span></h4>
-                                </div>
-                                <div class="avatar-sm flex-shrink-0">
-                                    <span class="avatar-title bg-info-subtle rounded fs-3">
-                                        <i class="bx bx-book-open text-info"></i>
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        $({ Counter: 0 }).animate({ Counter: target }, {
+            duration: 1500,
+            easing: 'swing',
+            step: function() {
+                $this.text(Math.ceil(this.Counter));
+            },
+            complete: function() {
+                $this.text(target);
+            }
+        });
+    });
+});
+</script>
 
-            <!-- Classes List -->
-            <div class="row">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">My Classes</h5>
-                        </div>
-                        <div class="card-body">
-                            {% if classes %}
-                                <div class="table-responsive">
-                                    <table class="table table-hover align-middle mb-0">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th>Class Code</th>
-                                                <th>Level</th>
-                                                <th>Class Name</th>
-                                                <th>Room</th>
-                                                <th>Students</th>
-                                                <th>Capacity</th>
-                                                <th>Period</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for class in classes %}
-                                                <tr>
-                                                    <td><span class="badge bg-primary">{{ class.class_code }}</span></td>
-                                                    <td>{{ class.level.name }}</td>
-                                                    <td>{{ class.class_name }}</td>
-                                                    <td>{{ class.room_number|default:"N/A" }}</td>
-                                                    <td>{{ class.current_enrollment }}</td>
-                                                    <td>{{ class.max_students }}</td>
-                                                    <td>{{ class.start_date }} - {{ class.end_date }}</td>
-                                                    <td>
-                                                        <a href="/admin/courses/class/{{ class.id }}/change/" class="btn btn-sm btn-info">
-                                                            <i class="ri-eye-line"></i> View
-                                                        </a>
-                                                    </td>
-                                                </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            {% else %}
-                                <div class="alert alert-info">
-                                    <i class="ri-information-line me-2"></i> No classes assigned yet.
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-            </div>
+<style>
+.text-white-75 {
+    color: rgba(255, 255, 255, 0.75) !important;
+}
 
-            <!-- Quick Actions -->
-            <div class="row">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">Quick Actions</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="row g-3">
-                                <div class="col-md-3">
-                                    <a href="/admin/students/attendance/add/" class="btn btn-primary w-100">
-                                        <i class="ri-checkbox-line me-2"></i> Mark Attendance
-                                    </a>
-                                </div>
-                                <div class="col-md-3">
-                                    <a href="/admin/progress/assessmentresult/add/" class="btn btn-success w-100">
-                                        <i class="ri-file-list-line me-2"></i> Record Assessment
-                                    </a>
-                                </div>
-                                <div class="col-md-3">
-                                    <a href="/admin/students/student/" class="btn btn-info w-100">
-                                        <i class="ri-user-search-line me-2"></i> View Students
-                                    </a>
-                                </div>
-                                <div class="col-md-3">
-                                    <a href="/admin/courses/lesson/" class="btn btn-warning w-100">
-                                        <i class="ri-book-2-line me-2"></i> View Lessons
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+.card-animate {
+    transition: all 0.3s ease;
+}
 
+.card-animate:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+}
+
+.avatar-lg {
+    width: 80px;
+    height: 80px;
+}
+
+.avatar-lg .avatar-title {
+    font-size: 1.5rem;
+}
+
+.btn-soft-primary:hover,
+.btn-soft-success:hover,
+.btn-soft-info:hover,
+.btn-soft-warning:hover {
+    transform: translateY(-2px);
+}
+
+.progress {
+    background-color: rgba(0, 0, 0, 0.06);
+    border-radius: 0.25rem;
+}
+
+@media (max-width: 768px) {
+    .avatar-lg {
+        width: 60px;
+        height: 60px;
+    }
+}
+</style>
 {% endblock %}

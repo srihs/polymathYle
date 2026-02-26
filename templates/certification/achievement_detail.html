@@ -1,0 +1,446 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block PageTitle %}{{ achievement.title }} - Achievement - PolymathYLE{% endblock %}
+{% block pageTitle %}Achievement Details{% endblock %}
+{% block Title %}Certification{% endblock %}
+{% block functionTitle %}{{ achievement.title }}{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<div class="row mb-3">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="{% url 'achievement_list' %}">Achievements</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ achievement.title }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Main Content -->
+    <div class="col-xl-8">
+        <!-- Achievement Header Card -->
+        <div class="card overflow-hidden">
+            <div class="card-body
+                {% if achievement.achievement_type == 'BADGE' %}bg-primary
+                {% elif achievement.achievement_type == 'MILESTONE' %}bg-success
+                {% elif achievement.achievement_type == 'SKILL' %}bg-warning
+                {% else %}bg-info{% endif %} bg-gradient position-relative" style="min-height: 150px;">
+                <!-- Background Pattern -->
+                <div class="position-absolute top-0 end-0 opacity-25" style="font-size: 10rem; line-height: 1;">
+                    {{ achievement.icon|default:"" }}
+                </div>
+            </div>
+            <div class="card-body pt-0">
+                <div class="row align-items-end">
+                    <div class="col-auto" style="margin-top: -60px;">
+                        <div class="avatar-xxl border border-4 border-white shadow rounded-circle
+                            {% if achievement.achievement_type == 'BADGE' %}bg-primary-subtle
+                            {% elif achievement.achievement_type == 'MILESTONE' %}bg-success-subtle
+                            {% elif achievement.achievement_type == 'SKILL' %}bg-warning-subtle
+                            {% else %}bg-info-subtle{% endif %}">
+                            <span class="avatar-title rounded-circle
+                                {% if achievement.achievement_type == 'BADGE' %}text-primary
+                                {% elif achievement.achievement_type == 'MILESTONE' %}text-success
+                                {% elif achievement.achievement_type == 'SKILL' %}text-warning
+                                {% else %}text-info{% endif %}" style="font-size: 3rem;">
+                                {{ achievement.icon|default:"" }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="d-flex flex-wrap justify-content-between align-items-start">
+                            <div>
+                                <h3 class="mb-1">{{ achievement.title }}</h3>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <span class="badge fs-6
+                                        {% if achievement.achievement_type == 'BADGE' %}bg-primary-subtle text-primary
+                                        {% elif achievement.achievement_type == 'MILESTONE' %}bg-success-subtle text-success
+                                        {% elif achievement.achievement_type == 'SKILL' %}bg-warning-subtle text-warning
+                                        {% else %}bg-info-subtle text-info{% endif %}">
+                                        <i class="ri-price-tag-3-line me-1"></i>{{ achievement.get_achievement_type_display }}
+                                    </span>
+                                    <span class="badge bg-warning fs-6">
+                                        <i class="ri-star-fill me-1"></i>{{ achievement.points }} Points
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2 mt-3 mt-md-0">
+                                {% if perms.certification.add_studentachievement %}
+                                <a href="{% url 'award_achievement' %}?achievement={{ achievement.id }}" class="btn btn-success">
+                                    <i class="ri-award-fill me-1"></i> Award to Student
+                                </a>
+                                {% endif %}
+                                <a href="{% url 'achievement_list' %}" class="btn btn-outline-secondary">
+                                    <i class="ri-arrow-left-line me-1"></i> Back to List
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Description Card -->
+        <div class="card">
+            <div class="card-header border-bottom">
+                <h5 class="card-title mb-0">
+                    <i class="ri-file-text-line me-2 text-primary"></i>Description
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="lead mb-0">{{ achievement.description }}</p>
+
+                {% if achievement.criteria %}
+                <div class="mt-4">
+                    <h6 class="text-uppercase text-muted fw-semibold mb-3">How to Earn</h6>
+                    <div class="p-3 bg-light rounded">
+                        {{ achievement.criteria|linebreaks }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Related Content Card -->
+        {% if achievement.unit or achievement.lesson or achievement.level %}
+        <div class="card">
+            <div class="card-header border-bottom">
+                <h5 class="card-title mb-0">
+                    <i class="ri-links-line me-2 text-primary"></i>Related Content
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    {% if achievement.level %}
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center p-3 border rounded h-100">
+                            <div class="avatar-sm flex-shrink-0 me-3">
+                                <span class="avatar-title bg-{% if achievement.level.name == 'Starters' %}info{% elif achievement.level.name == 'Movers' %}warning{% else %}success{% endif %}-subtle text-{% if achievement.level.name == 'Starters' %}info{% elif achievement.level.name == 'Movers' %}warning{% else %}success{% endif %} rounded-circle">
+                                    <i class="ri-stack-line"></i>
+                                </span>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Level</small>
+                                <a href="{% url 'level_detail' achievement.level.id %}" class="fw-medium text-decoration-none">
+                                    {{ achievement.level.name }}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if achievement.unit %}
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center p-3 border rounded h-100">
+                            <div class="avatar-sm flex-shrink-0 me-3">
+                                <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                    <i class="ri-book-2-line"></i>
+                                </span>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Unit</small>
+                                <a href="{% url 'unit_detail' achievement.unit.id %}" class="fw-medium text-decoration-none">
+                                    {{ achievement.unit.title }}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if achievement.lesson %}
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center p-3 border rounded h-100">
+                            <div class="avatar-sm flex-shrink-0 me-3">
+                                <span class="avatar-title bg-secondary-subtle text-secondary rounded-circle">
+                                    <i class="ri-file-list-line"></i>
+                                </span>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Lesson</small>
+                                <a href="{% url 'lesson_detail' achievement.lesson.id %}" class="fw-medium text-decoration-none">
+                                    {{ achievement.lesson.title }}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Recent Recipients Card -->
+        <div class="card">
+            <div class="card-header border-bottom">
+                <div class="d-flex align-items-center justify-content-between">
+                    <h5 class="card-title mb-0">
+                        <i class="ri-user-star-line me-2 text-primary"></i>Recent Recipients
+                    </h5>
+                    <span class="badge bg-primary-subtle text-primary">{{ recipients_count|default:0 }} total</span>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if recent_recipients %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Student</th>
+                                <th>Level</th>
+                                <th>Date Earned</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for recipient in recent_recipients %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        {% if recipient.student.profile_picture %}
+                                        <img src="{{ recipient.student.profile_picture.url }}" alt="{{ recipient.student.full_name }}"
+                                             class="avatar-sm rounded-circle me-2 object-fit-cover">
+                                        {% else %}
+                                        <div class="avatar-sm me-2">
+                                            <span class="avatar-title bg-secondary-subtle text-secondary rounded-circle">
+                                                {{ recipient.student.full_name|first|upper }}
+                                            </span>
+                                        </div>
+                                        {% endif %}
+                                        <div>
+                                            <h6 class="mb-0">{{ recipient.student.full_name }}</h6>
+                                            <small class="text-muted">{{ recipient.student.admission_number }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{% if recipient.student.current_level == 'STARTERS' %}info{% elif recipient.student.current_level == 'MOVERS' %}warning{% else %}success{% endif %}-subtle text-{% if recipient.student.current_level == 'STARTERS' %}info{% elif recipient.student.current_level == 'MOVERS' %}warning{% else %}success{% endif %}">
+                                        {{ recipient.student.get_current_level_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="text-muted">
+                                        <i class="ri-calendar-line me-1"></i>{{ recipient.earned_date|date:"M d, Y" }}
+                                    </span>
+                                </td>
+                                <td class="text-end">
+                                    <a href="{% url 'student_detail' recipient.student.id %}" class="btn btn-sm btn-soft-primary">
+                                        <i class="ri-eye-line"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <div class="avatar-lg mx-auto mb-3">
+                        <span class="avatar-title bg-secondary-subtle text-secondary rounded-circle">
+                            <i class="ri-user-star-line fs-1"></i>
+                        </span>
+                    </div>
+                    <h6 class="text-muted">No Recipients Yet</h6>
+                    <p class="text-muted small mb-0">This achievement hasn't been awarded to any students yet.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-xl-4">
+        <!-- Achievement Stats Card -->
+        <div class="card">
+            <div class="card-header border-bottom">
+                <h5 class="card-title mb-0">
+                    <i class="ri-bar-chart-line me-2 text-primary"></i>Statistics
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-column gap-3">
+                    <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-xs me-3">
+                                <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                    <i class="ri-user-star-line"></i>
+                                </span>
+                            </div>
+                            <span>Total Recipients</span>
+                        </div>
+                        <span class="badge bg-primary fs-6">{{ recipients_count|default:0 }}</span>
+                    </div>
+
+                    <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-xs me-3">
+                                <span class="avatar-title bg-warning-subtle text-warning rounded-circle">
+                                    <i class="ri-star-line"></i>
+                                </span>
+                            </div>
+                            <span>Points Value</span>
+                        </div>
+                        <span class="badge bg-warning fs-6">{{ achievement.points }}</span>
+                    </div>
+
+                    <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-xs me-3">
+                                <span class="avatar-title bg-success-subtle text-success rounded-circle">
+                                    <i class="ri-calendar-check-line"></i>
+                                </span>
+                            </div>
+                            <span>This Month</span>
+                        </div>
+                        <span class="badge bg-success fs-6">{{ earned_this_month|default:0 }}</span>
+                    </div>
+
+                    <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-xs me-3">
+                                <span class="avatar-title bg-info-subtle text-info rounded-circle">
+                                    <i class="ri-percent-line"></i>
+                                </span>
+                            </div>
+                            <span>Rarity</span>
+                        </div>
+                        <span class="badge bg-info fs-6">{{ rarity_percentage|default:0 }}%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Achievement Details Card -->
+        <div class="card">
+            <div class="card-header border-bottom">
+                <h5 class="card-title mb-0">
+                    <i class="ri-information-line me-2 text-primary"></i>Details
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-borderless mb-0">
+                        <tbody>
+                            <tr>
+                                <th class="ps-0 text-muted" style="width: 40%;">
+                                    <i class="ri-hashtag me-2"></i>ID
+                                </th>
+                                <td class="fw-medium">{{ achievement.id }}</td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-price-tag-3-line me-2"></i>Type
+                                </th>
+                                <td>
+                                    <span class="badge
+                                        {% if achievement.achievement_type == 'BADGE' %}bg-primary-subtle text-primary
+                                        {% elif achievement.achievement_type == 'MILESTONE' %}bg-success-subtle text-success
+                                        {% elif achievement.achievement_type == 'SKILL' %}bg-warning-subtle text-warning
+                                        {% else %}bg-info-subtle text-info{% endif %}">
+                                        {{ achievement.get_achievement_type_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-calendar-line me-2"></i>Created
+                                </th>
+                                <td>{{ achievement.created_at|date:"M d, Y" }}</td>
+                            </tr>
+                            {% if achievement.is_active %}
+                            <tr>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-checkbox-circle-line me-2"></i>Status
+                                </th>
+                                <td>
+                                    <span class="badge bg-success-subtle text-success">Active</span>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-close-circle-line me-2"></i>Status
+                                </th>
+                                <td>
+                                    <span class="badge bg-danger-subtle text-danger">Inactive</span>
+                                </td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions Card -->
+        <div class="card">
+            <div class="card-header border-bottom">
+                <h5 class="card-title mb-0">
+                    <i class="ri-settings-3-line me-2 text-primary"></i>Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    {% if perms.certification.add_studentachievement %}
+                    <a href="{% url 'award_achievement' %}?achievement={{ achievement.id }}" class="btn btn-success">
+                        <i class="ri-award-fill me-1"></i> Award to Student
+                    </a>
+                    {% endif %}
+                    {% if perms.certification.change_achievement %}
+                    <a href="{% url 'achievement_edit' achievement.id %}" class="btn btn-soft-warning">
+                        <i class="ri-edit-line me-1"></i> Edit Achievement
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'achievement_list' %}" class="btn btn-outline-secondary">
+                        <i class="ri-arrow-left-line me-1"></i> Back to List
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<style>
+.avatar-xxl {
+    width: 120px;
+    height: 120px;
+}
+
+.avatar-xxl .avatar-title {
+    width: 120px;
+    height: 120px;
+}
+
+.avatar-lg {
+    width: 64px;
+    height: 64px;
+}
+
+.avatar-sm {
+    width: 32px;
+    height: 32px;
+}
+
+.avatar-xs {
+    width: 24px;
+    height: 24px;
+}
+
+.avatar-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.object-fit-cover {
+    object-fit: cover;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,745 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block PageTitle %}Class Progress Report - PolymathYLE{% endblock %}
+{% block pageTitle %}Class Progress Report{% endblock %}
+{% block Title %}Reports{% endblock %}
+{% block functionTitle %}Class Analytics{% endblock %}
+
+{% block content %}
+<!-- Class Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card bg-primary bg-gradient">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-lg-8">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-lg bg-white bg-opacity-25 rounded-circle d-flex align-items-center justify-content-center me-4">
+                                <i class="ri-group-line text-white fs-1"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-white mb-1">{{ class_session.class_name|default:"All Classes" }}</h3>
+                                <p class="text-white-75 mb-0">
+                                    {% if class_session %}
+                                        <i class="ri-graduation-cap-line me-1"></i> {{ class_session.get_level_display }}
+                                        <span class="mx-2">|</span>
+                                        <i class="ri-user-line me-1"></i> Teacher: {{ class_session.teacher.full_name }}
+                                    {% else %}
+                                        Overview of all classes
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 mt-4 mt-lg-0">
+                        <div class="d-flex justify-content-lg-end gap-4">
+                            <div class="text-center">
+                                <h2 class="text-white mb-0">{{ total_students|default:0 }}</h2>
+                                <small class="text-white-75">Students</small>
+                            </div>
+                            <div class="text-center border-start border-white border-opacity-25 ps-4">
+                                <h2 class="text-white mb-0">{{ class_avg_progress|default:0 }}%</h2>
+                                <small class="text-white-75">Avg Progress</small>
+                            </div>
+                            <div class="text-center border-start border-white border-opacity-25 ps-4">
+                                <h2 class="text-white mb-0">{{ class_avg_score|default:0 }}%</h2>
+                                <small class="text-white-75">Avg Score</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <form method="get" action="" class="row g-3 align-items-end">
+                    <div class="col-xl-3 col-lg-4 col-md-6">
+                        <label for="class_id" class="form-label">Class</label>
+                        <select class="form-select" id="class_id" name="class_id" aria-label="Select class">
+                            <option value="">All Classes</option>
+                            {% for cls in classes %}
+                                <option value="{{ cls.id }}" {% if request.GET.class_id == cls.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ cls.class_name }} - {{ cls.get_level_display }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-xl-3 col-lg-4 col-md-6">
+                        <label for="period" class="form-label">Report Period</label>
+                        <select class="form-select" id="period" name="period" aria-label="Select report period">
+                            <option value="week" {% if period == 'week' %}selected{% endif %}>This Week</option>
+                            <option value="month" {% if period == 'month' %}selected{% endif %}>This Month</option>
+                            <option value="term" {% if period == 'term' %}selected{% endif %}>This Term</option>
+                            <option value="all" {% if period == 'all' %}selected{% endif %}>All Time</option>
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="ri-filter-line me-1"></i> Apply Filter
+                        </button>
+                    </div>
+                    <div class="col-auto">
+                        <button onclick="window.print()" class="btn btn-outline-secondary">
+                            <i class="ri-printer-line me-1"></i> Print Report
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Key Statistics -->
+<div class="row">
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Total Students</p>
+                        <h2 class="mt-3 mb-0 ff-secondary fw-semibold">
+                            <span class="counter-value" data-target="{{ total_students|default:0 }}">{{ total_students|default:0 }}</span>
+                        </h2>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-primary-subtle rounded-circle fs-2">
+                            <i class="ri-group-line text-primary"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Activities Done</p>
+                        <h2 class="mt-3 mb-0 ff-secondary fw-semibold">
+                            <span class="counter-value" data-target="{{ total_activities|default:0 }}">{{ total_activities|default:0 }}</span>
+                        </h2>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-info-subtle rounded-circle fs-2">
+                            <i class="ri-gamepad-line text-info"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Average Score</p>
+                        <h2 class="mt-3 mb-0 ff-secondary fw-semibold">
+                            <span class="counter-value" data-target="{{ class_avg_score|default:0 }}">{{ class_avg_score|default:0 }}</span>%
+                        </h2>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-success-subtle rounded-circle fs-2">
+                            <i class="ri-percent-line text-success"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Completion Rate</p>
+                        <h2 class="mt-3 mb-0 ff-secondary fw-semibold">
+                            <span class="counter-value" data-target="{{ completion_rate|default:0 }}">{{ completion_rate|default:0 }}</span>%
+                        </h2>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-warning-subtle rounded-circle fs-2">
+                            <i class="ri-checkbox-circle-line text-warning"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <!-- Skills Overview Chart -->
+    <div class="col-xl-6">
+        <div class="card h-100">
+            <div class="card-header border-bottom">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0 me-3">
+                        <div class="avatar-sm">
+                            <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                <i class="ri-bar-chart-2-line"></i>
+                            </span>
+                        </div>
+                    </div>
+                    <div>
+                        <h5 class="card-title mb-0">Skills Overview</h5>
+                        <p class="text-muted mb-0 small">Class average by skill</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="skillsChart" style="min-height: 300px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Score Distribution -->
+    <div class="col-xl-6 mt-4 mt-xl-0">
+        <div class="card h-100">
+            <div class="card-header border-bottom">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0 me-3">
+                        <div class="avatar-sm">
+                            <span class="avatar-title bg-success-subtle text-success rounded-circle">
+                                <i class="ri-pie-chart-2-line"></i>
+                            </span>
+                        </div>
+                    </div>
+                    <div>
+                        <h5 class="card-title mb-0">Score Distribution</h5>
+                        <p class="text-muted mb-0 small">Students by performance level</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="distributionChart" style="min-height: 250px;"></div>
+                <div class="row mt-3">
+                    <div class="col-4 text-center">
+                        <h4 class="text-success mb-0">{{ excellent_students|default:0 }}</h4>
+                        <small class="text-muted">Excellent (80%+)</small>
+                    </div>
+                    <div class="col-4 text-center">
+                        <h4 class="text-warning mb-0">{{ good_students|default:0 }}</h4>
+                        <small class="text-muted">Good (60-79%)</small>
+                    </div>
+                    <div class="col-4 text-center">
+                        <h4 class="text-danger mb-0">{{ needs_help_students|default:0 }}</h4>
+                        <small class="text-muted">Needs Help (&lt;60%)</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top Performers & Students Needing Help -->
+<div class="row mt-4">
+    <!-- Top Performers -->
+    <div class="col-xl-6">
+        <div class="card h-100">
+            <div class="card-header border-bottom bg-success-subtle">
+                <div class="d-flex align-items-center">
+                    <i class="ri-trophy-line text-success fs-4 me-2"></i>
+                    <h5 class="card-title mb-0 text-success">Top Performers</h5>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                {% if top_performers %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Student</th>
+                                    <th class="text-center">Progress</th>
+                                    <th class="text-center">Avg Score</th>
+                                    <th class="text-center">Points</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for student in top_performers|slice:":5" %}
+                                    <tr>
+                                        <td>
+                                            <span class="badge bg-{% if forloop.counter == 1 %}warning{% elif forloop.counter == 2 %}secondary{% elif forloop.counter == 3 %}dark{% else %}light text-dark{% endif %} fs-6">
+                                                #{{ forloop.counter }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                {% if student.profile_picture %}
+                                                    <img src="{{ student.profile_picture.url }}" class="rounded-circle me-2" width="32" height="32" style="object-fit: cover;" alt="{{ student.full_name }}">
+                                                {% else %}
+                                                    <div class="avatar-sm me-2">
+                                                        <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                                            {{ student.full_name|first|upper }}
+                                                        </span>
+                                                    </div>
+                                                {% endif %}
+                                                <div>
+                                                    <a href="{% url 'progress:student_report' student_id=student.id %}" class="text-dark fw-medium">{{ student.full_name }}</a>
+                                                    <small class="d-block text-muted">{{ student.admission_number }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-success-subtle text-success fs-6">{{ student.progress }}%</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="fw-medium">{{ student.avg_score }}%</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="text-warning">
+                                                <i class="ri-star-fill me-1"></i>{{ student.total_points }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="ri-trophy-line fs-1 text-muted opacity-50"></i>
+                        <p class="text-muted mb-0 mt-3">No data available yet.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Students Needing Help -->
+    <div class="col-xl-6 mt-4 mt-xl-0">
+        <div class="card h-100">
+            <div class="card-header border-bottom bg-danger-subtle">
+                <div class="d-flex align-items-center">
+                    <i class="ri-alert-line text-danger fs-4 me-2"></i>
+                    <h5 class="card-title mb-0 text-danger">Needs Attention</h5>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                {% if struggling_students %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Student</th>
+                                    <th class="text-center">Progress</th>
+                                    <th class="text-center">Avg Score</th>
+                                    <th>Weak Area</th>
+                                    <th class="text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for student in struggling_students|slice:":5" %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                {% if student.profile_picture %}
+                                                    <img src="{{ student.profile_picture.url }}" class="rounded-circle me-2" width="32" height="32" style="object-fit: cover;" alt="{{ student.full_name }}">
+                                                {% else %}
+                                                    <div class="avatar-sm me-2">
+                                                        <span class="avatar-title bg-danger-subtle text-danger rounded-circle">
+                                                            {{ student.full_name|first|upper }}
+                                                        </span>
+                                                    </div>
+                                                {% endif %}
+                                                <div>
+                                                    <a href="{% url 'progress:student_report' student_id=student.id %}" class="text-dark fw-medium">{{ student.full_name }}</a>
+                                                    <small class="d-block text-muted">{{ student.admission_number }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-danger-subtle text-danger fs-6">{{ student.progress }}%</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="fw-medium text-danger">{{ student.avg_score }}%</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-{% if student.weak_skill == 'LISTENING' %}primary{% elif student.weak_skill == 'READING' %}success{% elif student.weak_skill == 'WRITING' %}warning{% else %}info{% endif %}-subtle text-{% if student.weak_skill == 'LISTENING' %}primary{% elif student.weak_skill == 'READING' %}success{% elif student.weak_skill == 'WRITING' %}warning{% else %}info{% endif %}">
+                                                {{ student.weak_skill }}
+                                            </span>
+                                        </td>
+                                        <td class="text-end">
+                                            <a href="{% url 'progress:student_report' student_id=student.id %}" class="btn btn-sm btn-soft-primary" title="View Details">
+                                                <i class="ri-eye-line"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="ri-emotion-happy-line fs-1 text-success opacity-75"></i>
+                        <p class="text-muted mb-0 mt-3">All students are performing well!</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- All Students Progress Table -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header border-bottom">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-sm me-3">
+                                <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                    <i class="ri-file-list-3-line fs-4"></i>
+                                </span>
+                            </div>
+                            <div>
+                                <h5 class="card-title mb-0">
+                                    All Students
+                                    <span class="badge bg-primary-subtle text-primary ms-2">{{ total_students|default:0 }}</span>
+                                </h5>
+                                <p class="text-muted mb-0 small">Complete class progress breakdown</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <a href="?export=csv{% if request.GET.class_id %}&class_id={{ request.GET.class_id }}{% endif %}" class="btn btn-soft-success">
+                            <i class="ri-file-excel-line me-1"></i> Export CSV
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Search -->
+                <div class="row mb-3">
+                    <div class="col-md-6 col-lg-4">
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="ri-search-line"></i></span>
+                            <input type="text" class="form-control" id="tableSearch" placeholder="Search students..." aria-label="Search students">
+                        </div>
+                    </div>
+                </div>
+
+                {% if students %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle table-nowrap mb-0" id="studentsTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Student</th>
+                                    <th class="text-center">Progress</th>
+                                    <th class="text-center">Listening</th>
+                                    <th class="text-center">Reading</th>
+                                    <th class="text-center">Writing</th>
+                                    <th class="text-center">Speaking</th>
+                                    <th class="text-center">Avg Score</th>
+                                    <th class="text-center">Activities</th>
+                                    <th class="text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for student in students %}
+                                    <tr class="student-row">
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                {% if student.profile_picture %}
+                                                    <img src="{{ student.profile_picture.url }}" class="rounded-circle me-2" width="36" height="36" style="object-fit: cover;" alt="{{ student.full_name }}">
+                                                {% else %}
+                                                    <div class="avatar-sm me-2">
+                                                        <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                                            {{ student.full_name|first|upper }}
+                                                        </span>
+                                                    </div>
+                                                {% endif %}
+                                                <div>
+                                                    <h6 class="mb-0 fw-medium">{{ student.full_name }}</h6>
+                                                    <small class="text-muted">{{ student.admission_number }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="d-flex align-items-center justify-content-center gap-2">
+                                                <div class="progress flex-grow-1" style="width: 60px; height: 6px;">
+                                                    <div class="progress-bar bg-{% if student.progress >= 80 %}success{% elif student.progress >= 50 %}primary{% else %}danger{% endif %}" style="width: {{ student.progress }}%"></div>
+                                                </div>
+                                                <span class="small fw-medium">{{ student.progress }}%</span>
+                                            </div>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-primary-subtle text-primary">{{ student.listening|default:"-" }}%</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-success-subtle text-success">{{ student.reading|default:"-" }}%</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-warning-subtle text-warning">{{ student.writing|default:"-" }}%</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-info-subtle text-info">{{ student.speaking|default:"-" }}%</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-{% if student.avg_score >= 80 %}success{% elif student.avg_score >= 60 %}warning{% else %}danger{% endif %} fs-6">{{ student.avg_score }}%</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="fw-medium">{{ student.activities_completed }}</span>
+                                        </td>
+                                        <td class="text-end">
+                                            <a href="{% url 'progress:student_report' student_id=student.id %}" class="btn btn-sm btn-soft-primary" title="View Report">
+                                                <i class="ri-eye-line"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <div class="avatar-lg mx-auto mb-4">
+                            <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                <i class="ri-group-line fs-1"></i>
+                            </span>
+                        </div>
+                        <h5>No Students Found</h5>
+                        <p class="text-muted mb-0">There are no students in this class yet.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script>
+$(document).ready(function() {
+    // Skills Overview Chart
+    var skillsOptions = {
+        series: [{
+            name: 'Class Average',
+            data: [
+                {{ listening_avg|default:0 }},
+                {{ reading_avg|default:0 }},
+                {{ writing_avg|default:0 }},
+                {{ speaking_avg|default:0 }}
+            ]
+        }],
+        chart: {
+            type: 'bar',
+            height: 300,
+            toolbar: {
+                show: false
+            }
+        },
+        plotOptions: {
+            bar: {
+                horizontal: false,
+                columnWidth: '55%',
+                borderRadius: 5
+            }
+        },
+        colors: ['#660066', '#198754', '#ffc107', '#0dcaf0'],
+        dataLabels: {
+            enabled: true,
+            formatter: function(val) {
+                return val + '%';
+            },
+            style: {
+                fontSize: '12px'
+            }
+        },
+        xaxis: {
+            categories: ['Listening', 'Reading', 'Writing', 'Speaking'],
+            labels: {
+                style: {
+                    colors: '#6c757d'
+                }
+            }
+        },
+        yaxis: {
+            min: 0,
+            max: 100,
+            labels: {
+                formatter: function(val) {
+                    return val + '%';
+                }
+            }
+        },
+        fill: {
+            opacity: 1,
+            colors: ['#660066', '#198754', '#ffc107', '#0dcaf0']
+        },
+        grid: {
+            borderColor: '#e9ecef'
+        }
+    };
+
+    var skillsChart = new ApexCharts(document.querySelector("#skillsChart"), skillsOptions);
+    skillsChart.render();
+
+    // Score Distribution Chart
+    var distributionOptions = {
+        series: [{{ excellent_students|default:0 }}, {{ good_students|default:0 }}, {{ needs_help_students|default:0 }}],
+        chart: {
+            type: 'donut',
+            height: 250
+        },
+        labels: ['Excellent (80%+)', 'Good (60-79%)', 'Needs Help (<60%)'],
+        colors: ['#198754', '#ffc107', '#dc3545'],
+        legend: {
+            show: false
+        },
+        plotOptions: {
+            pie: {
+                donut: {
+                    size: '65%',
+                    labels: {
+                        show: true,
+                        name: {
+                            show: true
+                        },
+                        value: {
+                            show: true,
+                            formatter: function(val) {
+                                return val + ' students';
+                            }
+                        },
+                        total: {
+                            show: true,
+                            label: 'Total',
+                            formatter: function(w) {
+                                return w.globals.seriesTotals.reduce((a, b) => a + b, 0) + ' students';
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        dataLabels: {
+            enabled: false
+        }
+    };
+
+    var distributionChart = new ApexCharts(document.querySelector("#distributionChart"), distributionOptions);
+    distributionChart.render();
+
+    // Table search functionality
+    $('#tableSearch').on('keyup', function() {
+        var searchTerm = $(this).val().toLowerCase();
+
+        $('.student-row').each(function() {
+            var rowText = $(this).text().toLowerCase();
+            if (rowText.indexOf(searchTerm) > -1) {
+                $(this).show();
+            } else {
+                $(this).hide();
+            }
+        });
+    });
+
+    // Counter animation
+    $('.counter-value').each(function() {
+        var $this = $(this);
+        var target = parseInt($this.attr('data-target'), 10);
+
+        if (isNaN(target)) {
+            target = 0;
+        }
+
+        $({ Counter: 0 }).animate({ Counter: target }, {
+            duration: 1500,
+            easing: 'swing',
+            step: function() {
+                $this.text(Math.ceil(this.Counter));
+            },
+            complete: function() {
+                $this.text(target);
+            }
+        });
+    });
+});
+</script>
+
+<style>
+.text-white-75 {
+    color: rgba(255, 255, 255, 0.75) !important;
+}
+
+.avatar-lg {
+    width: 64px;
+    height: 64px;
+}
+
+.avatar-sm {
+    width: 32px;
+    height: 32px;
+}
+
+.avatar-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.card-animate {
+    transition: all 0.3s ease;
+}
+
+.card-animate:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+}
+
+.progress {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.table tbody tr:hover {
+    background-color: rgba(102, 0, 102, 0.02);
+}
+
+@media print {
+    .btn,
+    form,
+    .card-header .col-auto,
+    .input-group {
+        display: none !important;
+    }
+
+    .card {
+        border: 1px solid #dee2e6 !important;
+        box-shadow: none !important;
+    }
+
+    .table {
+        font-size: 10pt;
+    }
+}
+
+@media (max-width: 768px) {
+    .avatar-lg {
+        width: 48px;
+        height: 48px;
+    }
+
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+}
+</style>
+{% endblock %}

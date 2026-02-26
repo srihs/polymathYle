@@ -1,0 +1,583 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block PageTitle %}Issue Certificate - PolymathYLE{% endblock %}
+{% block pageTitle %}Issue Certificate{% endblock %}
+{% block Title %}Certification{% endblock %}
+{% block functionTitle %}Issue New Certificate{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<div class="row mb-3">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="{% url 'certificate_list' %}">Certificates</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Issue Certificate</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xl-8">
+        <div class="card">
+            <div class="card-header border-bottom">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0 me-3">
+                        <div class="avatar-sm">
+                            <span class="avatar-title bg-success-subtle text-success rounded-circle">
+                                <i class="ri-award-fill"></i>
+                            </span>
+                        </div>
+                    </div>
+                    <div>
+                        <h5 class="card-title mb-0">Issue New Certificate</h5>
+                        <p class="text-muted mb-0 small">Create a certificate for a student who has completed their YLE examination</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'certificate_issue' %}" id="certificate-form" novalidate>
+                    {% csrf_token %}
+
+                    <!-- Student Selection -->
+                    <div class="mb-4">
+                        <h6 class="text-uppercase text-muted fw-semibold mb-3">
+                            <i class="ri-user-line me-1"></i>Student Information
+                        </h6>
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label for="student" class="form-label">
+                                    Select Student <span class="text-danger">*</span>
+                                </label>
+                                <select class="form-select select2-student" id="student" name="student" required
+                                        aria-describedby="student-help student-error">
+                                    <option value="">Search for a student...</option>
+                                    {% for student in students %}
+                                    <option value="{{ student.id }}"
+                                            data-level="{{ student.current_level }}"
+                                            data-admission="{{ student.admission_number }}"
+                                            {% if form.student.value == student.id|stringformat:"s" %}selected{% endif %}>
+                                        {{ student.full_name }} ({{ student.admission_number }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <div id="student-help" class="form-text">
+                                    Select the student who will receive this certificate
+                                </div>
+                                {% if form.student.errors %}
+                                <div id="student-error" class="invalid-feedback d-block" role="alert">
+                                    {{ form.student.errors.0 }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Certificate Type and Level -->
+                    <div class="mb-4">
+                        <h6 class="text-uppercase text-muted fw-semibold mb-3">
+                            <i class="ri-file-list-line me-1"></i>Certificate Details
+                        </h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="certificate_type" class="form-label">
+                                    Certificate Type <span class="text-danger">*</span>
+                                </label>
+                                <select class="form-select" id="certificate_type" name="certificate_type" required
+                                        aria-describedby="type-help">
+                                    <option value="">Select type...</option>
+                                    <option value="COMPLETION" {% if form.certificate_type.value == 'COMPLETION' %}selected{% endif %}>
+                                        Completion Certificate
+                                    </option>
+                                    <option value="ACHIEVEMENT" {% if form.certificate_type.value == 'ACHIEVEMENT' %}selected{% endif %}>
+                                        Achievement Certificate
+                                    </option>
+                                    <option value="PARTICIPATION" {% if form.certificate_type.value == 'PARTICIPATION' %}selected{% endif %}>
+                                        Participation Certificate
+                                    </option>
+                                </select>
+                                <div id="type-help" class="form-text">
+                                    The type of certificate being issued
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="level" class="form-label">
+                                    YLE Level <span class="text-danger">*</span>
+                                </label>
+                                <select class="form-select" id="level" name="level" required
+                                        aria-describedby="level-help">
+                                    <option value="">Select level...</option>
+                                    <option value="STARTERS" {% if form.level.value == 'STARTERS' %}selected{% endif %}>
+                                        Pre A1 Starters
+                                    </option>
+                                    <option value="MOVERS" {% if form.level.value == 'MOVERS' %}selected{% endif %}>
+                                        A1 Movers
+                                    </option>
+                                    <option value="FLYERS" {% if form.level.value == 'FLYERS' %}selected{% endif %}>
+                                        A2 Flyers
+                                    </option>
+                                </select>
+                                <div id="level-help" class="form-text">
+                                    The Cambridge YLE level for this certificate
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="issue_date" class="form-label">
+                                    Issue Date <span class="text-danger">*</span>
+                                </label>
+                                <input type="date" class="form-control flatpickr-date" id="issue_date" name="issue_date"
+                                       value="{{ form.issue_date.value|default:today }}" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Shields Input -->
+                    <div class="mb-4">
+                        <h6 class="text-uppercase text-muted fw-semibold mb-3">
+                            <i class="ri-shield-star-line me-1"></i>Shields Assessment (1-5 for each skill)
+                        </h6>
+                        <div class="alert alert-info d-flex align-items-center" role="alert">
+                            <i class="ri-information-line me-2 fs-5"></i>
+                            <div>
+                                Each skill is assessed with 1-5 shields. 5 shields represents the highest performance.
+                            </div>
+                        </div>
+                        <div class="row g-4">
+                            <!-- Listening Shields -->
+                            <div class="col-md-6">
+                                <div class="p-3 border rounded bg-primary-subtle bg-opacity-25">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="avatar-sm me-2">
+                                            <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                                <i class="ri-headphone-line"></i>
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <label for="listening_shields" class="form-label mb-0 fw-medium">
+                                                Listening <span class="text-danger">*</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <input type="range" class="form-range flex-grow-1" id="listening_shields"
+                                               name="listening_shields" min="1" max="5" step="1"
+                                               value="{{ form.listening_shields.value|default:3 }}"
+                                               oninput="updateShieldDisplay(this, 'listening')">
+                                        <div class="shield-display d-flex" id="listening-shields-display">
+                                            <!-- Shields rendered by JS -->
+                                        </div>
+                                        <span class="badge bg-primary fs-6" id="listening-value">3</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Reading Shields -->
+                            <div class="col-md-6">
+                                <div class="p-3 border rounded bg-success-subtle bg-opacity-25">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="avatar-sm me-2">
+                                            <span class="avatar-title bg-success-subtle text-success rounded-circle">
+                                                <i class="ri-book-read-line"></i>
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <label for="reading_shields" class="form-label mb-0 fw-medium">
+                                                Reading <span class="text-danger">*</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <input type="range" class="form-range flex-grow-1" id="reading_shields"
+                                               name="reading_shields" min="1" max="5" step="1"
+                                               value="{{ form.reading_shields.value|default:3 }}"
+                                               oninput="updateShieldDisplay(this, 'reading')">
+                                        <div class="shield-display d-flex" id="reading-shields-display">
+                                            <!-- Shields rendered by JS -->
+                                        </div>
+                                        <span class="badge bg-success fs-6" id="reading-value">3</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Writing Shields -->
+                            <div class="col-md-6">
+                                <div class="p-3 border rounded bg-warning-subtle bg-opacity-25">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="avatar-sm me-2">
+                                            <span class="avatar-title bg-warning-subtle text-warning rounded-circle">
+                                                <i class="ri-edit-line"></i>
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <label for="writing_shields" class="form-label mb-0 fw-medium">
+                                                Writing <span class="text-danger">*</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <input type="range" class="form-range flex-grow-1" id="writing_shields"
+                                               name="writing_shields" min="1" max="5" step="1"
+                                               value="{{ form.writing_shields.value|default:3 }}"
+                                               oninput="updateShieldDisplay(this, 'writing')">
+                                        <div class="shield-display d-flex" id="writing-shields-display">
+                                            <!-- Shields rendered by JS -->
+                                        </div>
+                                        <span class="badge bg-warning fs-6" id="writing-value">3</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Speaking Shields -->
+                            <div class="col-md-6">
+                                <div class="p-3 border rounded bg-info-subtle bg-opacity-25">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="avatar-sm me-2">
+                                            <span class="avatar-title bg-info-subtle text-info rounded-circle">
+                                                <i class="ri-mic-line"></i>
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <label for="speaking_shields" class="form-label mb-0 fw-medium">
+                                                Speaking <span class="text-danger">*</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <input type="range" class="form-range flex-grow-1" id="speaking_shields"
+                                               name="speaking_shields" min="1" max="5" step="1"
+                                               value="{{ form.speaking_shields.value|default:3 }}"
+                                               oninput="updateShieldDisplay(this, 'speaking')">
+                                        <div class="shield-display d-flex" id="speaking-shields-display">
+                                            <!-- Shields rendered by JS -->
+                                        </div>
+                                        <span class="badge bg-info fs-6" id="speaking-value">3</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Total Shields Summary -->
+                        <div class="mt-4 p-3 bg-light rounded text-center">
+                            <h5 class="mb-1">Total Shields: <span id="total-shields" class="text-primary">12</span>/20</h5>
+                            <div class="progress mt-2" style="height: 10px;">
+                                <div class="progress-bar bg-primary progress-bar-striped" role="progressbar"
+                                     id="total-shields-progress" style="width: 60%;"
+                                     aria-valuenow="12" aria-valuemin="0" aria-valuemax="20"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="mb-4">
+                        <h6 class="text-uppercase text-muted fw-semibold mb-3">
+                            <i class="ri-sticky-note-line me-1"></i>Additional Notes
+                        </h6>
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label for="notes" class="form-label">Notes (Optional)</label>
+                                <textarea class="form-control" id="notes" name="notes" rows="3"
+                                          placeholder="Add any additional notes about this certificate...">{{ form.notes.value|default:"" }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                        <a href="{% url 'certificate_list' %}" class="btn btn-outline-secondary">
+                            <i class="ri-close-line me-1"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-success" id="submit-btn">
+                            <span class="spinner-border spinner-border-sm d-none me-1" role="status" aria-hidden="true"></span>
+                            <i class="ri-award-fill me-1"></i> Issue Certificate
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Preview -->
+    <div class="col-xl-4">
+        <div class="card sticky-top" style="top: 80px;">
+            <div class="card-header border-bottom">
+                <h5 class="card-title mb-0">
+                    <i class="ri-eye-line me-2 text-primary"></i>Certificate Preview
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center p-4 border rounded bg-light" id="preview-container">
+                    <div class="mb-3" id="preview-initial">
+                        <div class="avatar-lg mx-auto mb-3">
+                            <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                <i class="ri-file-text-line fs-1"></i>
+                            </span>
+                        </div>
+                        <h6 class="text-muted">Certificate Preview</h6>
+                        <p class="text-muted small mb-0">Fill in the form to see a preview of the certificate</p>
+                    </div>
+
+                    <div id="preview-content" class="d-none">
+                        <div class="mb-3">
+                            <span class="badge fs-6 px-3 py-2" id="preview-level-badge">
+                                Level
+                            </span>
+                        </div>
+                        <h5 id="preview-student-name" class="mb-2">Student Name</h5>
+                        <p class="text-muted small mb-3" id="preview-type">Certificate Type</p>
+
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <div class="small">
+                                    <i class="ri-headphone-line text-primary"></i> Listening
+                                    <div id="preview-listening" class="fw-medium">0/5</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="small">
+                                    <i class="ri-book-read-line text-success"></i> Reading
+                                    <div id="preview-reading" class="fw-medium">0/5</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="small">
+                                    <i class="ri-edit-line text-warning"></i> Writing
+                                    <div id="preview-writing" class="fw-medium">0/5</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="small">
+                                    <i class="ri-mic-line text-info"></i> Speaking
+                                    <div id="preview-speaking" class="fw-medium">0/5</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pt-3 border-top">
+                            <div class="d-flex justify-content-between small text-muted">
+                                <span>Issue Date:</span>
+                                <span id="preview-date">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Help Card -->
+        <div class="card mt-4">
+            <div class="card-header border-bottom">
+                <h6 class="card-title mb-0">
+                    <i class="ri-question-line me-2 text-info"></i>Shield Guide
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="d-flex align-items-start mb-2">
+                        <span class="badge bg-danger me-2">1</span>
+                        <span class="small">Below expected performance</span>
+                    </li>
+                    <li class="d-flex align-items-start mb-2">
+                        <span class="badge bg-warning me-2">2</span>
+                        <span class="small">Approaching expected level</span>
+                    </li>
+                    <li class="d-flex align-items-start mb-2">
+                        <span class="badge bg-info me-2">3</span>
+                        <span class="small">At expected level</span>
+                    </li>
+                    <li class="d-flex align-items-start mb-2">
+                        <span class="badge bg-primary me-2">4</span>
+                        <span class="small">Above expected level</span>
+                    </li>
+                    <li class="d-flex align-items-start">
+                        <span class="badge bg-success me-2">5</span>
+                        <span class="small">Exceptional performance</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Initialize Select2 for student selection
+    if ($.fn.select2) {
+        $('.select2-student').select2({
+            theme: 'bootstrap-5',
+            placeholder: 'Search for a student...',
+            allowClear: true,
+            width: '100%'
+        });
+    }
+
+    // Initialize Flatpickr for date
+    if (typeof flatpickr !== 'undefined') {
+        flatpickr('.flatpickr-date', {
+            dateFormat: 'Y-m-d',
+            defaultDate: 'today',
+            allowInput: true
+        });
+    }
+
+    // Initialize shield displays
+    ['listening', 'reading', 'writing', 'speaking'].forEach(function(skill) {
+        var input = document.getElementById(skill + '_shields');
+        if (input) {
+            updateShieldDisplay(input, skill);
+        }
+    });
+
+    // Update preview when form changes
+    $('#student, #certificate_type, #level, #issue_date').on('change', updatePreview);
+    $('input[type="range"]').on('input', updatePreview);
+
+    // Form submission
+    $('#certificate-form').on('submit', function() {
+        var btn = $('#submit-btn');
+        btn.prop('disabled', true);
+        btn.find('.spinner-border').removeClass('d-none');
+        btn.find('i').addClass('d-none');
+    });
+});
+
+function updateShieldDisplay(input, skill) {
+    var value = parseInt(input.value);
+    var display = document.getElementById(skill + '-shields-display');
+    var valueSpan = document.getElementById(skill + '-value');
+
+    // Update value badge
+    valueSpan.textContent = value;
+
+    // Update shield icons
+    var colors = {
+        'listening': 'primary',
+        'reading': 'success',
+        'writing': 'warning',
+        'speaking': 'info'
+    };
+
+    var html = '';
+    for (var i = 1; i <= 5; i++) {
+        if (i <= value) {
+            html += '<i class="ri-shield-fill text-' + colors[skill] + '" style="font-size: 1rem;"></i>';
+        } else {
+            html += '<i class="ri-shield-line text-muted" style="font-size: 1rem;"></i>';
+        }
+    }
+    display.innerHTML = html;
+
+    // Update total
+    updateTotalShields();
+    updatePreview();
+}
+
+function updateTotalShields() {
+    var total = 0;
+    ['listening', 'reading', 'writing', 'speaking'].forEach(function(skill) {
+        var input = document.getElementById(skill + '_shields');
+        if (input) {
+            total += parseInt(input.value) || 0;
+        }
+    });
+
+    document.getElementById('total-shields').textContent = total;
+    var progress = (total / 20) * 100;
+    var progressBar = document.getElementById('total-shields-progress');
+    progressBar.style.width = progress + '%';
+    progressBar.setAttribute('aria-valuenow', total);
+}
+
+function updatePreview() {
+    var studentSelect = document.getElementById('student');
+    var studentName = studentSelect.options[studentSelect.selectedIndex]?.text || '';
+    var typeSelect = document.getElementById('certificate_type');
+    var type = typeSelect.options[typeSelect.selectedIndex]?.text || '';
+    var levelSelect = document.getElementById('level');
+    var level = levelSelect.value;
+    var levelText = levelSelect.options[levelSelect.selectedIndex]?.text || '';
+    var date = document.getElementById('issue_date').value;
+
+    var listening = document.getElementById('listening_shields').value;
+    var reading = document.getElementById('reading_shields').value;
+    var writing = document.getElementById('writing_shields').value;
+    var speaking = document.getElementById('speaking_shields').value;
+
+    // Show preview if student is selected
+    if (studentSelect.value) {
+        document.getElementById('preview-initial').classList.add('d-none');
+        document.getElementById('preview-content').classList.remove('d-none');
+
+        // Update preview content
+        document.getElementById('preview-student-name').textContent = studentName.split('(')[0].trim();
+        document.getElementById('preview-type').textContent = type || 'Certificate Type';
+
+        // Update level badge
+        var levelBadge = document.getElementById('preview-level-badge');
+        levelBadge.textContent = levelText || 'Level';
+        levelBadge.className = 'badge fs-6 px-3 py-2 bg-' +
+            (level === 'STARTERS' ? 'info' : level === 'MOVERS' ? 'warning' : level === 'FLYERS' ? 'success' : 'secondary') +
+            '-subtle text-' +
+            (level === 'STARTERS' ? 'info' : level === 'MOVERS' ? 'warning' : level === 'FLYERS' ? 'success' : 'secondary');
+
+        // Update shields
+        document.getElementById('preview-listening').textContent = listening + '/5';
+        document.getElementById('preview-reading').textContent = reading + '/5';
+        document.getElementById('preview-writing').textContent = writing + '/5';
+        document.getElementById('preview-speaking').textContent = speaking + '/5';
+
+        // Update date
+        if (date) {
+            var dateObj = new Date(date);
+            document.getElementById('preview-date').textContent = dateObj.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+    } else {
+        document.getElementById('preview-initial').classList.remove('d-none');
+        document.getElementById('preview-content').classList.add('d-none');
+    }
+}
+</script>
+
+<style>
+.avatar-lg {
+    width: 64px;
+    height: 64px;
+}
+
+.avatar-sm {
+    width: 32px;
+    height: 32px;
+}
+
+.avatar-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.shield-display i {
+    margin-right: 2px;
+}
+
+.form-range::-webkit-slider-thumb {
+    background: var(--bs-primary);
+}
+
+.form-range::-moz-range-thumb {
+    background: var(--bs-primary);
+}
+
+.sticky-top {
+    z-index: 1000;
+}
+</style>
+{% endblock %}

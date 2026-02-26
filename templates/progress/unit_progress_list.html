@@ -1,0 +1,338 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block PageTitle %}Unit Progress - PolymathYLE{% endblock %}
+{% block pageTitle %}Unit Progress{% endblock %}
+{% block Title %}Progress{% endblock %}
+{% block functionTitle %}Course Units{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                    <div class="d-flex align-items-center">
+                        <div class="avatar-sm me-3">
+                            <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                <i class="ri-folder-open-line fs-4"></i>
+                            </span>
+                        </div>
+                        <div>
+                            <h4 class="mb-0">Learning Units</h4>
+                            <p class="text-muted mb-0">Track your progress through {{ student.current_level }} units</p>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <a href="{% url 'progress:dashboard' %}" class="btn btn-outline-secondary">
+                            <i class="ri-arrow-left-line me-1"></i> Back to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Progress Summary -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate bg-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="fw-medium text-white-75 mb-0">Units Completed</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ units_completed|default:0 }}/{{ total_units|default:0 }}</h2>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-folder-check-line text-white"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate bg-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="fw-medium text-white-75 mb-0">Lessons Done</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ lessons_completed|default:0 }}/{{ total_lessons|default:0 }}</h2>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-book-read-line text-white"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate bg-info">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="fw-medium text-white-75 mb-0">Overall Progress</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ overall_progress|default:0 }}%</h2>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-percent-line text-white"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate bg-warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="fw-medium text-white-75 mb-0">Current Level</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ student.current_level|default:"Starters" }}</h2>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-award-line text-white"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Units Grid -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header border-bottom">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-sm me-3">
+                                <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                    <i class="ri-stack-line fs-4"></i>
+                                </span>
+                            </div>
+                            <div>
+                                <h5 class="card-title mb-0">
+                                    Course Units
+                                    <span class="badge bg-primary-subtle text-primary ms-2">{{ total_units|default:0 }} units</span>
+                                </h5>
+                                <p class="text-muted mb-0 small">Complete units in order to unlock new content</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <div class="d-flex gap-2">
+                            <div class="dropdown">
+                                <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="ri-filter-3-line me-1"></i> Filter
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="filterDropdown">
+                                    <li><a class="dropdown-item" href="?status=all">All Units</a></li>
+                                    <li><a class="dropdown-item" href="?status=completed">Completed</a></li>
+                                    <li><a class="dropdown-item" href="?status=in_progress">In Progress</a></li>
+                                    <li><a class="dropdown-item" href="?status=locked">Locked</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if units %}
+                    <div class="row g-4">
+                        {% for unit in units %}
+                            <div class="col-xl-4 col-lg-6 col-md-6">
+                                <div class="card border h-100 {% if unit.is_locked %}opacity-75{% endif %} card-animate">
+                                    <div class="card-body">
+                                        <!-- Unit Header -->
+                                        <div class="d-flex align-items-start justify-content-between mb-3">
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-md me-3 flex-shrink-0">
+                                                    {% if unit.is_completed %}
+                                                        <span class="avatar-title bg-success-subtle text-success rounded-circle fs-3">
+                                                            <i class="ri-check-double-line"></i>
+                                                        </span>
+                                                    {% elif unit.is_locked %}
+                                                        <span class="avatar-title bg-secondary-subtle text-secondary rounded-circle fs-3">
+                                                            <i class="ri-lock-line"></i>
+                                                        </span>
+                                                    {% else %}
+                                                        <span class="avatar-title bg-primary-subtle text-primary rounded-circle fs-3">
+                                                            <i class="ri-book-3-line"></i>
+                                                        </span>
+                                                    {% endif %}
+                                                </div>
+                                                <div>
+                                                    <span class="badge bg-light text-muted mb-1">Unit {{ unit.order_number }}</span>
+                                                    <h5 class="mb-0 {% if unit.is_locked %}text-muted{% endif %}">{{ unit.title }}</h5>
+                                                </div>
+                                            </div>
+                                            {% if unit.is_completed %}
+                                                <span class="badge bg-success">
+                                                    <i class="ri-check-line me-1"></i>Complete
+                                                </span>
+                                            {% elif unit.is_locked %}
+                                                <span class="badge bg-secondary">
+                                                    <i class="ri-lock-line me-1"></i>Locked
+                                                </span>
+                                            {% elif unit.progress > 0 %}
+                                                <span class="badge bg-primary">
+                                                    <i class="ri-play-line me-1"></i>In Progress
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-info">
+                                                    <i class="ri-star-line me-1"></i>New
+                                                </span>
+                                            {% endif %}
+                                        </div>
+
+                                        <!-- Unit Description -->
+                                        <p class="text-muted small mb-3 {% if unit.is_locked %}text-muted{% endif %}">
+                                            {{ unit.description|truncatechars:100 }}
+                                        </p>
+
+                                        <!-- Progress Bar -->
+                                        <div class="mb-3">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <small class="text-muted">Progress</small>
+                                                <small class="fw-medium {% if unit.is_locked %}text-muted{% else %}text-primary{% endif %}">{{ unit.progress|default:0 }}%</small>
+                                            </div>
+                                            <div class="progress" style="height: 8px;" role="progressbar" aria-label="Unit {{ unit.title }} progress" aria-valuenow="{{ unit.progress|default:0 }}" aria-valuemin="0" aria-valuemax="100">
+                                                <div class="progress-bar {% if unit.is_completed %}bg-success{% elif unit.is_locked %}bg-secondary{% else %}bg-primary{% endif %} progress-bar-striped {% if not unit.is_completed and not unit.is_locked %}progress-bar-animated{% endif %}"
+                                                     style="width: {{ unit.progress|default:0 }}%"></div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Unit Stats -->
+                                        <div class="row g-2 mb-3">
+                                            <div class="col-4">
+                                                <div class="text-center p-2 bg-light rounded">
+                                                    <h6 class="mb-0 {% if unit.is_locked %}text-muted{% endif %}">{{ unit.lessons_completed|default:0 }}/{{ unit.total_lessons|default:0 }}</h6>
+                                                    <small class="text-muted">Lessons</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-4">
+                                                <div class="text-center p-2 bg-light rounded">
+                                                    <h6 class="mb-0 {% if unit.is_locked %}text-muted{% endif %}">{{ unit.activities_completed|default:0 }}</h6>
+                                                    <small class="text-muted">Activities</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-4">
+                                                <div class="text-center p-2 bg-light rounded">
+                                                    <h6 class="mb-0 {% if unit.is_locked %}text-muted{% endif %}">{{ unit.points_earned|default:0 }}</h6>
+                                                    <small class="text-muted">Points</small>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Action Button -->
+                                        {% if unit.is_locked %}
+                                            <button class="btn btn-secondary w-100" disabled>
+                                                <i class="ri-lock-line me-1"></i> Complete Previous Unit
+                                            </button>
+                                        {% elif unit.is_completed %}
+                                            <a href="{% url 'progress:unit_progress_detail' unit_id=unit.id %}" class="btn btn-outline-success w-100">
+                                                <i class="ri-eye-line me-1"></i> Review Unit
+                                            </a>
+                                        {% else %}
+                                            <a href="{% url 'progress:unit_progress_detail' unit_id=unit.id %}" class="btn btn-primary w-100">
+                                                {% if unit.progress > 0 %}
+                                                    <i class="ri-play-circle-line me-1"></i> Continue
+                                                {% else %}
+                                                    <i class="ri-play-line me-1"></i> Start Unit
+                                                {% endif %}
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <!-- Empty State -->
+                    <div class="text-center py-5">
+                        <div class="avatar-lg mx-auto mb-4">
+                            <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                <i class="ri-folder-open-line fs-1"></i>
+                            </span>
+                        </div>
+                        <h5>No Units Available</h5>
+                        <p class="text-muted mb-4">
+                            There are no units available for your current level yet. Please check back later or contact your teacher.
+                        </p>
+                        <a href="{% url 'progress:dashboard' %}" class="btn btn-primary">
+                            <i class="ri-arrow-left-line me-1"></i> Back to Dashboard
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<style>
+.text-white-75 {
+    color: rgba(255, 255, 255, 0.75) !important;
+}
+
+.avatar-lg {
+    width: 64px;
+    height: 64px;
+}
+
+.avatar-md {
+    width: 48px;
+    height: 48px;
+}
+
+.avatar-sm {
+    width: 32px;
+    height: 32px;
+}
+
+.avatar-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.card-animate {
+    transition: all 0.3s ease;
+}
+
+.card-animate:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+}
+
+.progress {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+@media (max-width: 768px) {
+    .avatar-lg {
+        width: 48px;
+        height: 48px;
+    }
+
+    .avatar-md {
+        width: 40px;
+        height: 40px;
+    }
+}
+</style>
+{% endblock %}

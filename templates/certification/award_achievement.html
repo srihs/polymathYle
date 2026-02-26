@@ -1,0 +1,489 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block PageTitle %}Award Achievement - PolymathYLE{% endblock %}
+{% block pageTitle %}Award Achievement{% endblock %}
+{% block Title %}Certification{% endblock %}
+{% block functionTitle %}Award Achievement{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<div class="row mb-3">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="{% url 'achievement_list' %}">Achievements</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Award Achievement</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xl-8">
+        <div class="card">
+            <div class="card-header border-bottom">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0 me-3">
+                        <div class="avatar-sm">
+                            <span class="avatar-title bg-warning-subtle text-warning rounded-circle">
+                                <i class="ri-award-fill"></i>
+                            </span>
+                        </div>
+                    </div>
+                    <div>
+                        <h5 class="card-title mb-0">Award Achievement to Student</h5>
+                        <p class="text-muted mb-0 small">Recognize student accomplishments with achievements</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'award_achievement' %}" id="award-form" novalidate>
+                    {% csrf_token %}
+
+                    <!-- Student Selection -->
+                    <div class="mb-4">
+                        <h6 class="text-uppercase text-muted fw-semibold mb-3">
+                            <i class="ri-user-line me-1"></i>Select Student
+                        </h6>
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label for="student" class="form-label">
+                                    Student <span class="text-danger">*</span>
+                                </label>
+                                <select class="form-select select2-student" id="student" name="student" required
+                                        aria-describedby="student-help">
+                                    <option value="">Search for a student...</option>
+                                    {% for student in students %}
+                                    <option value="{{ student.id }}"
+                                            data-level="{{ student.current_level }}"
+                                            data-points="{{ student.total_points|default:0 }}"
+                                            {% if form.student.value == student.id|stringformat:"s" or request.GET.student == student.id|stringformat:"s" %}selected{% endif %}>
+                                        {{ student.full_name }} ({{ student.admission_number }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <div id="student-help" class="form-text">
+                                    Select the student who will receive this achievement
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Selected Student Info (shown via JS) -->
+                        <div id="student-info" class="mt-3 p-3 bg-light rounded d-none">
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-md me-3">
+                                    <span class="avatar-title bg-primary-subtle text-primary rounded-circle fs-4" id="student-avatar">
+                                        S
+                                    </span>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1" id="student-name-display">Student Name</h6>
+                                    <div class="d-flex gap-2">
+                                        <span class="badge bg-secondary-subtle text-secondary" id="student-level-badge">Level</span>
+                                        <span class="badge bg-warning-subtle text-warning">
+                                            <i class="ri-star-fill me-1"></i><span id="student-points-display">0</span> points
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Achievement Selection -->
+                    <div class="mb-4">
+                        <h6 class="text-uppercase text-muted fw-semibold mb-3">
+                            <i class="ri-trophy-line me-1"></i>Select Achievement
+                        </h6>
+
+                        <!-- Achievement Type Filter -->
+                        <div class="mb-3">
+                            <label class="form-label">Filter by Type</label>
+                            <div class="d-flex flex-wrap gap-2">
+                                <button type="button" class="btn btn-sm btn-outline-primary filter-btn active" data-filter="all">
+                                    All
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-primary filter-btn" data-filter="BADGE">
+                                    <i class="ri-medal-line me-1"></i>Badges
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-success filter-btn" data-filter="MILESTONE">
+                                    <i class="ri-flag-line me-1"></i>Milestones
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-warning filter-btn" data-filter="SKILL">
+                                    <i class="ri-star-line me-1"></i>Skills
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-info filter-btn" data-filter="SPECIAL">
+                                    <i class="ri-award-line me-1"></i>Special
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Achievements Grid -->
+                        <div class="row g-3" id="achievements-grid">
+                            {% for ach in achievements %}
+                            <div class="col-md-6 col-lg-4 achievement-item" data-type="{{ ach.achievement_type }}">
+                                <div class="form-check achievement-card p-0">
+                                    <input type="radio" class="form-check-input d-none" id="achievement-{{ ach.id }}"
+                                           name="achievement" value="{{ ach.id }}"
+                                           {% if form.achievement.value == ach.id|stringformat:"s" or request.GET.achievement == ach.id|stringformat:"s" %}checked{% endif %}
+                                           required>
+                                    <label class="form-check-label w-100 cursor-pointer" for="achievement-{{ ach.id }}">
+                                        <div class="card h-100 mb-0 border-2 achievement-select-card
+                                            {% if form.achievement.value == ach.id|stringformat:"s" or request.GET.achievement == ach.id|stringformat:"s" %}border-primary bg-primary-subtle{% endif %}">
+                                            <div class="card-body text-center p-3">
+                                                <div class="avatar-md mx-auto mb-2">
+                                                    <span class="avatar-title rounded-circle fs-3
+                                                        {% if ach.achievement_type == 'BADGE' %}bg-primary-subtle text-primary
+                                                        {% elif ach.achievement_type == 'MILESTONE' %}bg-success-subtle text-success
+                                                        {% elif ach.achievement_type == 'SKILL' %}bg-warning-subtle text-warning
+                                                        {% else %}bg-info-subtle text-info{% endif %}">
+                                                        {{ ach.icon|default:"" }}
+                                                    </span>
+                                                </div>
+                                                <h6 class="mb-1">{{ ach.title }}</h6>
+                                                <span class="badge mb-2
+                                                    {% if ach.achievement_type == 'BADGE' %}bg-primary-subtle text-primary
+                                                    {% elif ach.achievement_type == 'MILESTONE' %}bg-success-subtle text-success
+                                                    {% elif ach.achievement_type == 'SKILL' %}bg-warning-subtle text-warning
+                                                    {% else %}bg-info-subtle text-info{% endif %}">
+                                                    {{ ach.get_achievement_type_display }}
+                                                </span>
+                                                <p class="text-muted small mb-2">{{ ach.description|truncatewords:8 }}</p>
+                                                <span class="badge bg-warning">
+                                                    <i class="ri-star-fill me-1"></i>{{ ach.points }} pts
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="col-12">
+                                <div class="text-center py-4">
+                                    <i class="ri-trophy-line fs-1 text-muted opacity-50"></i>
+                                    <p class="text-muted mb-0">No achievements available</p>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Additional Points -->
+                    <div class="mb-4">
+                        <h6 class="text-uppercase text-muted fw-semibold mb-3">
+                            <i class="ri-star-line me-1"></i>Additional Options
+                        </h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="bonus_points" class="form-label">Bonus Points (Optional)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="ri-add-line"></i></span>
+                                    <input type="number" class="form-control" id="bonus_points" name="bonus_points"
+                                           min="0" max="100" value="{{ form.bonus_points.value|default:0 }}"
+                                           placeholder="0">
+                                    <span class="input-group-text">points</span>
+                                </div>
+                                <div class="form-text">Add extra points for exceptional performance</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="awarded_date" class="form-label">Award Date</label>
+                                <input type="date" class="form-control flatpickr-date" id="awarded_date" name="awarded_date"
+                                       value="{{ form.awarded_date.value|default:today }}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="mb-4">
+                        <label for="notes" class="form-label">Notes (Optional)</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3"
+                                  placeholder="Add any notes about this achievement award...">{{ form.notes.value|default:"" }}</textarea>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                        <a href="{% url 'achievement_list' %}" class="btn btn-outline-secondary">
+                            <i class="ri-close-line me-1"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-success" id="submit-btn">
+                            <span class="spinner-border spinner-border-sm d-none me-1" role="status" aria-hidden="true"></span>
+                            <i class="ri-award-fill me-1"></i> Award Achievement
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-xl-4">
+        <!-- Preview Card -->
+        <div class="card sticky-top" style="top: 80px;">
+            <div class="card-header border-bottom">
+                <h5 class="card-title mb-0">
+                    <i class="ri-eye-line me-2 text-primary"></i>Award Preview
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="preview-empty" class="text-center py-4">
+                    <div class="avatar-lg mx-auto mb-3">
+                        <span class="avatar-title bg-secondary-subtle text-secondary rounded-circle">
+                            <i class="ri-file-list-line fs-1"></i>
+                        </span>
+                    </div>
+                    <h6 class="text-muted">Award Preview</h6>
+                    <p class="text-muted small mb-0">Select a student and achievement to see the preview</p>
+                </div>
+
+                <div id="preview-content" class="d-none">
+                    <div class="text-center mb-4">
+                        <div class="avatar-lg mx-auto mb-3" id="preview-achievement-icon">
+                            <span class="avatar-title bg-warning-subtle text-warning rounded-circle fs-1">
+
+                            </span>
+                        </div>
+                        <h5 id="preview-achievement-title">Achievement Title</h5>
+                    </div>
+
+                    <div class="d-flex align-items-center p-3 bg-light rounded mb-3">
+                        <div class="avatar-sm me-3" id="preview-student-avatar">
+                            <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                S
+                            </span>
+                        </div>
+                        <div>
+                            <small class="text-muted d-block">Awarded to</small>
+                            <span class="fw-medium" id="preview-student-name">Student Name</span>
+                        </div>
+                    </div>
+
+                    <div class="row g-2 text-center mb-3">
+                        <div class="col-6">
+                            <div class="p-2 bg-warning-subtle rounded">
+                                <small class="text-muted d-block">Base Points</small>
+                                <span class="fw-bold text-warning" id="preview-base-points">0</span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-2 bg-success-subtle rounded">
+                                <small class="text-muted d-block">Bonus Points</small>
+                                <span class="fw-bold text-success" id="preview-bonus-points">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-center p-3 bg-primary-subtle rounded">
+                        <small class="text-muted d-block">Total Points</small>
+                        <h4 class="text-primary mb-0" id="preview-total-points">0</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tips Card -->
+        <div class="card mt-4">
+            <div class="card-header border-bottom">
+                <h6 class="card-title mb-0">
+                    <i class="ri-lightbulb-line me-2 text-warning"></i>Tips
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="d-flex align-items-start mb-3">
+                        <i class="ri-checkbox-circle-line text-success me-2 mt-1"></i>
+                        <span class="small">Achievements motivate students and track their progress</span>
+                    </li>
+                    <li class="d-flex align-items-start mb-3">
+                        <i class="ri-checkbox-circle-line text-success me-2 mt-1"></i>
+                        <span class="small">Use bonus points for exceptional accomplishments</span>
+                    </li>
+                    <li class="d-flex align-items-start mb-3">
+                        <i class="ri-checkbox-circle-line text-success me-2 mt-1"></i>
+                        <span class="small">Students can view their achievements in their dashboard</span>
+                    </li>
+                    <li class="d-flex align-items-start">
+                        <i class="ri-checkbox-circle-line text-success me-2 mt-1"></i>
+                        <span class="small">Add notes to document why the achievement was awarded</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Initialize Select2
+    if ($.fn.select2) {
+        $('.select2-student').select2({
+            theme: 'bootstrap-5',
+            placeholder: 'Search for a student...',
+            allowClear: true,
+            width: '100%'
+        });
+    }
+
+    // Initialize Flatpickr
+    if (typeof flatpickr !== 'undefined') {
+        flatpickr('.flatpickr-date', {
+            dateFormat: 'Y-m-d',
+            defaultDate: 'today',
+            allowInput: true
+        });
+    }
+
+    // Student selection change
+    $('#student').on('change', function() {
+        var selected = $(this).find('option:selected');
+        var studentId = $(this).val();
+
+        if (studentId) {
+            var name = selected.text().split('(')[0].trim();
+            var level = selected.data('level');
+            var points = selected.data('points') || 0;
+
+            $('#student-info').removeClass('d-none');
+            $('#student-name-display').text(name);
+            $('#student-avatar').text(name.charAt(0).toUpperCase());
+            $('#student-points-display').text(points);
+
+            // Update level badge
+            var levelClass = level === 'STARTERS' ? 'info' : level === 'MOVERS' ? 'warning' : 'success';
+            var levelText = level === 'STARTERS' ? 'Pre A1 Starters' : level === 'MOVERS' ? 'A1 Movers' : 'A2 Flyers';
+            $('#student-level-badge')
+                .removeClass('bg-info-subtle text-info bg-warning-subtle text-warning bg-success-subtle text-success')
+                .addClass('bg-' + levelClass + '-subtle text-' + levelClass)
+                .text(levelText);
+
+            updatePreview();
+        } else {
+            $('#student-info').addClass('d-none');
+            updatePreview();
+        }
+    });
+
+    // Achievement selection
+    $('input[name="achievement"]').on('change', function() {
+        $('.achievement-select-card').removeClass('border-primary bg-primary-subtle');
+        $(this).closest('.achievement-item').find('.achievement-select-card').addClass('border-primary bg-primary-subtle');
+        updatePreview();
+    });
+
+    // Filter achievements by type
+    $('.filter-btn').on('click', function() {
+        var filter = $(this).data('filter');
+
+        $('.filter-btn').removeClass('active');
+        $(this).addClass('active');
+
+        if (filter === 'all') {
+            $('.achievement-item').show();
+        } else {
+            $('.achievement-item').hide();
+            $('.achievement-item[data-type="' + filter + '"]').show();
+        }
+    });
+
+    // Bonus points change
+    $('#bonus_points').on('input', function() {
+        updatePreview();
+    });
+
+    // Form submission
+    $('#award-form').on('submit', function() {
+        var btn = $('#submit-btn');
+        btn.prop('disabled', true);
+        btn.find('.spinner-border').removeClass('d-none');
+        btn.find('i').addClass('d-none');
+    });
+
+    // Initialize preview if pre-selected
+    if ($('#student').val() || $('input[name="achievement"]:checked').length) {
+        updatePreview();
+        if ($('#student').val()) {
+            $('#student').trigger('change');
+        }
+    }
+});
+
+function updatePreview() {
+    var studentId = $('#student').val();
+    var selectedAchievement = $('input[name="achievement"]:checked');
+    var bonusPoints = parseInt($('#bonus_points').val()) || 0;
+
+    if (studentId && selectedAchievement.length) {
+        var studentName = $('#student option:selected').text().split('(')[0].trim();
+        var achievementCard = selectedAchievement.closest('.achievement-item');
+        var achievementTitle = achievementCard.find('h6').text();
+        var achievementIcon = achievementCard.find('.avatar-title').text().trim();
+        var achievementPoints = parseInt(achievementCard.find('.badge.bg-warning').text().match(/\d+/)[0]) || 0;
+
+        // Show preview
+        $('#preview-empty').addClass('d-none');
+        $('#preview-content').removeClass('d-none');
+
+        // Update preview content
+        $('#preview-student-name').text(studentName);
+        $('#preview-student-avatar .avatar-title').text(studentName.charAt(0).toUpperCase());
+        $('#preview-achievement-title').text(achievementTitle);
+        $('#preview-achievement-icon .avatar-title').text(achievementIcon);
+        $('#preview-base-points').text(achievementPoints);
+        $('#preview-bonus-points').text(bonusPoints);
+        $('#preview-total-points').text(achievementPoints + bonusPoints);
+    } else {
+        $('#preview-empty').removeClass('d-none');
+        $('#preview-content').addClass('d-none');
+    }
+}
+</script>
+
+<style>
+.avatar-lg {
+    width: 64px;
+    height: 64px;
+}
+
+.avatar-md {
+    width: 48px;
+    height: 48px;
+}
+
+.avatar-sm {
+    width: 32px;
+    height: 32px;
+}
+
+.avatar-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.achievement-select-card {
+    transition: all 0.2s ease;
+}
+
+.achievement-select-card:hover {
+    border-color: var(--bs-primary) !important;
+    background-color: rgba(var(--bs-primary-rgb), 0.05);
+}
+
+.filter-btn.active {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+    color: white;
+}
+
+.sticky-top {
+    z-index: 1000;
+}
+</style>
+{% endblock %}

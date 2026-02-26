@@ -5,277 +5,536 @@
 
 {% block pageTitle %}Admin Dashboard{% endblock %}
 {% block Title %}Dashboard{% endblock %}
-{% block functionTitle %}Admin{% endblock %}
+{% block functionTitle %}Administrator{% endblock %}
 
 {% block content %}
-<!-- Welcome Section -->
-            <div class="row">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="d-flex align-items-center">
-                                <div class="avatar-lg bg-primary rounded-circle d-flex align-items-center justify-content-center me-3">
-                                    <i class="bx bx-shield-quarter text-white" style="font-size: 32px;"></i>
-                                </div>
-                                <div>
-                                    <h4 class="mb-1">Welcome, {{ user.get_full_name|default:user.username }}!</h4>
-                                    <p class="text-muted mb-0">System Administrator</p>
-                                    <p class="text-muted mb-0"><strong>Username:</strong> {{ user.username }}</p>
-                                </div>
-                            </div>
+<!-- Welcome Header Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card card-animate bg-primary bg-gradient">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="avatar-lg bg-white bg-opacity-25 rounded-circle d-flex align-items-center justify-content-center me-4 flex-shrink-0">
+                        <i class="ri-shield-user-line text-white" style="font-size: 2rem;"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h4 class="text-white mb-1">Welcome back, {{ user.get_full_name|default:user.username }}!</h4>
+                        <p class="text-white-75 mb-0">
+                            <i class="ri-user-star-line me-1"></i> System Administrator
+                            <span class="mx-2">|</span>
+                            <i class="ri-user-line me-1"></i> {{ user.username }}
+                        </p>
+                    </div>
+                    <div class="d-none d-md-block">
+                        <div class="text-end">
+                            <p class="text-white-75 mb-1"><small>Last Login</small></p>
+                            <p class="text-white mb-0 fw-medium">{{ user.last_login|date:"M d, Y - H:i"|default:"First login" }}</p>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
 
-            <!-- Statistics -->
-            <div class="row">
-                <div class="col-xl-3 col-md-6">
-                    <div class="card card-animate">
-                        <div class="card-body">
-                            <div class="d-flex align-items-center">
-                                <div class="flex-grow-1 overflow-hidden">
-                                    <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Total Users</p>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-end justify-content-between mt-4">
-                                <div>
-                                    <h4 class="fs-22 fw-semibold ff-secondary mb-4">{{ total_users }}</h4>
-                                </div>
-                                <div class="avatar-sm flex-shrink-0">
-                                    <span class="avatar-title bg-primary-subtle rounded fs-3">
-                                        <i class="bx bx-user text-primary"></i>
+<!-- Statistics Cards Row -->
+<div class="row">
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Total Users</p>
+                        <h2 class="mt-3 mb-0 ff-secondary fw-semibold">
+                            <span class="counter-value" data-target="{{ total_users|default:0 }}">{{ total_users|default:0 }}</span>
+                        </h2>
+                        <p class="text-muted mb-0 mt-2">
+                            <span class="badge bg-success-subtle text-success me-1">
+                                <i class="ri-arrow-up-line align-middle"></i> Active
+                            </span>
+                            <span class="text-muted">accounts</span>
+                        </p>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-primary-subtle rounded-circle fs-2">
+                            <i class="ri-user-line text-primary"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Total Teachers</p>
+                        <h2 class="mt-3 mb-0 ff-secondary fw-semibold">
+                            <span class="counter-value" data-target="{{ total_teachers|default:0 }}">{{ total_teachers|default:0 }}</span>
+                        </h2>
+                        <p class="text-muted mb-0 mt-2">
+                            <span class="badge bg-info-subtle text-info me-1">
+                                <i class="ri-briefcase-line align-middle"></i>
+                            </span>
+                            <span class="text-muted">staff members</span>
+                        </p>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-success-subtle rounded-circle fs-2">
+                            <i class="ri-user-star-line text-success"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Total Students</p>
+                        <h2 class="mt-3 mb-0 ff-secondary fw-semibold">
+                            <span class="counter-value" data-target="{{ total_students|default:0 }}">{{ total_students|default:0 }}</span>
+                        </h2>
+                        <p class="text-muted mb-0 mt-2">
+                            <span class="badge bg-primary-subtle text-primary me-1">
+                                <i class="ri-graduation-cap-line align-middle"></i>
+                            </span>
+                            <span class="text-muted">enrolled</span>
+                        </p>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-info-subtle rounded-circle fs-2">
+                            <i class="ri-team-line text-info"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Active Classes</p>
+                        <h2 class="mt-3 mb-0 ff-secondary fw-semibold">
+                            <span class="counter-value" data-target="{{ total_classes|default:0 }}">{{ total_classes|default:0 }}</span>
+                        </h2>
+                        <p class="text-muted mb-0 mt-2">
+                            <span class="badge bg-warning-subtle text-warning me-1">
+                                <i class="ri-calendar-check-line align-middle"></i>
+                            </span>
+                            <span class="text-muted">running now</span>
+                        </p>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-warning-subtle rounded-circle fs-2">
+                            <i class="ri-book-open-line text-warning"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions Row -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header border-bottom">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0 me-3">
+                        <div class="avatar-sm">
+                            <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                <i class="ri-settings-4-line"></i>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h5 class="card-title mb-0">System Management</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-xl-3 col-lg-4 col-md-6">
+                        <a href="/admin/auth/user/" class="btn btn-soft-primary w-100 py-3">
+                            <i class="ri-user-settings-line fs-4 d-block mb-2"></i>
+                            <span class="fw-medium">Manage Users</span>
+                        </a>
+                    </div>
+                    <div class="col-xl-3 col-lg-4 col-md-6">
+                        <a href="{% url 'teacher_list' %}" class="btn btn-soft-success w-100 py-3">
+                            <i class="ri-user-star-line fs-4 d-block mb-2"></i>
+                            <span class="fw-medium">Manage Teachers</span>
+                        </a>
+                    </div>
+                    <div class="col-xl-3 col-lg-4 col-md-6">
+                        <a href="{% url 'student_list' %}" class="btn btn-soft-info w-100 py-3">
+                            <i class="ri-team-line fs-4 d-block mb-2"></i>
+                            <span class="fw-medium">Manage Students</span>
+                        </a>
+                    </div>
+                    <div class="col-xl-3 col-lg-4 col-md-6">
+                        <a href="{% url 'class_list' %}" class="btn btn-soft-warning w-100 py-3">
+                            <i class="ri-book-open-line fs-4 d-block mb-2"></i>
+                            <span class="fw-medium">Manage Classes</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Access Section -->
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header border-bottom">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0 me-3">
+                        <div class="avatar-sm">
+                            <span class="avatar-title bg-info-subtle text-info rounded-circle">
+                                <i class="ri-user-follow-line"></i>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h5 class="card-title mb-0">Student Management</h5>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <a href="{% url 'student_list' %}" class="btn btn-sm btn-soft-primary">
+                            View All <i class="ri-arrow-right-line ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'application_list' %}" class="btn btn-outline-primary d-flex align-items-center justify-content-between">
+                        <span><i class="ri-file-list-line me-2"></i>Applications</span>
+                        {% if pending_applications_count %}
+                        <span class="badge bg-warning">{{ pending_applications_count }} pending</span>
+                        {% endif %}
+                    </a>
+                    <a href="{% url 'student_list' %}" class="btn btn-outline-primary">
+                        <i class="ri-team-line me-2"></i>All Students
+                    </a>
+                    <a href="{% url 'student_list' %}?tab=guardians" class="btn btn-outline-primary">
+                        <i class="ri-parent-line me-2"></i>Guardians
+                    </a>
+                    <a href="{% url 'attendance_report' %}" class="btn btn-outline-primary">
+                        <i class="ri-calendar-check-line me-2"></i>Attendance Reports
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header border-bottom">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0 me-3">
+                        <div class="avatar-sm">
+                            <span class="avatar-title bg-success-subtle text-success rounded-circle">
+                                <i class="ri-book-2-line"></i>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h5 class="card-title mb-0">Course Management</h5>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <a href="{% url 'level_list' %}" class="btn btn-sm btn-soft-success">
+                            View All <i class="ri-arrow-right-line ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'level_list' %}" class="btn btn-outline-success">
+                        <i class="ri-stack-line me-2"></i>YLE Levels
+                    </a>
+                    <a href="{% url 'class_list' %}" class="btn btn-outline-success">
+                        <i class="ri-home-4-line me-2"></i>Classes
+                    </a>
+                    <a href="{% url 'assessment_list' %}" class="btn btn-outline-success">
+                        <i class="ri-file-list-3-line me-2"></i>Assessments
+                    </a>
+                    <a href="{% url 'progress_dashboard' %}" class="btn btn-outline-success">
+                        <i class="ri-bar-chart-line me-2"></i>Progress
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Applications Section -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header border-bottom">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0 me-3">
+                                <div class="avatar-sm">
+                                    <span class="avatar-title bg-warning-subtle text-warning rounded-circle">
+                                        <i class="ri-file-list-line"></i>
                                     </span>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-xl-3 col-md-6">
-                    <div class="card card-animate">
-                        <div class="card-body">
-                            <div class="d-flex align-items-center">
-                                <div class="flex-grow-1 overflow-hidden">
-                                    <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Total Teachers</p>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-end justify-content-between mt-4">
-                                <div>
-                                    <h4 class="fs-22 fw-semibold ff-secondary mb-4">{{ total_teachers }}</h4>
-                                </div>
-                                <div class="avatar-sm flex-shrink-0">
-                                    <span class="avatar-title bg-success-subtle rounded fs-3">
-                                        <i class="bx bx-chalkboard text-success"></i>
-                                    </span>
-                                </div>
+                            <div class="flex-grow-1">
+                                <h5 class="card-title mb-0">Recent Applications</h5>
+                                <p class="text-muted mb-0 small">Latest student applications requiring attention</p>
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <div class="col-xl-3 col-md-6">
-                    <div class="card card-animate">
-                        <div class="card-body">
-                            <div class="d-flex align-items-center">
-                                <div class="flex-grow-1 overflow-hidden">
-                                    <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Total Students</p>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-end justify-content-between mt-4">
-                                <div>
-                                    <h4 class="fs-22 fw-semibold ff-secondary mb-4">{{ total_students }}</h4>
-                                </div>
-                                <div class="avatar-sm flex-shrink-0">
-                                    <span class="avatar-title bg-info-subtle rounded fs-3">
-                                        <i class="bx bx-user-check text-info"></i>
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="col-auto">
+                        <a href="{% url 'application_list' %}" class="btn btn-soft-warning">
+                            <i class="ri-eye-line me-1"></i> View All
+                        </a>
                     </div>
                 </div>
+            </div>
+            <div class="card-body">
+                {% if recent_applications %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle table-nowrap mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col">Admission No.</th>
+                                    <th scope="col">Applicant</th>
+                                    <th scope="col">Contact</th>
+                                    <th scope="col">Applied On</th>
+                                    <th scope="col">Status</th>
+                                    <th scope="col" class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for app in recent_applications %}
+                                    <tr>
+                                        <td>
+                                            <span class="badge bg-primary-subtle text-primary fw-medium">
+                                                {{ app.admission_number|default:"Pending" }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-sm me-2">
+                                                    <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                                        {{ app.full_name|first|upper }}
+                                                    </span>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-0">{{ app.full_name }}</h6>
+                                                    <small class="text-muted">Age: {{ app.age }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted d-block">
+                                                <i class="ri-mail-line me-1"></i>{{ app.primary_contact_email|truncatechars:25 }}
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">{{ app.application_date|date:"M d, Y" }}</small>
+                                        </td>
+                                        <td>
+                                            {% if app.status == 'PENDING' %}
+                                                <span class="badge bg-warning-subtle text-warning">
+                                                    <i class="ri-time-line me-1"></i>Pending
+                                                </span>
+                                            {% elif app.status == 'APPROVED' %}
+                                                <span class="badge bg-success-subtle text-success">
+                                                    <i class="ri-check-line me-1"></i>Approved
+                                                </span>
+                                            {% elif app.status == 'REJECTED' %}
+                                                <span class="badge bg-danger-subtle text-danger">
+                                                    <i class="ri-close-line me-1"></i>Rejected
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-info-subtle text-info">{{ app.status }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-end">
+                                            <a href="{% url 'application_review' app.id %}" class="btn btn-sm btn-soft-primary" title="Review Application">
+                                                <i class="ri-eye-line"></i> Review
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <div class="avatar-lg mx-auto mb-3">
+                            <span class="avatar-title bg-success-subtle text-success rounded-circle">
+                                <i class="ri-checkbox-circle-line fs-1"></i>
+                            </span>
+                        </div>
+                        <h5 class="text-muted mb-2">All caught up!</h5>
+                        <p class="text-muted mb-0">No recent applications to review</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
 
-                <div class="col-xl-3 col-md-6">
-                    <div class="card card-animate">
-                        <div class="card-body">
-                            <div class="d-flex align-items-center">
-                                <div class="flex-grow-1 overflow-hidden">
-                                    <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Active Classes</p>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-end justify-content-between mt-4">
-                                <div>
-                                    <h4 class="fs-22 fw-semibold ff-secondary mb-4">{{ total_classes }}</h4>
-                                </div>
-                                <div class="avatar-sm flex-shrink-0">
-                                    <span class="avatar-title bg-warning-subtle rounded fs-3">
-                                        <i class="bx bx-book-open text-warning"></i>
-                                    </span>
-                                </div>
-                            </div>
+<!-- Charts and Analytics Placeholder -->
+<div class="row mt-4">
+    <div class="col-xl-6">
+        <div class="card">
+            <div class="card-header border-bottom">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0 me-3">
+                        <div class="avatar-sm">
+                            <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                <i class="ri-bar-chart-2-line"></i>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h5 class="card-title mb-0">Student Enrollment by Level</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="enrollmentChart" style="height: 300px;">
+                    <!-- Chart placeholder -->
+                    <div class="d-flex align-items-center justify-content-center h-100">
+                        <div class="text-center">
+                            <i class="ri-pie-chart-line fs-1 text-muted mb-2"></i>
+                            <p class="text-muted mb-0">Enrollment analytics</p>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <!-- System Management -->
-            <div class="row">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">System Management</h5>
+        </div>
+    </div>
+    <div class="col-xl-6">
+        <div class="card">
+            <div class="card-header border-bottom">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0 me-3">
+                        <div class="avatar-sm">
+                            <span class="avatar-title bg-success-subtle text-success rounded-circle">
+                                <i class="ri-line-chart-line"></i>
+                            </span>
                         </div>
-                        <div class="card-body">
-                            <div class="row g-3">
-                                <div class="col-md-3">
-                                    <a href="/admin/auth/user/" class="btn btn-primary w-100">
-                                        <i class="bx bx-user-circle me-2"></i> Manage Users
-                                    </a>
-                                </div>
-                                <div class="col-md-3">
-                                    <a href="/admin/students/teacher/" class="btn btn-success w-100">
-                                        <i class="bx bx-chalkboard me-2"></i> Manage Teachers
-                                    </a>
-                                </div>
-                                <div class="col-md-3">
-                                    <a href="/admin/students/student/" class="btn btn-info w-100">
-                                        <i class="bx bx-user-check me-2"></i> Manage Students
-                                    </a>
-                                </div>
-                                <div class="col-md-3">
-                                    <a href="/admin/courses/class/" class="btn btn-warning w-100">
-                                        <i class="bx bx-book-open me-2"></i> Manage Classes
-                                    </a>
-                                </div>
-                            </div>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h5 class="card-title mb-0">Attendance Overview</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="attendanceChart" style="height: 300px;">
+                    <!-- Chart placeholder -->
+                    <div class="d-flex align-items-center justify-content-center h-100">
+                        <div class="text-center">
+                            <i class="ri-line-chart-line fs-1 text-muted mb-2"></i>
+                            <p class="text-muted mb-0">Attendance trends</p>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
 
-            <!-- Quick Access -->
-            <div class="row">
-                <div class="col-lg-6">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">Student Management</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="d-grid gap-2">
-                                <a href="/admin/students/application/" class="btn btn-outline-primary">
-                                    <i class="bx bx-file me-2"></i> Applications
-                                </a>
-                                <a href="/admin/students/student/" class="btn btn-outline-primary">
-                                    <i class="bx bx-user me-2"></i> Students
-                                </a>
-                                <a href="/admin/students/guardian/" class="btn btn-outline-primary">
-                                    <i class="bx bx-user-circle me-2"></i> Guardians
-                                </a>
-                                <a href="/admin/students/attendance/" class="btn btn-outline-primary">
-                                    <i class="bx bx-calendar-check me-2"></i> Attendance
-                                </a>
-                            </div>
-                        </div>
-                    </div>
+<!-- Full Admin Panel Access -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card border-primary border-opacity-25">
+            <div class="card-body text-center py-4">
+                <div class="avatar-lg mx-auto mb-3">
+                    <span class="avatar-title bg-primary rounded-circle">
+                        <i class="ri-settings-5-line fs-1"></i>
+                    </span>
                 </div>
-
-                <div class="col-lg-6">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">Course Management</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="d-grid gap-2">
-                                <a href="/admin/courses/ylelevel/" class="btn btn-outline-success">
-                                    <i class="bx bx-layer me-2"></i> YLE Levels
-                                </a>
-                                <a href="/admin/courses/unit/" class="btn btn-outline-success">
-                                    <i class="bx bx-folder me-2"></i> Units
-                                </a>
-                                <a href="/admin/courses/lesson/" class="btn btn-outline-success">
-                                    <i class="bx bx-book-content me-2"></i> Lessons
-                                </a>
-                                <a href="/admin/courses/assessment/" class="btn btn-outline-success">
-                                    <i class="bx bx-task me-2"></i> Assessments
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <h5 class="mb-2">Full Admin Panel Access</h5>
+                <p class="text-muted mb-4">Access the complete Django admin interface for advanced system configuration and management</p>
+                <a href="/admin/" class="btn btn-primary">
+                    <i class="ri-external-link-line me-2"></i>Open Admin Panel
+                </a>
             </div>
+        </div>
+    </div>
+</div>
 
-            <!-- Recent Activity -->
-            <div class="row">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">Recent Applications</h5>
-                        </div>
-                        <div class="card-body">
-                            {% if recent_applications %}
-                                <div class="table-responsive">
-                                    <table class="table table-hover align-middle mb-0">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th>Admission No.</th>
-                                                <th>Full Name</th>
-                                                <th>Date</th>
-                                                <th>Status</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for app in recent_applications %}
-                                                <tr>
-                                                    <td>{{ app.admission_number|default:"Pending" }}</td>
-                                                    <td>{{ app.full_name }}</td>
-                                                    <td>{{ app.application_date|date:"Y-m-d" }}</td>
-                                                    <td>
-                                                        {% if app.status == 'PENDING' %}
-                                                            <span class="badge bg-warning">Pending</span>
-                                                        {% elif app.status == 'APPROVED' %}
-                                                            <span class="badge bg-success">Approved</span>
-                                                        {% elif app.status == 'REJECTED' %}
-                                                            <span class="badge bg-danger">Rejected</span>
-                                                        {% else %}
-                                                            <span class="badge bg-info">{{ app.status }}</span>
-                                                        {% endif %}
-                                                    </td>
-                                                    <td>
-                                                        <a href="/admin/students/application/{{ app.id }}/change/" class="btn btn-sm btn-primary">
-                                                            <i class="ri-eye-line"></i> View
-                                                        </a>
-                                                    </td>
-                                                </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            {% else %}
-                                <div class="alert alert-info">
-                                    <i class="ri-information-line me-2"></i> No recent applications.
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-            </div>
+{% endblock %}
 
-            <!-- Full Admin Panel Access -->
-            <div class="row">
-                <div class="col-12">
-                    <div class="card border-primary">
-                        <div class="card-body text-center">
-                            <i class="bx bx-cog" style="font-size: 48px; color: var(--bs-primary);"></i>
-                            <h5 class="mt-3">Full Admin Panel Access</h5>
-                            <p class="text-muted">Access the complete Django admin interface for advanced system configuration</p>
-                            <a href="/admin/" class="btn btn-primary">
-                                <i class="bx bx-shield-quarter me-2"></i> Open Admin Panel
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Counter animation
+    $('.counter-value').each(function() {
+        var $this = $(this);
+        var target = parseInt($this.attr('data-target'), 10);
 
+        $({ Counter: 0 }).animate({ Counter: target }, {
+            duration: 1500,
+            easing: 'swing',
+            step: function() {
+                $this.text(Math.ceil(this.Counter));
+            },
+            complete: function() {
+                $this.text(target);
+            }
+        });
+    });
+});
+</script>
+
+<style>
+.text-white-75 {
+    color: rgba(255, 255, 255, 0.75) !important;
+}
+
+.card-animate {
+    transition: all 0.3s ease;
+}
+
+.card-animate:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+}
+
+.avatar-lg {
+    width: 64px;
+    height: 64px;
+}
+
+.avatar-lg .avatar-title {
+    font-size: 1.5rem;
+}
+
+.btn-soft-primary:hover,
+.btn-soft-success:hover,
+.btn-soft-info:hover,
+.btn-soft-warning:hover {
+    transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+    .avatar-lg {
+        width: 48px;
+        height: 48px;
+    }
+}
+</style>
 {% endblock %}

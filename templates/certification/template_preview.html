@@ -1,0 +1,470 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block PageTitle %}Preview: {{ template.name }} - PolymathYLE{% endblock %}
+{% block pageTitle %}Template Preview{% endblock %}
+{% block Title %}Certification{% endblock %}
+{% block functionTitle %}{{ template.name }}{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<div class="row mb-3">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="{% url 'template_list' %}">Templates</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ template.name }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Preview Area -->
+    <div class="col-xl-8">
+        <div class="card">
+            <div class="card-header border-bottom">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <div class="avatar-sm">
+                                <span class="avatar-title bg-{% if template.level == 'STARTERS' %}info{% elif template.level == 'MOVERS' %}warning{% else %}success{% endif %}-subtle text-{% if template.level == 'STARTERS' %}info{% elif template.level == 'MOVERS' %}warning{% else %}success{% endif %} rounded-circle">
+                                    <i class="ri-eye-line"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div>
+                            <h5 class="card-title mb-0">Certificate Preview</h5>
+                            <p class="text-muted mb-0 small">Preview with sample student data</p>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-soft-primary" onclick="window.print();">
+                            <i class="ri-printer-line me-1"></i> Print
+                        </button>
+                        {% if perms.certification.change_certificatetemplate %}
+                        <a href="{% url 'template_edit' template.id %}" class="btn btn-warning">
+                            <i class="ri-edit-line me-1"></i> Edit Template
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <!-- Certificate Preview with Sample Data -->
+                <div class="certificate-preview p-4 bg-light">
+                    <div class="certificate-frame bg-white border rounded-3 p-5 mx-auto" style="max-width: 750px;">
+                        <!-- Template Header with Level-Specific Styling -->
+                        <div class="certificate-header text-center mb-4 pb-4 border-bottom border-{% if template.level == 'STARTERS' %}info{% elif template.level == 'MOVERS' %}warning{% else %}success{% endif %}">
+                            <!-- Logo -->
+                            <img src="{% static 'assets/images/logo-dark.png' %}" alt="PolymathYLE Logo" style="height: 50px;" class="mb-3">
+
+                            <!-- Level Indicator -->
+                            <div class="d-flex justify-content-center align-items-center mb-3">
+                                <div class="level-badge p-3 rounded-circle bg-{% if template.level == 'STARTERS' %}info{% elif template.level == 'MOVERS' %}warning{% else %}success{% endif %}-subtle">
+                                    {% if template.level == 'STARTERS' %}
+                                    <i class="ri-seedling-line text-info" style="font-size: 2.5rem;"></i>
+                                    {% elif template.level == 'MOVERS' %}
+                                    <i class="ri-run-line text-warning" style="font-size: 2.5rem;"></i>
+                                    {% else %}
+                                    <i class="ri-rocket-line text-success" style="font-size: 2.5rem;"></i>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <h2 class="text-{% if template.level == 'STARTERS' %}info{% elif template.level == 'MOVERS' %}warning{% else %}success{% endif %} mb-1">
+                                Certificate of {{ template.get_certificate_type_display }}
+                            </h2>
+                            <p class="text-muted mb-0">Cambridge Young Learners English</p>
+                        </div>
+
+                        <!-- Student Name (Sample) -->
+                        <div class="text-center my-4">
+                            <p class="lead mb-2">This is to certify that</p>
+                            <h3 class="fw-bold text-dark mb-2" style="font-family: 'Georgia', serif;">
+                                [Sample Student Name]
+                            </h3>
+                            <p class="text-muted mb-0">has successfully completed the</p>
+                        </div>
+
+                        <!-- Level Name -->
+                        <div class="text-center my-4">
+                            <h4 class="fw-semibold text-{% if template.level == 'STARTERS' %}info{% elif template.level == 'MOVERS' %}warning{% else %}success{% endif %}">
+                                {% if template.level == 'STARTERS' %}
+                                Pre A1 Starters
+                                {% elif template.level == 'MOVERS' %}
+                                A1 Movers
+                                {% else %}
+                                A2 Flyers
+                                {% endif %}
+                            </h4>
+                            <p class="text-muted">Cambridge English examination</p>
+                        </div>
+
+                        <!-- Sample Shields Display -->
+                        <div class="shields-display bg-{% if template.level == 'STARTERS' %}info{% elif template.level == 'MOVERS' %}warning{% else %}success{% endif %}-subtle bg-opacity-25 rounded-3 p-4 mb-4">
+                            <h6 class="text-uppercase fw-semibold text-muted text-center mb-4">Performance Summary</h6>
+                            <div class="row g-4 justify-content-center">
+                                <!-- Listening -->
+                                <div class="col-md-3 col-6">
+                                    <div class="text-center">
+                                        <div class="avatar-sm mx-auto mb-2">
+                                            <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                                <i class="ri-headphone-line"></i>
+                                            </span>
+                                        </div>
+                                        <h6 class="mb-2">Listening</h6>
+                                        <div class="d-flex justify-content-center gap-1 mb-1">
+                                            <i class="ri-shield-fill text-primary fs-5"></i>
+                                            <i class="ri-shield-fill text-primary fs-5"></i>
+                                            <i class="ri-shield-fill text-primary fs-5"></i>
+                                            <i class="ri-shield-fill text-primary fs-5"></i>
+                                            <i class="ri-shield-line text-muted fs-5"></i>
+                                        </div>
+                                        <small class="text-muted">4/5 shields</small>
+                                    </div>
+                                </div>
+
+                                <!-- Reading -->
+                                <div class="col-md-3 col-6">
+                                    <div class="text-center">
+                                        <div class="avatar-sm mx-auto mb-2">
+                                            <span class="avatar-title bg-success-subtle text-success rounded-circle">
+                                                <i class="ri-book-read-line"></i>
+                                            </span>
+                                        </div>
+                                        <h6 class="mb-2">Reading</h6>
+                                        <div class="d-flex justify-content-center gap-1 mb-1">
+                                            <i class="ri-shield-fill text-success fs-5"></i>
+                                            <i class="ri-shield-fill text-success fs-5"></i>
+                                            <i class="ri-shield-fill text-success fs-5"></i>
+                                            <i class="ri-shield-fill text-success fs-5"></i>
+                                            <i class="ri-shield-fill text-success fs-5"></i>
+                                        </div>
+                                        <small class="text-muted">5/5 shields</small>
+                                    </div>
+                                </div>
+
+                                <!-- Writing -->
+                                <div class="col-md-3 col-6">
+                                    <div class="text-center">
+                                        <div class="avatar-sm mx-auto mb-2">
+                                            <span class="avatar-title bg-warning-subtle text-warning rounded-circle">
+                                                <i class="ri-edit-line"></i>
+                                            </span>
+                                        </div>
+                                        <h6 class="mb-2">Writing</h6>
+                                        <div class="d-flex justify-content-center gap-1 mb-1">
+                                            <i class="ri-shield-fill text-warning fs-5"></i>
+                                            <i class="ri-shield-fill text-warning fs-5"></i>
+                                            <i class="ri-shield-fill text-warning fs-5"></i>
+                                            <i class="ri-shield-line text-muted fs-5"></i>
+                                            <i class="ri-shield-line text-muted fs-5"></i>
+                                        </div>
+                                        <small class="text-muted">3/5 shields</small>
+                                    </div>
+                                </div>
+
+                                <!-- Speaking -->
+                                <div class="col-md-3 col-6">
+                                    <div class="text-center">
+                                        <div class="avatar-sm mx-auto mb-2">
+                                            <span class="avatar-title bg-info-subtle text-info rounded-circle">
+                                                <i class="ri-mic-line"></i>
+                                            </span>
+                                        </div>
+                                        <h6 class="mb-2">Speaking</h6>
+                                        <div class="d-flex justify-content-center gap-1 mb-1">
+                                            <i class="ri-shield-fill text-info fs-5"></i>
+                                            <i class="ri-shield-fill text-info fs-5"></i>
+                                            <i class="ri-shield-fill text-info fs-5"></i>
+                                            <i class="ri-shield-fill text-info fs-5"></i>
+                                            <i class="ri-shield-line text-muted fs-5"></i>
+                                        </div>
+                                        <small class="text-muted">4/5 shields</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Total -->
+                            <div class="text-center mt-4 pt-3 border-top">
+                                <span class="badge bg-{% if template.level == 'STARTERS' %}info{% elif template.level == 'MOVERS' %}warning{% else %}success{% endif %} fs-6 px-4 py-2">
+                                    <i class="ri-shield-star-fill me-1"></i> Total: 16/20 Shields
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Certificate Footer -->
+                        <div class="row align-items-end mt-4 pt-4 border-top">
+                            <div class="col-md-4 text-center text-md-start mb-3 mb-md-0">
+                                <small class="text-muted d-block">Issue Date</small>
+                                <span class="fw-medium">[Sample Date]</span>
+                            </div>
+                            <div class="col-md-4 text-center mb-3 mb-md-0">
+                                <small class="text-muted d-block">Certificate Number</small>
+                                <span class="fw-medium font-monospace">CERT-XXXX-XXXXXX</span>
+                            </div>
+                            <div class="col-md-4 text-center text-md-end">
+                                <div class="qr-placeholder d-inline-flex align-items-center justify-content-center bg-light border rounded" style="width: 70px; height: 70px;">
+                                    <i class="ri-qr-code-line fs-2 text-muted"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Template Usage History -->
+        <div class="card mt-4">
+            <div class="card-header border-bottom">
+                <h5 class="card-title mb-0">
+                    <i class="ri-history-line me-2 text-primary"></i>Recent Usage
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if recent_certificates %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Student</th>
+                                <th>Certificate Number</th>
+                                <th>Issue Date</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cert in recent_certificates %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-xs me-2">
+                                            <span class="avatar-title bg-secondary-subtle text-secondary rounded-circle">
+                                                {{ cert.student.full_name|first|upper }}
+                                            </span>
+                                        </div>
+                                        <span>{{ cert.student.full_name }}</span>
+                                    </div>
+                                </td>
+                                <td class="font-monospace">{{ cert.certificate_number }}</td>
+                                <td>{{ cert.issue_date|date:"M d, Y" }}</td>
+                                <td class="text-end">
+                                    <a href="{% url 'certificate_detail' cert.id %}" class="btn btn-sm btn-soft-primary">
+                                        <i class="ri-eye-line"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="ri-file-list-line fs-1 text-muted opacity-50"></i>
+                    <p class="text-muted mb-0">This template hasn't been used yet</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-xl-4">
+        <!-- Template Info Card -->
+        <div class="card">
+            <div class="card-header border-bottom bg-{% if template.level == 'STARTERS' %}info{% elif template.level == 'MOVERS' %}warning{% else %}success{% endif %}-subtle">
+                <h5 class="card-title mb-0 text-{% if template.level == 'STARTERS' %}info{% elif template.level == 'MOVERS' %}warning{% else %}success{% endif %}">
+                    {% if template.level == 'STARTERS' %}
+                    <i class="ri-seedling-line me-2"></i>
+                    {% elif template.level == 'MOVERS' %}
+                    <i class="ri-run-line me-2"></i>
+                    {% else %}
+                    <i class="ri-rocket-line me-2"></i>
+                    {% endif %}
+                    {{ template.name }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-column gap-3">
+                    <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded">
+                        <span class="text-muted">Level</span>
+                        <span class="badge bg-{% if template.level == 'STARTERS' %}info{% elif template.level == 'MOVERS' %}warning{% else %}success{% endif %}">
+                            {{ template.get_level_display }}
+                        </span>
+                    </div>
+
+                    <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded">
+                        <span class="text-muted">Type</span>
+                        <span class="badge bg-secondary">{{ template.get_certificate_type_display }}</span>
+                    </div>
+
+                    <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded">
+                        <span class="text-muted">Status</span>
+                        {% if template.is_active %}
+                        <span class="badge bg-success">Active</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Inactive</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded">
+                        <span class="text-muted">Default</span>
+                        {% if template.is_default %}
+                        <span class="badge bg-primary">Yes</span>
+                        {% else %}
+                        <span class="badge bg-secondary">No</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded">
+                        <span class="text-muted">Usage Count</span>
+                        <span class="badge bg-info">{{ template.usage_count|default:0 }}</span>
+                    </div>
+
+                    <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded">
+                        <span class="text-muted">Created</span>
+                        <span class="small">{{ template.created_at|date:"M d, Y" }}</span>
+                    </div>
+                </div>
+
+                {% if template.description %}
+                <div class="mt-4">
+                    <h6 class="text-muted text-uppercase small fw-semibold mb-2">Description</h6>
+                    <p class="text-muted mb-0">{{ template.description }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Actions Card -->
+        <div class="card">
+            <div class="card-header border-bottom">
+                <h5 class="card-title mb-0">
+                    <i class="ri-settings-3-line me-2 text-primary"></i>Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'certificate_issue' %}?template={{ template.id }}" class="btn btn-success">
+                        <i class="ri-award-fill me-1"></i> Use This Template
+                    </a>
+                    {% if perms.certification.change_certificatetemplate %}
+                    <a href="{% url 'template_edit' template.id %}" class="btn btn-soft-warning">
+                        <i class="ri-edit-line me-1"></i> Edit Template
+                    </a>
+                    {% endif %}
+                    <button type="button" class="btn btn-soft-primary" onclick="window.print();">
+                        <i class="ri-printer-line me-1"></i> Print Preview
+                    </button>
+                    <a href="{% url 'template_list' %}" class="btn btn-outline-secondary">
+                        <i class="ri-arrow-left-line me-1"></i> Back to Templates
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Color Scheme Card -->
+        <div class="card">
+            <div class="card-header border-bottom">
+                <h5 class="card-title mb-0">
+                    <i class="ri-palette-line me-2 text-primary"></i>Color Scheme
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">This template uses the {{ template.get_level_display }} color scheme:</p>
+                <div class="d-flex gap-2">
+                    {% if template.level == 'STARTERS' %}
+                    <div class="p-3 bg-info rounded flex-grow-1 text-center">
+                        <span class="text-white">Primary</span>
+                    </div>
+                    <div class="p-3 bg-info-subtle rounded flex-grow-1 text-center">
+                        <span class="text-info">Subtle</span>
+                    </div>
+                    {% elif template.level == 'MOVERS' %}
+                    <div class="p-3 bg-warning rounded flex-grow-1 text-center">
+                        <span class="text-dark">Primary</span>
+                    </div>
+                    <div class="p-3 bg-warning-subtle rounded flex-grow-1 text-center">
+                        <span class="text-warning">Subtle</span>
+                    </div>
+                    {% else %}
+                    <div class="p-3 bg-success rounded flex-grow-1 text-center">
+                        <span class="text-white">Primary</span>
+                    </div>
+                    <div class="p-3 bg-success-subtle rounded flex-grow-1 text-center">
+                        <span class="text-success">Subtle</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<style>
+.avatar-lg {
+    width: 64px;
+    height: 64px;
+}
+
+.avatar-sm {
+    width: 32px;
+    height: 32px;
+}
+
+.avatar-xs {
+    width: 24px;
+    height: 24px;
+}
+
+.avatar-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.font-monospace {
+    font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.certificate-preview {
+    background-color: #e9ecef;
+}
+
+.certificate-frame {
+    box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15);
+}
+
+@media print {
+    .card-header,
+    .btn,
+    nav,
+    .sidebar,
+    header,
+    .col-xl-4 {
+        display: none !important;
+    }
+
+    .certificate-preview {
+        padding: 0 !important;
+        background: white !important;
+    }
+
+    .certificate-frame {
+        box-shadow: none !important;
+        border: none !important;
+        max-width: 100% !important;
+    }
+
+    .col-xl-8 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,315 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block PageTitle %}Units - Polymath School of English{% endblock %}
+{% block pageTitle %}Learning Units{% endblock %}
+{% block Title %}Courses{% endblock %}
+{% block functionTitle %}All Units{% endblock %}
+
+{% block content %}
+<!-- Statistics Summary -->
+<div class="row">
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate bg-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="fw-medium text-white-75 mb-0">Total Units</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ total_units|default:0 }}</h2>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-book-2-line text-white"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate bg-info">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="fw-medium text-white-75 mb-0">Starters Units</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ starters_units|default:0 }}</h2>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-seedling-line text-white"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate bg-warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="fw-medium text-white-75 mb-0">Movers Units</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ movers_units|default:0 }}</h2>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-run-line text-white"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate bg-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="fw-medium text-white-75 mb-0">Flyers Units</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ flyers_units|default:0 }}</h2>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-rocket-line text-white"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Section -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header border-bottom">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h5 class="card-title mb-0">
+                            <i class="ri-filter-3-line me-2"></i>Filter Units
+                        </h5>
+                    </div>
+                    <div class="col-auto">
+                        {% if perms.courses.add_unit %}
+                        <a href="{% url 'admin:courses_unit_add' %}" class="btn btn-success">
+                            <i class="ri-add-line me-1"></i> Add New Unit
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <form method="get" action="{% url 'unit_list' %}" id="filterForm">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-lg-4 col-md-6">
+                            <label for="search" class="form-label">Search</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="ri-search-line"></i></span>
+                                <input type="text"
+                                       class="form-control"
+                                       id="search"
+                                       name="search"
+                                       value="{{ search_query }}"
+                                       placeholder="Search by unit title..."
+                                       aria-label="Search units">
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <label for="level" class="form-label">YLE Level</label>
+                            <select class="form-select" id="level" name="level" aria-label="Filter by level">
+                                <option value="">All Levels</option>
+                                {% for level in levels %}
+                                <option value="{{ level.id }}" {% if level_filter == level.id|stringformat:'i' %}selected{% endif %}>
+                                    {{ level.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select" id="status" name="status" aria-label="Filter by status">
+                                <option value="">All Status</option>
+                                <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                                <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary flex-grow-1">
+                                    <i class="ri-search-line me-1"></i> Filter
+                                </button>
+                                <a href="{% url 'unit_list' %}" class="btn btn-outline-secondary" title="Reset">
+                                    <i class="ri-refresh-line"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Units by Level -->
+{% for level in levels_with_units %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center">
+                    <div class="avatar-sm me-3">
+                        <span class="avatar-title rounded-circle" style="background-color: {{ level.color_theme|default:'#660066' }};">
+                            <i class="{{ level.icon|default:'ri-medal-line' }} text-white"></i>
+                        </span>
+                    </div>
+                    <div>
+                        <h5 class="card-title mb-0">{{ level.name }}</h5>
+                        <span class="badge bg-primary-subtle text-primary">{{ level.units.count }} units</span>
+                    </div>
+                </div>
+                <a href="{% url 'level_detail' level.id %}" class="btn btn-sm btn-outline-primary">
+                    <i class="ri-eye-line me-1"></i> View Level
+                </a>
+            </div>
+            <div class="card-body">
+                {% if level.units.all %}
+                <div class="row g-3">
+                    {% for unit in level.units.all %}
+                    <div class="col-xl-3 col-lg-4 col-md-6">
+                        <div class="card border card-animate mb-0 h-100">
+                            {% if unit.thumbnail %}
+                            <img src="{{ unit.thumbnail.url }}" class="card-img-top" alt="{{ unit.title }}" style="height: 120px; object-fit: cover;">
+                            {% else %}
+                            <div class="card-img-top d-flex align-items-center justify-content-center" style="height: 120px; background: linear-gradient(135deg, {{ level.color_theme|default:'#660066' }}30 0%, {{ level.color_theme|default:'#660066' }}10 100%);">
+                                <div class="avatar-lg">
+                                    <span class="avatar-title bg-white rounded-circle" style="color: {{ level.color_theme|default:'#660066' }};">
+                                        <i class="ri-book-2-line fs-1"></i>
+                                    </span>
+                                </div>
+                            </div>
+                            {% endif %}
+                            <div class="card-body">
+                                <div class="d-flex align-items-start justify-content-between mb-2">
+                                    <span class="badge bg-primary-subtle text-primary">Unit {{ unit.order }}</span>
+                                    {% if unit.is_active %}
+                                    <span class="badge bg-success-subtle text-success">Active</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary-subtle text-secondary">Inactive</span>
+                                    {% endif %}
+                                </div>
+                                <h5 class="card-title mb-2">
+                                    <a href="{% url 'unit_detail' unit.id %}" class="text-dark">{{ unit.title }}</a>
+                                </h5>
+                                <p class="card-text text-muted small mb-3">{{ unit.description|truncatewords:12 }}</p>
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <span class="text-muted small">
+                                        <i class="ri-file-list-3-line me-1"></i>{{ unit.lessons.count }} lessons
+                                    </span>
+                                    {% if unit.requires_completion_of %}
+                                    <span class="badge bg-warning-subtle text-warning" title="Requires completion of {{ unit.requires_completion_of.title }}">
+                                        <i class="ri-lock-line"></i>
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="card-footer bg-light border-top">
+                                <div class="d-flex gap-2">
+                                    <a href="{% url 'unit_detail' unit.id %}" class="btn btn-sm btn-primary flex-grow-1">
+                                        <i class="ri-eye-line me-1"></i> View
+                                    </a>
+                                    {% if perms.courses.change_unit %}
+                                    <a href="{% url 'admin:courses_unit_change' unit.id %}" class="btn btn-sm btn-soft-warning" title="Edit">
+                                        <i class="ri-edit-line"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="ri-book-2-line fs-1 text-muted opacity-50"></i>
+                    <p class="text-muted mb-3">No units for this level</p>
+                    {% if perms.courses.add_unit %}
+                    <a href="{% url 'admin:courses_unit_add' %}?level={{ level.id }}" class="btn btn-sm btn-primary">
+                        <i class="ri-add-line me-1"></i> Add Unit
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% empty %}
+<!-- Empty State -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <div class="avatar-lg mx-auto mb-4">
+                    <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                        <i class="ri-book-2-line fs-1"></i>
+                    </span>
+                </div>
+                <h5>No Units Found</h5>
+                <p class="text-muted mb-4">
+                    {% if search_query or level_filter or status_filter %}
+                    No units match your current filter criteria.
+                    {% else %}
+                    Get started by adding learning units to the YLE levels.
+                    {% endif %}
+                </p>
+                <div class="d-flex justify-content-center gap-2">
+                    {% if search_query or level_filter or status_filter %}
+                    <a href="{% url 'unit_list' %}" class="btn btn-outline-primary">
+                        <i class="ri-refresh-line me-1"></i>Clear Filters
+                    </a>
+                    {% endif %}
+                    {% if perms.courses.add_unit %}
+                    <a href="{% url 'admin:courses_unit_add' %}" class="btn btn-success">
+                        <i class="ri-add-line me-1"></i>Add New Unit
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Auto-submit on filter change
+    $('#level, #status').on('change', function() {
+        $('#filterForm').submit();
+    });
+});
+</script>
+
+<style>
+.card-animate {
+    transition: all 0.3s ease;
+}
+
+.card-animate:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.avatar-lg {
+    width: 80px;
+    height: 80px;
+}
+
+.avatar-lg .avatar-title {
+    width: 80px;
+    height: 80px;
+}
+</style>
+{% endblock %}

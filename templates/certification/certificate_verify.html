@@ -1,0 +1,427 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block PageTitle %}Verify Certificate - PolymathYLE{% endblock %}
+{% block pageTitle %}Certificate Verification{% endblock %}
+{% block Title %}Verification{% endblock %}
+{% block functionTitle %}Verify Certificate{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-xl-8 col-lg-10">
+        <!-- Search Card -->
+        <div class="card mb-4">
+            <div class="card-header border-bottom bg-primary bg-opacity-10">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0 me-3">
+                        <div class="avatar-sm">
+                            <span class="avatar-title bg-primary text-white rounded-circle">
+                                <i class="ri-shield-check-line"></i>
+                            </span>
+                        </div>
+                    </div>
+                    <div>
+                        <h5 class="card-title mb-0 text-primary">Certificate Verification</h5>
+                        <p class="text-muted mb-0 small">Enter a certificate number to verify its authenticity</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <form method="get" action="{% url 'certificate_verify' %}" id="verify-form">
+                    <div class="row g-3">
+                        <div class="col-md-9">
+                            <label for="certificate_number" class="form-label visually-hidden">Certificate Number</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-light">
+                                    <i class="ri-hashtag text-muted"></i>
+                                </span>
+                                <input type="text"
+                                       class="form-control form-control-lg"
+                                       id="certificate_number"
+                                       name="number"
+                                       placeholder="Enter Certificate Number (e.g., CERT-2024-001234)"
+                                       value="{{ request.GET.number }}"
+                                       required
+                                       aria-describedby="certificate-help"
+                                       autocomplete="off">
+                            </div>
+                            <div id="certificate-help" class="form-text">
+                                <i class="ri-information-line me-1"></i>
+                                The certificate number is located at the bottom of the certificate
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <button type="submit" class="btn btn-primary btn-lg w-100 h-100">
+                                <i class="ri-search-line me-1"></i> Verify
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {% if searched %}
+            {% if certificate %}
+            <!-- Valid Certificate Result -->
+            <div class="card border-success">
+                <div class="card-header bg-success-subtle border-success">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-sm me-3">
+                                <span class="avatar-title bg-success text-white rounded-circle">
+                                    <i class="ri-checkbox-circle-fill"></i>
+                                </span>
+                            </div>
+                            <div>
+                                <h5 class="card-title mb-0 text-success">Valid Certificate</h5>
+                                <p class="text-muted mb-0 small">This certificate is authentic and verified</p>
+                            </div>
+                        </div>
+                        <span class="badge bg-success fs-6">
+                            <i class="ri-verified-badge-fill me-1"></i> Verified
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <!-- Student Info -->
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-4">
+                                {% if certificate.student.profile_picture %}
+                                <img src="{{ certificate.student.profile_picture.url }}" alt="{{ certificate.student.full_name }}"
+                                     class="avatar-lg rounded-circle me-3 object-fit-cover border border-3 border-light shadow-sm">
+                                {% else %}
+                                <div class="avatar-lg me-3">
+                                    <span class="avatar-title bg-{% if certificate.level == 'STARTERS' %}info{% elif certificate.level == 'MOVERS' %}warning{% else %}success{% endif %}-subtle text-{% if certificate.level == 'STARTERS' %}info{% elif certificate.level == 'MOVERS' %}warning{% else %}success{% endif %} rounded-circle fs-3">
+                                        {{ certificate.student.full_name|first|upper }}
+                                    </span>
+                                </div>
+                                {% endif %}
+                                <div>
+                                    <h4 class="mb-1">{{ certificate.student.full_name }}</h4>
+                                    <span class="badge bg-{% if certificate.level == 'STARTERS' %}info{% elif certificate.level == 'MOVERS' %}warning{% else %}success{% endif %}-subtle text-{% if certificate.level == 'STARTERS' %}info{% elif certificate.level == 'MOVERS' %}warning{% else %}success{% endif %} fs-6">
+                                        {% if certificate.level == 'STARTERS' %}
+                                            <i class="ri-seedling-line me-1"></i>Pre A1 Starters
+                                        {% elif certificate.level == 'MOVERS' %}
+                                            <i class="ri-run-line me-1"></i>A1 Movers
+                                        {% else %}
+                                            <i class="ri-rocket-line me-1"></i>A2 Flyers
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="table table-borderless mb-0">
+                                    <tbody>
+                                        <tr>
+                                            <th class="ps-0 text-muted" style="width: 45%;">
+                                                <i class="ri-hashtag me-2"></i>Certificate Number
+                                            </th>
+                                            <td class="fw-medium font-monospace">{{ certificate.certificate_number }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="ps-0 text-muted">
+                                                <i class="ri-file-list-line me-2"></i>Certificate Type
+                                            </th>
+                                            <td>{{ certificate.get_certificate_type_display }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="ps-0 text-muted">
+                                                <i class="ri-calendar-check-line me-2"></i>Issue Date
+                                            </th>
+                                            <td class="fw-medium">{{ certificate.issue_date|date:"F d, Y" }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Shields -->
+                        <div class="col-md-6">
+                            <h6 class="text-uppercase fw-semibold text-muted mb-3">
+                                <i class="ri-shield-star-line me-1"></i>Shields Earned
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <div class="p-3 bg-primary-subtle rounded text-center">
+                                        <i class="ri-headphone-line text-primary fs-3 mb-2 d-block"></i>
+                                        <h6 class="mb-1">Listening</h6>
+                                        <div class="d-flex justify-content-center mb-1">
+                                            {% for i in "12345"|make_list %}
+                                                {% if forloop.counter <= certificate.listening_shields %}
+                                                <i class="ri-shield-fill text-primary"></i>
+                                                {% else %}
+                                                <i class="ri-shield-line text-muted"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                        <span class="badge bg-primary">{{ certificate.listening_shields }}/5</span>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-3 bg-success-subtle rounded text-center">
+                                        <i class="ri-book-read-line text-success fs-3 mb-2 d-block"></i>
+                                        <h6 class="mb-1">Reading</h6>
+                                        <div class="d-flex justify-content-center mb-1">
+                                            {% for i in "12345"|make_list %}
+                                                {% if forloop.counter <= certificate.reading_shields %}
+                                                <i class="ri-shield-fill text-success"></i>
+                                                {% else %}
+                                                <i class="ri-shield-line text-muted"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                        <span class="badge bg-success">{{ certificate.reading_shields }}/5</span>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-3 bg-warning-subtle rounded text-center">
+                                        <i class="ri-edit-line text-warning fs-3 mb-2 d-block"></i>
+                                        <h6 class="mb-1">Writing</h6>
+                                        <div class="d-flex justify-content-center mb-1">
+                                            {% for i in "12345"|make_list %}
+                                                {% if forloop.counter <= certificate.writing_shields %}
+                                                <i class="ri-shield-fill text-warning"></i>
+                                                {% else %}
+                                                <i class="ri-shield-line text-muted"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                        <span class="badge bg-warning">{{ certificate.writing_shields }}/5</span>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-3 bg-info-subtle rounded text-center">
+                                        <i class="ri-mic-line text-info fs-3 mb-2 d-block"></i>
+                                        <h6 class="mb-1">Speaking</h6>
+                                        <div class="d-flex justify-content-center mb-1">
+                                            {% for i in "12345"|make_list %}
+                                                {% if forloop.counter <= certificate.speaking_shields %}
+                                                <i class="ri-shield-fill text-info"></i>
+                                                {% else %}
+                                                <i class="ri-shield-line text-muted"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                        <span class="badge bg-info">{{ certificate.speaking_shields }}/5</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-center mt-3">
+                                <span class="badge bg-{% if certificate.level == 'STARTERS' %}info{% elif certificate.level == 'MOVERS' %}warning{% else %}success{% endif %} fs-6 px-4 py-2">
+                                    <i class="ri-shield-star-fill me-1"></i> Total: {{ certificate.total_shields }}/20 Shields
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-light">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                        <small class="text-muted">
+                            <i class="ri-time-line me-1"></i>Verified on {{ now|date:"F d, Y" }} at {{ now|time:"H:i" }}
+                        </small>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-sm btn-soft-primary" onclick="window.print();">
+                                <i class="ri-printer-line me-1"></i> Print
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% else %}
+            <!-- Invalid Certificate Result -->
+            <div class="card border-danger">
+                <div class="card-header bg-danger-subtle border-danger">
+                    <div class="d-flex align-items-center">
+                        <div class="avatar-sm me-3">
+                            <span class="avatar-title bg-danger text-white rounded-circle">
+                                <i class="ri-close-circle-fill"></i>
+                            </span>
+                        </div>
+                        <div>
+                            <h5 class="card-title mb-0 text-danger">Certificate Not Found</h5>
+                            <p class="text-muted mb-0 small">The certificate number could not be verified</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body text-center py-5">
+                    <div class="avatar-xl mx-auto mb-4">
+                        <span class="avatar-title bg-danger-subtle text-danger rounded-circle">
+                            <i class="ri-file-warning-line fs-1"></i>
+                        </span>
+                    </div>
+                    <h4 class="text-danger mb-3">Invalid Certificate Number</h4>
+                    <p class="text-muted mb-4">
+                        The certificate number <strong class="font-monospace">{{ request.GET.number }}</strong>
+                        does not exist in our records. Please check the number and try again.
+                    </p>
+
+                    <div class="alert alert-warning d-inline-block text-start" role="alert">
+                        <h6 class="alert-heading">
+                            <i class="ri-information-line me-1"></i>Possible Reasons:
+                        </h6>
+                        <ul class="mb-0 ps-3">
+                            <li>The certificate number may be typed incorrectly</li>
+                            <li>The certificate may have been revoked</li>
+                            <li>The document may be fraudulent</li>
+                        </ul>
+                    </div>
+
+                    <div class="mt-4">
+                        <button type="button" class="btn btn-outline-primary" onclick="document.getElementById('certificate_number').focus();">
+                            <i class="ri-refresh-line me-1"></i> Try Another Number
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        {% else %}
+        <!-- Initial State - Instructions -->
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <div class="avatar-xl mx-auto mb-4">
+                    <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                        <i class="ri-search-2-line fs-1"></i>
+                    </span>
+                </div>
+                <h4 class="mb-3">Verify a Certificate</h4>
+                <p class="text-muted mb-4">
+                    Enter the certificate number in the search box above to verify its authenticity.
+                    The certificate number can be found at the bottom of the certificate document.
+                </p>
+
+                <div class="row justify-content-center g-4 mt-2">
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded h-100">
+                            <div class="avatar-sm mx-auto mb-3">
+                                <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                    <i class="ri-file-search-line"></i>
+                                </span>
+                            </div>
+                            <h6>Find the Number</h6>
+                            <p class="text-muted mb-0 small">Locate the certificate number at the bottom of the document</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded h-100">
+                            <div class="avatar-sm mx-auto mb-3">
+                                <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                    <i class="ri-input-field"></i>
+                                </span>
+                            </div>
+                            <h6>Enter the Number</h6>
+                            <p class="text-muted mb-0 small">Type or paste the certificate number in the search field</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded h-100">
+                            <div class="avatar-sm mx-auto mb-3">
+                                <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                    <i class="ri-shield-check-line"></i>
+                                </span>
+                            </div>
+                            <h6>Get Results</h6>
+                            <p class="text-muted mb-0 small">View the verification status and certificate details</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Help Section -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="ri-question-line me-2 text-info"></i>Need Help?
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="d-flex">
+                            <div class="avatar-xs flex-shrink-0 me-3">
+                                <span class="avatar-title bg-info-subtle text-info rounded-circle">
+                                    <i class="ri-mail-line"></i>
+                                </span>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">Contact Support</h6>
+                                <p class="text-muted mb-0 small">Email us at <a href="mailto:support@polymathyle.com">support@polymathyle.com</a></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex">
+                            <div class="avatar-xs flex-shrink-0 me-3">
+                                <span class="avatar-title bg-info-subtle text-info rounded-circle">
+                                    <i class="ri-phone-line"></i>
+                                </span>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">Call Us</h6>
+                                <p class="text-muted mb-0 small">Phone: <a href="tel:+94112345678">+94 11 234 5678</a></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<style>
+.avatar-xl {
+    width: 100px;
+    height: 100px;
+}
+
+.avatar-lg {
+    width: 64px;
+    height: 64px;
+}
+
+.avatar-sm {
+    width: 32px;
+    height: 32px;
+}
+
+.avatar-xs {
+    width: 24px;
+    height: 24px;
+}
+
+.avatar-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.object-fit-cover {
+    object-fit: cover;
+}
+
+.font-monospace {
+    font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+@media print {
+    .card-header:first-of-type,
+    form,
+    .btn,
+    .card:last-child {
+        display: none !important;
+    }
+
+    .border-success {
+        border-color: #198754 !important;
+    }
+}
+</style>
+{% endblock %}

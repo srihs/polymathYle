@@ -118,7 +118,7 @@
                                 </div>
                             </div>
 
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label for="student_email" class="form-label">Student Email (if any)</label>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="ri-mail-line"></i></span>
@@ -127,7 +127,16 @@
                                 <div class="form-text">Optional - for older students</div>
                             </div>
 
-                            <div class="col-md-6">
+                            <div class="col-md-4">
+                                <label for="student_nic" class="form-label">Student NIC (if any)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="ri-bank-card-line"></i></span>
+                                    {{ form.student_nic }}
+                                </div>
+                                <div class="form-text">National Identity Card number</div>
+                            </div>
+
+                            <div class="col-md-4">
                                 <label for="current_school" class="form-label">Current School</label>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="ri-school-line"></i></span>
@@ -281,6 +290,83 @@
                         </div>
                     </fieldset>
 
+                    <!-- Class Schedule Preferences -->
+                    <fieldset class="mb-4">
+                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
+                            <i class="ri-calendar-schedule-line me-2"></i>Class Schedule Preferences
+                        </legend>
+                        <p class="text-muted small mb-3">Please select your preferred class days and times. We will try to accommodate your preferences.</p>
+
+                        {{ form.schedule_preferences }}
+
+                        <div class="row g-3">
+                            <!-- Weekdays -->
+                            <div class="col-12">
+                                <label class="form-label fw-medium">Weekday Preferences</label>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input schedule-check" type="checkbox" id="pref_mon" data-day="monday">
+                                        <label class="form-check-label" for="pref_mon">Monday</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input schedule-check" type="checkbox" id="pref_tue" data-day="tuesday">
+                                        <label class="form-check-label" for="pref_tue">Tuesday</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input schedule-check" type="checkbox" id="pref_wed" data-day="wednesday">
+                                        <label class="form-check-label" for="pref_wed">Wednesday</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input schedule-check" type="checkbox" id="pref_thu" data-day="thursday">
+                                        <label class="form-check-label" for="pref_thu">Thursday</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input schedule-check" type="checkbox" id="pref_fri" data-day="friday">
+                                        <label class="form-check-label" for="pref_fri">Friday</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Saturday -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-medium">Saturday Preferences</label>
+                                <div class="d-flex flex-column gap-1">
+                                    <div class="form-check">
+                                        <input class="form-check-input schedule-check" type="checkbox" id="pref_sat_morning" data-day="saturday" data-slot="morning">
+                                        <label class="form-check-label" for="pref_sat_morning">Morning Class</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input schedule-check" type="checkbox" id="pref_sat_afternoon" data-day="saturday" data-slot="afternoon">
+                                        <label class="form-check-label" for="pref_sat_afternoon">Afternoon Class</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input schedule-check" type="checkbox" id="pref_sat_evening" data-day="saturday" data-slot="evening">
+                                        <label class="form-check-label" for="pref_sat_evening">Evening Class</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Sunday -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-medium">Sunday Preferences</label>
+                                <div class="d-flex flex-column gap-1">
+                                    <div class="form-check">
+                                        <input class="form-check-input schedule-check" type="checkbox" id="pref_sun_morning" data-day="sunday" data-slot="morning">
+                                        <label class="form-check-label" for="pref_sun_morning">Morning Class</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input schedule-check" type="checkbox" id="pref_sun_afternoon" data-day="sunday" data-slot="afternoon">
+                                        <label class="form-check-label" for="pref_sun_afternoon">Afternoon Class</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input schedule-check" type="checkbox" id="pref_sun_evening" data-day="sunday" data-slot="evening">
+                                        <label class="form-check-label" for="pref_sun_evening">Evening Class</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
                     <!-- Special Comments -->
                     <fieldset class="mb-4">
                         <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
@@ -293,7 +379,7 @@
                                     <span class="input-group-text"><i class="ri-edit-line"></i></span>
                                     {{ form.special_comments }}
                                 </div>
-                                <div class="form-text">Any allergies, medical conditions, learning needs, or other information we should know</div>
+                                <div class="form-text">Any allergies, medical conditions, learning needs, or other information</div>
                             </div>
                         </div>
                     </fieldset>
@@ -579,6 +665,32 @@ $(document).ready(function() {
     // Add form-control class to Django form widgets if missing
     $('input:not([type="checkbox"]):not([type="radio"]), select, textarea').addClass('form-control');
     $('select').addClass('form-select').removeClass('form-control');
+
+    // Handle schedule preferences
+    function updateSchedulePreferences() {
+        var preferences = {};
+
+        $('.schedule-check:checked').each(function() {
+            var day = $(this).data('day');
+            var slot = $(this).data('slot');
+
+            if (!preferences[day]) {
+                preferences[day] = slot ? [slot] : true;
+            } else if (slot && Array.isArray(preferences[day])) {
+                preferences[day].push(slot);
+            } else if (slot) {
+                preferences[day] = [slot];
+            }
+        });
+
+        $('#id_schedule_preferences').val(JSON.stringify(preferences));
+    }
+
+    // Bind schedule checkbox changes
+    $('.schedule-check').on('change', updateSchedulePreferences);
+
+    // Initial schedule update
+    updateSchedulePreferences();
 });
 </script>
 

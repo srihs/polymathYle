@@ -5,241 +5,586 @@
 
 {% block pageTitle %}Staff Dashboard{% endblock %}
 {% block Title %}Dashboard{% endblock %}
-{% block functionTitle %}Staff{% endblock %}
+{% block functionTitle %}Staff Portal{% endblock %}
 
 {% block content %}
-<!-- Statistics -->
-            <div class="row">
-                <div class="col-xl-3 col-md-6">
-                    <div class="card card-animate">
-                        <div class="card-body">
-                            <div class="d-flex align-items-center">
-                                <div class="flex-grow-1 overflow-hidden">
-                                    <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Total Applications</p>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-end justify-content-between mt-4">
-                                <div>
-                                    <h4 class="fs-22 fw-semibold ff-secondary mb-4">{{ total_applications }}</h4>
-                                </div>
-                                <div class="avatar-sm flex-shrink-0">
-                                    <span class="avatar-title bg-info-subtle rounded fs-3">
-                                        <i class="bx bx-file text-info"></i>
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
+<!-- Welcome Header Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card card-animate bg-success bg-gradient">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="avatar-lg bg-white bg-opacity-25 rounded-circle d-flex align-items-center justify-content-center me-4 flex-shrink-0">
+                        <i class="ri-user-follow-line text-white" style="font-size: 2rem;"></i>
                     </div>
-                </div>
-
-                <div class="col-xl-3 col-md-6">
-                    <div class="card card-animate">
-                        <div class="card-body">
-                            <div class="d-flex align-items-center">
-                                <div class="flex-grow-1 overflow-hidden">
-                                    <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Pending</p>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-end justify-content-between mt-4">
-                                <div>
-                                    <h4 class="fs-22 fw-semibold ff-secondary mb-4">{{ pending_count }}</h4>
-                                </div>
-                                <div class="avatar-sm flex-shrink-0">
-                                    <span class="avatar-title bg-warning-subtle rounded fs-3">
-                                        <i class="bx bx-time text-warning"></i>
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="flex-grow-1">
+                        <h4 class="text-white mb-1">Welcome back, {{ user.get_full_name|default:user.username }}!</h4>
+                        <p class="text-white-75 mb-0">
+                            <i class="ri-briefcase-line me-1"></i> Staff Member
+                            <span class="mx-2">|</span>
+                            <i class="ri-calendar-line me-1"></i> {{ today|date:"l, F d, Y" }}
+                        </p>
                     </div>
-                </div>
-
-                <div class="col-xl-3 col-md-6">
-                    <div class="card card-animate">
-                        <div class="card-body">
-                            <div class="d-flex align-items-center">
-                                <div class="flex-grow-1 overflow-hidden">
-                                    <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Approved</p>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-end justify-content-between mt-4">
-                                <div>
-                                    <h4 class="fs-22 fw-semibold ff-secondary mb-4">{{ approved_count }}</h4>
-                                </div>
-                                <div class="avatar-sm flex-shrink-0">
-                                    <span class="avatar-title bg-success-subtle rounded fs-3">
-                                        <i class="bx bx-check-circle text-success"></i>
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-xl-3 col-md-6">
-                    <div class="card card-animate">
-                        <div class="card-body">
-                            <div class="d-flex align-items-center">
-                                <div class="flex-grow-1 overflow-hidden">
-                                    <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Active Students</p>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-end justify-content-between mt-4">
-                                <div>
-                                    <h4 class="fs-22 fw-semibold ff-secondary mb-4">{{ total_students }}</h4>
-                                </div>
-                                <div class="avatar-sm flex-shrink-0">
-                                    <span class="avatar-title bg-primary-subtle rounded fs-3">
-                                        <i class="bx bx-user-check text-primary"></i>
-                                    </span>
-                                </div>
-                            </div>
+                    <div class="d-none d-md-block">
+                        <div class="text-end">
+                            <p class="text-white-75 mb-1"><small>Today's Tasks</small></p>
+                            <p class="text-white mb-0 fw-medium">
+                                {% if pending_count %}
+                                <span class="badge bg-warning text-dark">{{ pending_count }} Pending Applications</span>
+                                {% else %}
+                                <span class="badge bg-white text-success">All Clear</span>
+                                {% endif %}
+                            </p>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
 
-            <!-- Pending Applications -->
-            <div class="row">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">Pending Applications</h5>
-                        </div>
-                        <div class="card-body">
-                            {% if pending_applications %}
-                                <div class="table-responsive">
-                                    <table class="table table-hover align-middle mb-0">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th>Admission No.</th>
-                                                <th>Full Name</th>
-                                                <th>Application Date</th>
-                                                <th>Age</th>
-                                                <th>Gender</th>
-                                                <th>Contact Email</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for app in pending_applications %}
-                                                <tr>
-                                                    <td>{{ app.admission_number|default:"Pending" }}</td>
-                                                    <td>{{ app.full_name }}</td>
-                                                    <td>{{ app.application_date|date:"Y-m-d" }}</td>
-                                                    <td>{{ app.age }}</td>
-                                                    <td>{{ app.gender }}</td>
-                                                    <td>{{ app.primary_contact_email }}</td>
-                                                    <td>
-                                                        <a href="/admin/students/application/{{ app.id }}/change/" class="btn btn-sm btn-primary">
-                                                            <i class="ri-eye-line"></i> Review
-                                                        </a>
-                                                    </td>
-                                                </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
+<!-- Statistics Cards Row -->
+<div class="row">
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Total Applications</p>
+                        <h2 class="mt-3 mb-0 ff-secondary fw-semibold">
+                            <span class="counter-value" data-target="{{ total_applications|default:0 }}">{{ total_applications|default:0 }}</span>
+                        </h2>
+                        <p class="text-muted mb-0 mt-2">
+                            <a href="{% url 'application_list' %}" class="text-primary text-decoration-underline small">
+                                View all <i class="ri-arrow-right-line align-middle"></i>
+                            </a>
+                        </p>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-info-subtle rounded-circle fs-2">
+                            <i class="ri-file-list-line text-info"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Pending Review</p>
+                        <h2 class="mt-3 mb-0 ff-secondary fw-semibold">
+                            <span class="counter-value" data-target="{{ pending_count|default:0 }}">{{ pending_count|default:0 }}</span>
+                        </h2>
+                        <p class="text-muted mb-0 mt-2">
+                            {% if pending_count %}
+                            <span class="badge bg-warning-subtle text-warning me-1">
+                                <i class="ri-alert-line align-middle"></i> Requires action
+                            </span>
                             {% else %}
-                                <div class="alert alert-success">
-                                    <i class="ri-checkbox-circle-line me-2"></i> No pending applications!
-                                </div>
+                            <span class="badge bg-success-subtle text-success me-1">
+                                <i class="ri-check-line align-middle"></i> Up to date
+                            </span>
                             {% endif %}
-                        </div>
+                        </p>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-warning-subtle rounded-circle fs-2">
+                            <i class="ri-time-line text-warning"></i>
+                        </span>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <!-- Recent Students -->
-            <div class="row">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">Recent Enrollments</h5>
-                        </div>
-                        <div class="card-body">
-                            {% if recent_students %}
-                                <div class="table-responsive">
-                                    <table class="table table-hover align-middle mb-0">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th>Admission No.</th>
-                                                <th>Full Name</th>
-                                                <th>Current Level</th>
-                                                <th>Enrollment Date</th>
-                                                <th>Assigned Class</th>
-                                                <th>Status</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for student in recent_students %}
-                                                <tr>
-                                                    <td><span class="badge bg-primary">{{ student.admission_number }}</span></td>
-                                                    <td>{{ student.full_name }}</td>
-                                                    <td>{{ student.get_current_level_display }}</td>
-                                                    <td>{{ student.enrollment_date|date:"Y-m-d" }}</td>
-                                                    <td>{{ student.assigned_class|default:"Not Assigned" }}</td>
-                                                    <td>
-                                                        {% if student.is_active %}
-                                                            <span class="badge bg-success">Active</span>
-                                                        {% else %}
-                                                            <span class="badge bg-danger">Inactive</span>
-                                                        {% endif %}
-                                                    </td>
-                                                    <td>
-                                                        <a href="/admin/students/student/{{ student.id }}/change/" class="btn btn-sm btn-info">
-                                                            <i class="ri-eye-line"></i> View
-                                                        </a>
-                                                    </td>
-                                                </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            {% else %}
-                                <div class="alert alert-info">
-                                    <i class="ri-information-line me-2"></i> No student enrollments yet.
-                                </div>
-                            {% endif %}
-                        </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Approved</p>
+                        <h2 class="mt-3 mb-0 ff-secondary fw-semibold">
+                            <span class="counter-value" data-target="{{ approved_count|default:0 }}">{{ approved_count|default:0 }}</span>
+                        </h2>
+                        <p class="text-muted mb-0 mt-2">
+                            <span class="badge bg-success-subtle text-success me-1">
+                                <i class="ri-check-double-line align-middle"></i>
+                            </span>
+                            <span class="text-muted">processed</span>
+                        </p>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-success-subtle rounded-circle fs-2">
+                            <i class="ri-checkbox-circle-line text-success"></i>
+                        </span>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <!-- Quick Actions -->
-            <div class="row">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">Quick Actions</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="row g-3">
-                                <div class="col-md-3">
-                                    <a href="/admin/students/application/" class="btn btn-primary w-100">
-                                        <i class="ri-file-list-line me-2"></i> View All Applications
-                                    </a>
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Active Students</p>
+                        <h2 class="mt-3 mb-0 ff-secondary fw-semibold">
+                            <span class="counter-value" data-target="{{ total_students|default:0 }}">{{ total_students|default:0 }}</span>
+                        </h2>
+                        <p class="text-muted mb-0 mt-2">
+                            <a href="{% url 'student_list' %}" class="text-primary text-decoration-underline small">
+                                Manage <i class="ri-arrow-right-line align-middle"></i>
+                            </a>
+                        </p>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-primary-subtle rounded-circle fs-2">
+                            <i class="ri-team-line text-primary"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pending Applications Section -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header border-bottom">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0 me-3">
+                                <div class="avatar-sm">
+                                    <span class="avatar-title bg-warning-subtle text-warning rounded-circle">
+                                        <i class="ri-file-warning-line"></i>
+                                    </span>
                                 </div>
-                                <div class="col-md-3">
-                                    <a href="/admin/students/application/add/" class="btn btn-success w-100">
-                                        <i class="ri-file-add-line me-2"></i> Add Application
-                                    </a>
-                                </div>
-                                <div class="col-md-3">
-                                    <a href="/admin/students/student/" class="btn btn-info w-100">
-                                        <i class="ri-user-line me-2"></i> Manage Students
-                                    </a>
-                                </div>
-                                <div class="col-md-3">
-                                    <a href="/admin/certification/certificate/add/" class="btn btn-warning w-100">
-                                        <i class="ri-award-line me-2"></i> Issue Certificate
-                                    </a>
-                                </div>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h5 class="card-title mb-0">Pending Applications</h5>
+                                <p class="text-muted mb-0 small">Applications awaiting review and approval</p>
                             </div>
                         </div>
                     </div>
+                    <div class="col-auto">
+                        <a href="{% url 'application_list' %}?status=PENDING" class="btn btn-soft-warning">
+                            <i class="ri-eye-line me-1"></i> View All Pending
+                        </a>
+                    </div>
                 </div>
             </div>
+            <div class="card-body">
+                {% if pending_applications %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle table-nowrap mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col">Admission No.</th>
+                                    <th scope="col">Applicant</th>
+                                    <th scope="col">Age</th>
+                                    <th scope="col">Gender</th>
+                                    <th scope="col">Contact Email</th>
+                                    <th scope="col">Applied On</th>
+                                    <th scope="col" class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for app in pending_applications %}
+                                    <tr>
+                                        <td>
+                                            <span class="badge bg-warning-subtle text-warning fw-medium">
+                                                {{ app.admission_number|default:"Pending" }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-sm me-2">
+                                                    <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                                        {{ app.full_name|first|upper }}
+                                                    </span>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-0">{{ app.full_name }}</h6>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="fw-medium">{{ app.age }}</span> yrs
+                                        </td>
+                                        <td>
+                                            {% if app.gender == 'M' %}
+                                                <span class="badge bg-info-subtle text-info">Male</span>
+                                            {% elif app.gender == 'F' %}
+                                                <span class="badge bg-pink-subtle text-pink">Female</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary-subtle text-secondary">{{ app.gender }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">
+                                                <i class="ri-mail-line me-1"></i>{{ app.primary_contact_email|truncatechars:25 }}
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">{{ app.application_date|date:"M d, Y" }}</small>
+                                        </td>
+                                        <td class="text-end">
+                                            <a href="{% url 'application_review' app.id %}" class="btn btn-sm btn-primary" title="Review Application">
+                                                <i class="ri-eye-line me-1"></i> Review
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <div class="avatar-lg mx-auto mb-3">
+                            <span class="avatar-title bg-success-subtle text-success rounded-circle">
+                                <i class="ri-checkbox-circle-line fs-1"></i>
+                            </span>
+                        </div>
+                        <h5 class="text-success mb-2">All applications reviewed!</h5>
+                        <p class="text-muted mb-0">No pending applications at this time</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
 
+<!-- Recent Enrollments Section -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header border-bottom">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0 me-3">
+                                <div class="avatar-sm">
+                                    <span class="avatar-title bg-success-subtle text-success rounded-circle">
+                                        <i class="ri-user-add-line"></i>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h5 class="card-title mb-0">Recent Enrollments</h5>
+                                <p class="text-muted mb-0 small">Newly enrolled students in the system</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <a href="{% url 'student_list' %}" class="btn btn-soft-success">
+                            <i class="ri-team-line me-1"></i> View All Students
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if recent_students %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle table-nowrap mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col">Admission No.</th>
+                                    <th scope="col">Student</th>
+                                    <th scope="col">YLE Level</th>
+                                    <th scope="col">Enrolled On</th>
+                                    <th scope="col">Assigned Class</th>
+                                    <th scope="col">Status</th>
+                                    <th scope="col" class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for student in recent_students %}
+                                    <tr>
+                                        <td>
+                                            <span class="badge bg-primary-subtle text-primary fw-medium">
+                                                {{ student.admission_number }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                {% if student.profile_picture %}
+                                                    <img src="{{ student.profile_picture.url }}"
+                                                         alt="{{ student.full_name }}"
+                                                         class="rounded-circle avatar-sm me-2"
+                                                         style="width: 36px; height: 36px; object-fit: cover;">
+                                                {% else %}
+                                                    <div class="avatar-sm me-2">
+                                                        <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                                            {{ student.full_name|first|upper }}
+                                                        </span>
+                                                    </div>
+                                                {% endif %}
+                                                <div>
+                                                    <h6 class="mb-0">{{ student.full_name }}</h6>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if student.current_level == 'STARTERS' %}
+                                                <span class="badge bg-info-subtle text-info">
+                                                    <i class="ri-seedling-line me-1"></i>Starters
+                                                </span>
+                                            {% elif student.current_level == 'MOVERS' %}
+                                                <span class="badge bg-warning-subtle text-warning">
+                                                    <i class="ri-run-line me-1"></i>Movers
+                                                </span>
+                                            {% elif student.current_level == 'FLYERS' %}
+                                                <span class="badge bg-success-subtle text-success">
+                                                    <i class="ri-rocket-line me-1"></i>Flyers
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-secondary-subtle text-secondary">{{ student.get_current_level_display }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">{{ student.enrollment_date|date:"M d, Y" }}</small>
+                                        </td>
+                                        <td>
+                                            {% if student.assigned_class %}
+                                                <span class="fw-medium">{{ student.assigned_class.class_name }}</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary-subtle text-secondary">Not Assigned</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if student.is_active %}
+                                                <span class="badge bg-success">
+                                                    <i class="ri-check-line me-1"></i>Active
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-danger">
+                                                    <i class="ri-close-line me-1"></i>Inactive
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-end">
+                                            <a href="{% url 'student_detail' student.id %}" class="btn btn-sm btn-soft-info" title="View Profile">
+                                                <i class="ri-eye-line"></i>
+                                            </a>
+                                            <a href="{% url 'student_edit' student.id %}" class="btn btn-sm btn-soft-warning" title="Edit Student">
+                                                <i class="ri-edit-line"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <div class="avatar-lg mx-auto mb-3">
+                            <span class="avatar-title bg-info-subtle text-info rounded-circle">
+                                <i class="ri-user-search-line fs-1"></i>
+                            </span>
+                        </div>
+                        <h5 class="text-muted mb-2">No recent enrollments</h5>
+                        <p class="text-muted mb-4">Process pending applications to enroll students</p>
+                        <a href="{% url 'application_list' %}" class="btn btn-primary">
+                            <i class="ri-file-list-line me-1"></i> View Applications
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions Section -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header border-bottom">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0 me-3">
+                        <div class="avatar-sm">
+                            <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                <i class="ri-flashlight-line"></i>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h5 class="card-title mb-0">Quick Actions</h5>
+                        <p class="text-muted mb-0 small">Frequently used operations</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-xl-3 col-lg-4 col-md-6">
+                        <a href="{% url 'application_list' %}" class="btn btn-soft-primary w-100 py-3">
+                            <i class="ri-file-list-line fs-4 d-block mb-2"></i>
+                            <span class="fw-medium">View All Applications</span>
+                        </a>
+                    </div>
+                    <div class="col-xl-3 col-lg-4 col-md-6">
+                        <a href="{% url 'apply' %}" class="btn btn-soft-success w-100 py-3" target="_blank">
+                            <i class="ri-file-add-line fs-4 d-block mb-2"></i>
+                            <span class="fw-medium">New Application</span>
+                        </a>
+                    </div>
+                    <div class="col-xl-3 col-lg-4 col-md-6">
+                        <a href="{% url 'student_list' %}" class="btn btn-soft-info w-100 py-3">
+                            <i class="ri-team-line fs-4 d-block mb-2"></i>
+                            <span class="fw-medium">Manage Students</span>
+                        </a>
+                    </div>
+                    <div class="col-xl-3 col-lg-4 col-md-6">
+                        <a href="{% url 'attendance_mark' %}" class="btn btn-soft-warning w-100 py-3">
+                            <i class="ri-calendar-check-line fs-4 d-block mb-2"></i>
+                            <span class="fw-medium">Mark Attendance</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Secondary Actions Row -->
+<div class="row mt-4">
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header border-bottom">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0 me-3">
+                        <div class="avatar-sm">
+                            <span class="avatar-title bg-info-subtle text-info rounded-circle">
+                                <i class="ri-bar-chart-box-line"></i>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h5 class="card-title mb-0">Reports & Analytics</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'attendance_report' %}" class="btn btn-outline-info d-flex align-items-center justify-content-between">
+                        <span><i class="ri-calendar-check-line me-2"></i>Attendance Reports</span>
+                        <i class="ri-arrow-right-line"></i>
+                    </a>
+                    <a href="#" class="btn btn-outline-info d-flex align-items-center justify-content-between">
+                        <span><i class="ri-line-chart-line me-2"></i>Progress Reports</span>
+                        <i class="ri-arrow-right-line"></i>
+                    </a>
+                    <a href="#" class="btn btn-outline-info d-flex align-items-center justify-content-between">
+                        <span><i class="ri-file-chart-line me-2"></i>Class Performance</span>
+                        <i class="ri-arrow-right-line"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header border-bottom">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0 me-3">
+                        <div class="avatar-sm">
+                            <span class="avatar-title bg-success-subtle text-success rounded-circle">
+                                <i class="ri-award-line"></i>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h5 class="card-title mb-0">Certification & Awards</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'certificate_issue' %}" class="btn btn-outline-success d-flex align-items-center justify-content-between">
+                        <span><i class="ri-award-fill me-2"></i>Issue Certificate</span>
+                        <i class="ri-arrow-right-line"></i>
+                    </a>
+                    <a href="{% url 'certificate_list' %}" class="btn btn-outline-success d-flex align-items-center justify-content-between">
+                        <span><i class="ri-file-list-line me-2"></i>View Certificates</span>
+                        <i class="ri-arrow-right-line"></i>
+                    </a>
+                    <a href="{% url 'achievement_list' %}" class="btn btn-outline-success d-flex align-items-center justify-content-between">
+                        <span><i class="ri-medal-line me-2"></i>View Achievements</span>
+                        <i class="ri-arrow-right-line"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Counter animation
+    $('.counter-value').each(function() {
+        var $this = $(this);
+        var target = parseInt($this.attr('data-target'), 10);
+
+        $({ Counter: 0 }).animate({ Counter: target }, {
+            duration: 1500,
+            easing: 'swing',
+            step: function() {
+                $this.text(Math.ceil(this.Counter));
+            },
+            complete: function() {
+                $this.text(target);
+            }
+        });
+    });
+});
+</script>
+
+<style>
+.text-white-75 {
+    color: rgba(255, 255, 255, 0.75) !important;
+}
+
+.card-animate {
+    transition: all 0.3s ease;
+}
+
+.card-animate:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+}
+
+.avatar-lg {
+    width: 64px;
+    height: 64px;
+}
+
+.avatar-lg .avatar-title {
+    font-size: 1.5rem;
+}
+
+.btn-soft-primary:hover,
+.btn-soft-success:hover,
+.btn-soft-info:hover,
+.btn-soft-warning:hover {
+    transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+    .avatar-lg {
+        width: 48px;
+        height: 48px;
+    }
+}
+</style>
 {% endblock %}

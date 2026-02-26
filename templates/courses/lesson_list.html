@@ -1,0 +1,385 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block PageTitle %}Lessons - Polymath School of English{% endblock %}
+{% block pageTitle %}Lessons{% endblock %}
+{% block Title %}Courses{% endblock %}
+{% block functionTitle %}All Lessons{% endblock %}
+
+{% block content %}
+<!-- Statistics Summary -->
+<div class="row">
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate bg-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="fw-medium text-white-75 mb-0">Total Lessons</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ total_lessons|default:0 }}</h2>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-file-list-3-line text-white"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate bg-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="fw-medium text-white-75 mb-0">Video Lessons</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ video_lessons|default:0 }}</h2>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-video-line text-white"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate bg-info">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="fw-medium text-white-75 mb-0">Interactive</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ interactive_lessons|default:0 }}</h2>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-gamepad-line text-white"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate bg-warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="fw-medium text-white-75 mb-0">Total Duration</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ total_duration|default:0 }}<small class="fs-6">min</small></h2>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-time-line text-white"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Section -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header border-bottom">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h5 class="card-title mb-0">
+                            <i class="ri-filter-3-line me-2"></i>Filter Lessons
+                        </h5>
+                    </div>
+                    <div class="col-auto">
+                        {% if perms.courses.add_lesson %}
+                        <a href="{% url 'admin:courses_lesson_add' %}" class="btn btn-success">
+                            <i class="ri-add-line me-1"></i> Add New Lesson
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <form method="get" action="{% url 'lesson_list' %}" id="filterForm">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-lg-3 col-md-6">
+                            <label for="search" class="form-label">Search</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="ri-search-line"></i></span>
+                                <input type="text"
+                                       class="form-control"
+                                       id="search"
+                                       name="search"
+                                       value="{{ search_query }}"
+                                       placeholder="Search lessons..."
+                                       aria-label="Search lessons">
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <label for="level" class="form-label">Level</label>
+                            <select class="form-select" id="level" name="level" aria-label="Filter by level">
+                                <option value="">All Levels</option>
+                                {% for level in levels %}
+                                <option value="{{ level.id }}" {% if level_filter == level.id|stringformat:'i' %}selected{% endif %}>
+                                    {{ level.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <label for="unit" class="form-label">Unit</label>
+                            <select class="form-select" id="unit" name="unit" aria-label="Filter by unit">
+                                <option value="">All Units</option>
+                                {% for unit in units %}
+                                <option value="{{ unit.id }}" {% if unit_filter == unit.id|stringformat:'i' %}selected{% endif %}>
+                                    {{ unit.title|truncatewords:4 }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <label for="content_type" class="form-label">Type</label>
+                            <select class="form-select" id="content_type" name="content_type" aria-label="Filter by type">
+                                <option value="">All Types</option>
+                                <option value="VIDEO" {% if type_filter == 'VIDEO' %}selected{% endif %}>Video</option>
+                                <option value="INTERACTIVE" {% if type_filter == 'INTERACTIVE' %}selected{% endif %}>Interactive</option>
+                                <option value="READ" {% if type_filter == 'READ' %}selected{% endif %}>Reading</option>
+                                <option value="AUDIO" {% if type_filter == 'AUDIO' %}selected{% endif %}>Audio</option>
+                                <option value="GAME" {% if type_filter == 'GAME' %}selected{% endif %}>Game</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <label for="skill" class="form-label">Skill</label>
+                            <select class="form-select" id="skill" name="skill" aria-label="Filter by skill">
+                                <option value="">All Skills</option>
+                                <option value="listening" {% if skill_filter == 'listening' %}selected{% endif %}>Listening</option>
+                                <option value="reading" {% if skill_filter == 'reading' %}selected{% endif %}>Reading</option>
+                                <option value="writing" {% if skill_filter == 'writing' %}selected{% endif %}>Writing</option>
+                                <option value="speaking" {% if skill_filter == 'speaking' %}selected{% endif %}>Speaking</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-1 col-md-6">
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="ri-search-line"></i>
+                                </button>
+                                <a href="{% url 'lesson_list' %}" class="btn btn-outline-secondary" title="Reset">
+                                    <i class="ri-refresh-line"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Lessons List -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header border-bottom">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h5 class="card-title mb-0">
+                            <i class="ri-file-list-3-line me-2"></i>Lesson Library
+                            <span class="badge bg-primary-subtle text-primary ms-2">{{ lessons|length }} lessons</span>
+                        </h5>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if lessons %}
+                <div class="row g-3">
+                    {% for lesson in lessons %}
+                    <div class="col-xl-4 col-lg-6">
+                        <div class="card border card-animate mb-0 h-100">
+                            <div class="card-body">
+                                <!-- Header -->
+                                <div class="d-flex align-items-start justify-content-between mb-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-sm me-2">
+                                            {% if lesson.content_type == 'VIDEO' %}
+                                            <span class="avatar-title bg-danger-subtle text-danger rounded">
+                                                <i class="ri-video-line"></i>
+                                            </span>
+                                            {% elif lesson.content_type == 'INTERACTIVE' %}
+                                            <span class="avatar-title bg-info-subtle text-info rounded">
+                                                <i class="ri-cursor-fill"></i>
+                                            </span>
+                                            {% elif lesson.content_type == 'READ' %}
+                                            <span class="avatar-title bg-success-subtle text-success rounded">
+                                                <i class="ri-book-read-line"></i>
+                                            </span>
+                                            {% elif lesson.content_type == 'AUDIO' %}
+                                            <span class="avatar-title bg-warning-subtle text-warning rounded">
+                                                <i class="ri-headphone-line"></i>
+                                            </span>
+                                            {% else %}
+                                            <span class="avatar-title bg-primary-subtle text-primary rounded">
+                                                <i class="ri-gamepad-line"></i>
+                                            </span>
+                                            {% endif %}
+                                        </div>
+                                        <span class="badge bg-secondary-subtle text-secondary">
+                                            {{ lesson.get_content_type_display }}
+                                        </span>
+                                    </div>
+                                    {% if lesson.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">Inactive</span>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Title & Description -->
+                                <h5 class="card-title mb-2">
+                                    <a href="{% url 'lesson_detail' lesson.id %}" class="text-dark">{{ lesson.title }}</a>
+                                </h5>
+                                <p class="text-muted small mb-3">{{ lesson.description|truncatewords:15 }}</p>
+
+                                <!-- Unit & Level Info -->
+                                <div class="mb-3">
+                                    <a href="{% url 'unit_detail' lesson.unit.id %}" class="badge bg-primary-subtle text-primary text-decoration-none">
+                                        {{ lesson.unit.title|truncatewords:3 }}
+                                    </a>
+                                    {% if lesson.unit.level.short_code == 'STARTERS' %}
+                                    <span class="badge bg-info-subtle text-info">Starters</span>
+                                    {% elif lesson.unit.level.short_code == 'MOVERS' %}
+                                    <span class="badge bg-warning-subtle text-warning">Movers</span>
+                                    {% else %}
+                                    <span class="badge bg-success-subtle text-success">Flyers</span>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Skills -->
+                                <div class="d-flex flex-wrap gap-1 mb-3">
+                                    {% if lesson.skill_listening %}
+                                    <span class="badge bg-primary-subtle text-primary" title="Listening">
+                                        <i class="ri-headphone-line"></i>
+                                    </span>
+                                    {% endif %}
+                                    {% if lesson.skill_reading %}
+                                    <span class="badge bg-info-subtle text-info" title="Reading">
+                                        <i class="ri-book-read-line"></i>
+                                    </span>
+                                    {% endif %}
+                                    {% if lesson.skill_writing %}
+                                    <span class="badge bg-success-subtle text-success" title="Writing">
+                                        <i class="ri-edit-line"></i>
+                                    </span>
+                                    {% endif %}
+                                    {% if lesson.skill_speaking %}
+                                    <span class="badge bg-warning-subtle text-warning" title="Speaking">
+                                        <i class="ri-speak-line"></i>
+                                    </span>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Meta Info -->
+                                <div class="d-flex flex-wrap justify-content-between text-muted small border-top pt-3">
+                                    <span><i class="ri-time-line me-1"></i>{{ lesson.duration_minutes }} mins</span>
+                                    <span><i class="ri-gamepad-line me-1"></i>{{ lesson.activities.count }} activities</span>
+                                    <span><i class="ri-star-line me-1"></i>{{ lesson.completion_points }} pts</span>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-light">
+                                <div class="d-flex gap-2">
+                                    <a href="{% url 'lesson_detail' lesson.id %}" class="btn btn-sm btn-primary flex-grow-1">
+                                        <i class="ri-eye-line me-1"></i> View
+                                    </a>
+                                    {% if perms.courses.change_lesson %}
+                                    <a href="{% url 'admin:courses_lesson_change' lesson.id %}" class="btn btn-sm btn-soft-warning" title="Edit">
+                                        <i class="ri-edit-line"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Pagination -->
+                {% if page_obj.has_other_pages %}
+                <nav class="mt-4" aria-label="Lesson list pagination">
+                    <ul class="pagination justify-content-center mb-0">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}">
+                                <i class="ri-arrow-left-s-line"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                        <li class="page-item active">
+                            <span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                        </li>
+                        {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}">
+                                <i class="ri-arrow-right-s-line"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+
+                {% else %}
+                <!-- Empty State -->
+                <div class="text-center py-5">
+                    <div class="avatar-lg mx-auto mb-4">
+                        <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                            <i class="ri-file-list-3-line fs-1"></i>
+                        </span>
+                    </div>
+                    <h5>No Lessons Found</h5>
+                    <p class="text-muted mb-4">
+                        {% if search_query or level_filter or unit_filter or type_filter or skill_filter %}
+                        No lessons match your current filter criteria.
+                        {% else %}
+                        Get started by adding lessons to your units.
+                        {% endif %}
+                    </p>
+                    <div class="d-flex justify-content-center gap-2">
+                        {% if search_query or level_filter or unit_filter or type_filter or skill_filter %}
+                        <a href="{% url 'lesson_list' %}" class="btn btn-outline-primary">
+                            <i class="ri-refresh-line me-1"></i>Clear Filters
+                        </a>
+                        {% endif %}
+                        {% if perms.courses.add_lesson %}
+                        <a href="{% url 'admin:courses_lesson_add' %}" class="btn btn-success">
+                            <i class="ri-add-line me-1"></i>Add New Lesson
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Auto-submit on filter change
+    $('#level, #unit, #content_type, #skill').on('change', function() {
+        $('#filterForm').submit();
+    });
+});
+</script>
+
+<style>
+.card-animate {
+    transition: all 0.3s ease;
+}
+
+.card-animate:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+</style>
+{% endblock %}

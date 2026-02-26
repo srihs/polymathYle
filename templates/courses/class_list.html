@@ -1,0 +1,649 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block PageTitle %}Classes - Polymath School of English{% endblock %}
+{% block pageTitle %}Class Management{% endblock %}
+{% block Title %}Courses{% endblock %}
+{% block functionTitle %}All Classes{% endblock %}
+
+{% block content %}
+<!-- Statistics Summary -->
+<div class="row">
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate bg-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="fw-medium text-white-75 mb-0">Total Classes</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ total_count|default:0 }}</h2>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-home-4-line text-white"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate bg-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="fw-medium text-white-75 mb-0">Active Classes</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ active_count|default:0 }}</h2>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-check-double-line text-white"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate bg-info">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="fw-medium text-white-75 mb-0">Total Students</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ total_students|default:0 }}</h2>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-user-line text-white"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate bg-warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="fw-medium text-white-75 mb-0">Available Seats</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ available_seats|default:0 }}</h2>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-user-add-line text-white"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search and Filter Section -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header border-bottom">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h5 class="card-title mb-0">
+                            <i class="ri-filter-3-line me-2"></i>Search & Filter Classes
+                        </h5>
+                    </div>
+                    <div class="col-auto">
+                        {% if perms.courses.add_class %}
+                        <a href="{% url 'class_add' %}" class="btn btn-success">
+                            <i class="ri-add-line me-1"></i> Add New Class
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <form method="get" action="{% url 'class_list' %}" id="filterForm">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-lg-3 col-md-6">
+                            <label for="search" class="form-label">Search</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="ri-search-line"></i></span>
+                                <input type="text"
+                                       class="form-control"
+                                       id="search"
+                                       name="search"
+                                       value="{{ search_query }}"
+                                       placeholder="Search by class name or code..."
+                                       aria-label="Search classes">
+                                {% if search_query %}
+                                <button type="button"
+                                        class="btn btn-outline-secondary"
+                                        onclick="document.getElementById('search').value=''; document.getElementById('filterForm').submit();"
+                                        aria-label="Clear search">
+                                    <i class="ri-close-line"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <label for="level" class="form-label">YLE Level</label>
+                            <select class="form-select" id="level" name="level" aria-label="Filter by level">
+                                <option value="">All Levels</option>
+                                {% for level in levels %}
+                                <option value="{{ level.id }}" {% if level_filter == level.id|stringformat:'i' %}selected{% endif %}>
+                                    {{ level.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <label for="teacher" class="form-label">Teacher</label>
+                            <select class="form-select" id="teacher" name="teacher" aria-label="Filter by teacher">
+                                <option value="">All Teachers</option>
+                                {% for teacher in teachers %}
+                                <option value="{{ teacher.id }}" {% if teacher_filter == teacher.id|stringformat:'i' %}selected{% endif %}>
+                                    {{ teacher.full_name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select" id="status" name="status" aria-label="Filter by status">
+                                <option value="">All Status</option>
+                                <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                                <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+                                <option value="full" {% if status_filter == 'full' %}selected{% endif %}>Full</option>
+                                <option value="available" {% if status_filter == 'available' %}selected{% endif %}>Available</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary flex-grow-1">
+                                    <i class="ri-search-line me-1"></i> Apply
+                                </button>
+                                <a href="{% url 'class_list' %}" class="btn btn-outline-secondary" title="Reset filters">
+                                    <i class="ri-refresh-line"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Class List -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header border-bottom">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h5 class="card-title mb-0">
+                            <i class="ri-home-4-line me-2"></i>Class Directory
+                            <span class="badge bg-primary-subtle text-primary ms-2">
+                                {{ classes|length }} of {{ total_count }} classes
+                            </span>
+                        </h5>
+                    </div>
+                    <div class="col-auto">
+                        <div class="btn-group" role="group" aria-label="View options">
+                            <button type="button" class="btn btn-outline-primary btn-sm active" id="tableViewBtn" title="Table view">
+                                <i class="ri-list-check"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="cardViewBtn" title="Card view">
+                                <i class="ri-grid-fill"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if classes %}
+                <!-- Table View -->
+                <div id="tableView">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle table-nowrap mb-0" id="classTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col">Class</th>
+                                    <th scope="col">Level</th>
+                                    <th scope="col">Teacher</th>
+                                    <th scope="col" class="text-center">Enrollment</th>
+                                    <th scope="col">Schedule</th>
+                                    <th scope="col">Duration</th>
+                                    <th scope="col">Status</th>
+                                    <th scope="col" class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for class in classes %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm me-3">
+                                                <span class="avatar-title rounded-circle" style="background-color: {{ class.level.color_theme|default:'#660066' }}20; color: {{ class.level.color_theme|default:'#660066' }};">
+                                                    {{ class.class_name|first|upper }}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <a href="{% url 'class_detail' class.id %}" class="text-dark fw-medium text-decoration-none">
+                                                    {{ class.class_name }}
+                                                </a>
+                                                <p class="text-muted mb-0 small">
+                                                    <i class="ri-code-line me-1"></i>{{ class.class_code }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if class.level.short_code == 'STARTERS' %}
+                                        <span class="badge bg-info-subtle text-info">
+                                            <i class="ri-seedling-line me-1"></i>{{ class.level.name }}
+                                        </span>
+                                        {% elif class.level.short_code == 'MOVERS' %}
+                                        <span class="badge bg-warning-subtle text-warning">
+                                            <i class="ri-run-line me-1"></i>{{ class.level.name }}
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-success-subtle text-success">
+                                            <i class="ri-rocket-line me-1"></i>{{ class.level.name }}
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if class.teacher %}
+                                        <div class="d-flex align-items-center">
+                                            {% if class.teacher.profile_picture %}
+                                            <img src="{{ class.teacher.profile_picture.url }}"
+                                                 alt="{{ class.teacher.full_name }}"
+                                                 class="rounded-circle me-2"
+                                                 style="width: 28px; height: 28px; object-fit: cover;">
+                                            {% else %}
+                                            <div class="avatar-xs me-2">
+                                                <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                                    {{ class.teacher.full_name|first|upper }}
+                                                </span>
+                                            </div>
+                                            {% endif %}
+                                            <span>{{ class.teacher.full_name }}</span>
+                                        </div>
+                                        {% else %}
+                                        <span class="text-muted">
+                                            <i class="ri-user-line me-1"></i>Not assigned
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="d-flex align-items-center justify-content-center gap-2">
+                                            <div class="progress flex-grow-1" style="width: 60px; height: 6px;">
+                                                {% widthratio class.current_enrollment class.max_students 100 as percent %}
+                                                <div class="progress-bar {% if percent >= 100 %}bg-danger{% elif percent >= 80 %}bg-warning{% else %}bg-success{% endif %}"
+                                                     role="progressbar"
+                                                     style="width: {{ percent }}%"
+                                                     aria-valuenow="{{ class.current_enrollment }}"
+                                                     aria-valuemin="0"
+                                                     aria-valuemax="{{ class.max_students }}">
+                                                </div>
+                                            </div>
+                                            <span class="badge {% if class.is_full %}bg-danger{% else %}bg-primary{% endif %}">
+                                                {{ class.current_enrollment }}/{{ class.max_students }}
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if class.schedule %}
+                                        <small class="text-muted">
+                                            {% for s in class.schedule|slice:":2" %}
+                                            <div><i class="ri-calendar-line me-1"></i>{{ s.day }} {{ s.time }}</div>
+                                            {% endfor %}
+                                            {% if class.schedule|length > 2 %}
+                                            <span class="badge bg-light text-dark">+{{ class.schedule|length|add:"-2" }} more</span>
+                                            {% endif %}
+                                        </small>
+                                        {% else %}
+                                        <span class="text-muted small">No schedule</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
+                                            {{ class.start_date|date:"M d" }} - {{ class.end_date|date:"M d, Y" }}
+                                        </small>
+                                    </td>
+                                    <td>
+                                        {% if class.is_active %}
+                                        <span class="badge bg-success">
+                                            <i class="ri-check-line me-1"></i>Active
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">
+                                            <i class="ri-close-line me-1"></i>Inactive
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="d-flex justify-content-end gap-1">
+                                            <a href="{% url 'class_detail' class.id %}"
+                                               class="btn btn-sm btn-soft-primary"
+                                               title="View Class"
+                                               aria-label="View {{ class.class_name }}">
+                                                <i class="ri-eye-line"></i>
+                                            </a>
+                                            {% if perms.courses.change_class %}
+                                            <a href="{% url 'class_edit' class.id %}"
+                                               class="btn btn-sm btn-soft-warning"
+                                               title="Edit Class"
+                                               aria-label="Edit {{ class.class_name }}">
+                                                <i class="ri-edit-line"></i>
+                                            </a>
+                                            {% endif %}
+                                            <a href="{% url 'attendance_mark' %}?class={{ class.id }}"
+                                               class="btn btn-sm btn-soft-info"
+                                               title="Mark Attendance"
+                                               aria-label="Mark attendance for {{ class.class_name }}">
+                                                <i class="ri-checkbox-multiple-line"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Card View (hidden by default) -->
+                <div id="cardView" class="d-none">
+                    <div class="row g-3">
+                        {% for class in classes %}
+                        <div class="col-xl-4 col-lg-6">
+                            <div class="card border mb-0 h-100">
+                                <div class="card-header border-bottom-0 pb-0">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        {% if class.level.short_code == 'STARTERS' %}
+                                        <span class="badge bg-info-subtle text-info">
+                                            <i class="ri-seedling-line me-1"></i>Starters
+                                        </span>
+                                        {% elif class.level.short_code == 'MOVERS' %}
+                                        <span class="badge bg-warning-subtle text-warning">
+                                            <i class="ri-run-line me-1"></i>Movers
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-success-subtle text-success">
+                                            <i class="ri-rocket-line me-1"></i>Flyers
+                                        </span>
+                                        {% endif %}
+                                        {% if class.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">Inactive</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex align-items-start mb-3">
+                                        <div class="avatar-md me-3 flex-shrink-0">
+                                            <span class="avatar-title rounded-circle fs-4" style="background-color: {{ class.level.color_theme|default:'#660066' }}20; color: {{ class.level.color_theme|default:'#660066' }};">
+                                                {{ class.class_name|first|upper }}
+                                            </span>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h5 class="mb-1">
+                                                <a href="{% url 'class_detail' class.id %}" class="text-dark">
+                                                    {{ class.class_name }}
+                                                </a>
+                                            </h5>
+                                            <p class="text-muted mb-0 small">
+                                                <i class="ri-code-line me-1"></i>{{ class.class_code }}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <!-- Teacher -->
+                                    <div class="mb-3">
+                                        <small class="text-muted d-block mb-1">Teacher</small>
+                                        {% if class.teacher %}
+                                        <div class="d-flex align-items-center">
+                                            {% if class.teacher.profile_picture %}
+                                            <img src="{{ class.teacher.profile_picture.url }}"
+                                                 alt="{{ class.teacher.full_name }}"
+                                                 class="rounded-circle me-2"
+                                                 style="width: 24px; height: 24px; object-fit: cover;">
+                                            {% else %}
+                                            <div class="avatar-xs me-2">
+                                                <span class="avatar-title bg-primary-subtle text-primary rounded-circle" style="font-size: 0.65rem;">
+                                                    {{ class.teacher.full_name|first|upper }}
+                                                </span>
+                                            </div>
+                                            {% endif %}
+                                            <span class="fw-medium">{{ class.teacher.full_name }}</span>
+                                        </div>
+                                        {% else %}
+                                        <span class="text-muted"><i class="ri-user-line me-1"></i>Not assigned</span>
+                                        {% endif %}
+                                    </div>
+
+                                    <!-- Enrollment Progress -->
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <small class="text-muted">Enrollment</small>
+                                            <small class="fw-medium">{{ class.current_enrollment }}/{{ class.max_students }}</small>
+                                        </div>
+                                        <div class="progress" style="height: 6px;">
+                                            {% widthratio class.current_enrollment class.max_students 100 as percent %}
+                                            <div class="progress-bar {% if percent >= 100 %}bg-danger{% elif percent >= 80 %}bg-warning{% else %}bg-success{% endif %}"
+                                                 role="progressbar"
+                                                 style="width: {{ percent }}%">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Schedule -->
+                                    <div class="border-top pt-3">
+                                        <div class="row g-2 text-center">
+                                            <div class="col-6">
+                                                <p class="text-muted mb-1 small">Room</p>
+                                                <h6 class="mb-0">{{ class.room_number|default:"TBA" }}</h6>
+                                            </div>
+                                            <div class="col-6">
+                                                <p class="text-muted mb-1 small">Duration</p>
+                                                <h6 class="mb-0 small">{{ class.start_date|date:"M d" }} - {{ class.end_date|date:"M d" }}</h6>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-footer bg-light">
+                                    <div class="d-flex gap-2">
+                                        <a href="{% url 'class_detail' class.id %}" class="btn btn-sm btn-primary flex-grow-1">
+                                            <i class="ri-eye-line me-1"></i>View
+                                        </a>
+                                        {% if perms.courses.change_class %}
+                                        <a href="{% url 'class_edit' class.id %}" class="btn btn-sm btn-outline-warning">
+                                            <i class="ri-edit-line"></i>
+                                        </a>
+                                        {% endif %}
+                                        <a href="{% url 'attendance_mark' %}?class={{ class.id }}" class="btn btn-sm btn-outline-info">
+                                            <i class="ri-checkbox-multiple-line"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                {% if page_obj.has_other_pages %}
+                <nav class="mt-4" aria-label="Class list pagination">
+                    <ul class="pagination justify-content-center mb-0">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1&{{ request.GET.urlencode }}" aria-label="First page">
+                                <i class="ri-skip-back-mini-line"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}" aria-label="Previous page">
+                                <i class="ri-arrow-left-s-line"></i>
+                            </a>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="ri-skip-back-mini-line"></i></span>
+                        </li>
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="ri-arrow-left-s-line"></i></span>
+                        </li>
+                        {% endif %}
+
+                        <li class="page-item active">
+                            <span class="page-link">
+                                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                            </span>
+                        </li>
+
+                        {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}" aria-label="Next page">
+                                <i class="ri-arrow-right-s-line"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&{{ request.GET.urlencode }}" aria-label="Last page">
+                                <i class="ri-skip-forward-mini-line"></i>
+                            </a>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="ri-arrow-right-s-line"></i></span>
+                        </li>
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="ri-skip-forward-mini-line"></i></span>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+
+                {% else %}
+                <!-- Empty State -->
+                <div class="text-center py-5">
+                    <div class="avatar-lg mx-auto mb-4">
+                        <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                            <i class="ri-home-4-line fs-1"></i>
+                        </span>
+                    </div>
+                    <h5>No Classes Found</h5>
+                    <p class="text-muted mb-4">
+                        {% if search_query or level_filter or teacher_filter or status_filter %}
+                        No classes match your current filter criteria.
+                        {% else %}
+                        Get started by adding your first class to the system.
+                        {% endif %}
+                    </p>
+                    <div class="d-flex justify-content-center gap-2">
+                        {% if search_query or level_filter or teacher_filter or status_filter %}
+                        <a href="{% url 'class_list' %}" class="btn btn-outline-primary">
+                            <i class="ri-refresh-line me-1"></i>Clear Filters
+                        </a>
+                        {% endif %}
+                        {% if perms.courses.add_class %}
+                        <a href="{% url 'class_add' %}" class="btn btn-success">
+                            <i class="ri-add-line me-1"></i>Add New Class
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // View toggle functionality
+    $('#tableViewBtn').on('click', function() {
+        $('#tableView').removeClass('d-none');
+        $('#cardView').addClass('d-none');
+        $(this).addClass('active');
+        $('#cardViewBtn').removeClass('active');
+        localStorage.setItem('classViewPreference', 'table');
+    });
+
+    $('#cardViewBtn').on('click', function() {
+        $('#cardView').removeClass('d-none');
+        $('#tableView').addClass('d-none');
+        $(this).addClass('active');
+        $('#tableViewBtn').removeClass('active');
+        localStorage.setItem('classViewPreference', 'card');
+    });
+
+    // Restore view preference
+    var viewPreference = localStorage.getItem('classViewPreference');
+    if (viewPreference === 'card') {
+        $('#cardViewBtn').click();
+    }
+
+    // Auto-submit form on filter change
+    $('#level, #teacher, #status').on('change', function() {
+        $('#filterForm').submit();
+    });
+
+    // Search on Enter key
+    $('#search').on('keypress', function(e) {
+        if (e.which === 13) {
+            $('#filterForm').submit();
+        }
+    });
+});
+</script>
+
+<style>
+.avatar-xs {
+    width: 24px;
+    height: 24px;
+}
+
+.avatar-xs .avatar-title {
+    width: 24px;
+    height: 24px;
+    font-size: 0.75rem;
+}
+
+.avatar-md {
+    width: 56px;
+    height: 56px;
+}
+
+.avatar-md .avatar-title {
+    width: 56px;
+    height: 56px;
+}
+
+.card-animate {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card-animate:hover {
+    transform: translateY(-3px);
+}
+
+.table th a {
+    white-space: nowrap;
+}
+
+.table th a:hover {
+    color: var(--bs-primary) !important;
+}
+
+@media (max-width: 768px) {
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+}
+</style>
+{% endblock %}

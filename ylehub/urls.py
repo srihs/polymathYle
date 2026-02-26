@@ -38,6 +38,9 @@ urlpatterns = [
     # Apps
     path('students/', include('students.urls')),
     path('teachers/', include('teachers.urls')),
+    path('courses/', include('courses.urls')),
+    path('progress/', include('progress.urls')),
+    path('certification/', include('certification.urls')),
 ]
 
 # Serve media files in development

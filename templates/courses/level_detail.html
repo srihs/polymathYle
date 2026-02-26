@@ -1,0 +1,590 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block PageTitle %}{{ level.name }} - Polymath School of English{% endblock %}
+{% block pageTitle %}{{ level.name }}{% endblock %}
+{% block Title %}Courses{% endblock %}
+{% block functionTitle %}Level Details{% endblock %}
+
+{% block content %}
+<!-- Level Profile Header -->
+<div class="row">
+    <div class="col-12">
+        <div class="card overflow-hidden">
+            <div class="card-body position-relative"
+                 style="background: linear-gradient(135deg, {{ level.color_theme|default:'#660066' }} 0%, {{ level.color_theme|default:'#660066' }}99 100%); min-height: 140px;">
+                <!-- Background pattern -->
+                <div class="position-absolute top-0 start-0 w-100 h-100" style="background: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2240%22 fill=%22rgba(255,255,255,0.05)%22/></svg>') repeat; opacity: 0.3;"></div>
+            </div>
+            <div class="card-body pt-0">
+                <div class="row align-items-end">
+                    <div class="col-auto" style="margin-top: -50px;">
+                        <div class="avatar-xxl border border-4 border-white shadow rounded-circle bg-white">
+                            <span class="avatar-title rounded-circle" style="background-color: {{ level.color_theme|default:'#660066' }}; font-size: 3rem; width: 120px; height: 120px;">
+                                <i class="{{ level.icon|default:'ri-medal-line' }} text-white"></i>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="d-flex flex-wrap justify-content-between align-items-start">
+                            <div>
+                                <h3 class="mb-1">{{ level.name }}</h3>
+                                <p class="text-muted mb-2">{{ level.description|truncatewords:20 }}</p>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <span class="badge bg-primary-subtle text-primary fs-6">
+                                        <i class="ri-global-line me-1"></i>{{ level.cefr_level }}
+                                    </span>
+                                    <span class="badge bg-info-subtle text-info">
+                                        <i class="ri-user-smile-line me-1"></i>Ages {{ level.age_range_min }}-{{ level.age_range_max }}
+                                    </span>
+                                    <span class="badge bg-warning-subtle text-warning">
+                                        <i class="ri-time-line me-1"></i>{{ level.duration_minutes }} mins exam
+                                    </span>
+                                    {% if level.is_active %}
+                                    <span class="badge bg-success-subtle text-success">
+                                        <i class="ri-check-line me-1"></i>Active
+                                    </span>
+                                    {% else %}
+                                    <span class="badge bg-danger-subtle text-danger">
+                                        <i class="ri-close-line me-1"></i>Inactive
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2 mt-3 mt-md-0">
+                                {% if perms.courses.change_ylelevel %}
+                                <a href="{% url 'admin:courses_ylelevel_change' level.id %}" class="btn btn-warning">
+                                    <i class="ri-edit-line me-1"></i> Edit Level
+                                </a>
+                                {% endif %}
+                                <a href="{% url 'level_list' %}" class="btn btn-outline-secondary">
+                                    <i class="ri-arrow-left-line me-1"></i> All Levels
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row">
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-3">Active Classes</p>
+                        <h4 class="fs-22 fw-semibold mb-1">
+                            <span class="counter-value">{{ level.classes.count|default:0 }}</span>
+                        </h4>
+                        <p class="text-muted mb-0">Running classes</p>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-primary-subtle rounded-circle fs-3">
+                            <i class="ri-home-4-line text-primary"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-3">Total Students</p>
+                        <h4 class="fs-22 fw-semibold mb-1">
+                            <span class="counter-value">{{ total_students|default:0 }}</span>
+                        </h4>
+                        <p class="text-muted mb-0">Enrolled students</p>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-success-subtle rounded-circle fs-3">
+                            <i class="ri-user-line text-success"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-3">Units</p>
+                        <h4 class="fs-22 fw-semibold mb-1">
+                            <span class="counter-value">{{ level.units.count|default:0 }}</span>
+                        </h4>
+                        <p class="text-muted mb-0">Learning units</p>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-info-subtle rounded-circle fs-3">
+                            <i class="ri-book-2-line text-info"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-3">Assessments</p>
+                        <h4 class="fs-22 fw-semibold mb-1">
+                            <span class="counter-value">{{ level.assessments.count|default:0 }}</span>
+                        </h4>
+                        <p class="text-muted mb-0">Available tests</p>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-warning-subtle rounded-circle fs-3">
+                            <i class="ri-file-list-3-line text-warning"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Left Column - Level Info & Skills -->
+    <div class="col-xl-4">
+        <!-- Level Information Card -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="ri-information-line me-2 text-primary"></i>Level Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-borderless mb-0">
+                        <tbody>
+                            <tr>
+                                <th class="ps-0 text-muted" style="width: 40%;">
+                                    <i class="ri-code-line me-2"></i>Short Code
+                                </th>
+                                <td class="fw-medium">
+                                    <span class="badge bg-primary">{{ level.short_code }}</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-global-line me-2"></i>CEFR Level
+                                </th>
+                                <td class="fw-medium">{{ level.cefr_level }}</td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-user-smile-line me-2"></i>Age Range
+                                </th>
+                                <td class="fw-medium">{{ level.age_range_min }} - {{ level.age_range_max }} years</td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-time-line me-2"></i>Exam Duration
+                                </th>
+                                <td class="fw-medium">{{ level.duration_minutes }} minutes</td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-calendar-line me-2"></i>Created
+                                </th>
+                                <td class="fw-medium">{{ level.created_at|date:"M d, Y" }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Skills Tested Card -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="ri-lightbulb-line me-2 text-primary"></i>Skills Tested
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-column gap-3">
+                    <div class="d-flex align-items-center p-3 border rounded bg-primary-subtle">
+                        <div class="avatar-sm me-3">
+                            <span class="avatar-title bg-primary rounded-circle">
+                                <i class="ri-headphone-line text-white"></i>
+                            </span>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">Listening</h6>
+                            <p class="text-muted mb-0 small">Understanding spoken English</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center p-3 border rounded bg-info-subtle">
+                        <div class="avatar-sm me-3">
+                            <span class="avatar-title bg-info rounded-circle">
+                                <i class="ri-book-read-line text-white"></i>
+                            </span>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">Reading & Writing</h6>
+                            <p class="text-muted mb-0 small">Comprehension and written expression</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center p-3 border rounded bg-success-subtle">
+                        <div class="avatar-sm me-3">
+                            <span class="avatar-title bg-success rounded-circle">
+                                <i class="ri-speak-line text-white"></i>
+                            </span>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">Speaking</h6>
+                            <p class="text-muted mb-0 small">Oral communication skills</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Level Description Card -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="ri-file-text-line me-2 text-primary"></i>Description
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-0">{{ level.description }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column - Units & Classes -->
+    <div class="col-xl-8">
+        <!-- Units Card -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="ri-book-2-line me-2 text-primary"></i>Learning Units
+                    <span class="badge bg-primary-subtle text-primary ms-2">{{ units.count|default:0 }}</span>
+                </h5>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'unit_list' %}?level={{ level.id }}" class="btn btn-sm btn-outline-primary">
+                        <i class="ri-eye-line me-1"></i> View All
+                    </a>
+                    {% if perms.courses.add_unit %}
+                    <a href="{% url 'admin:courses_unit_add' %}?level={{ level.id }}" class="btn btn-sm btn-success">
+                        <i class="ri-add-line me-1"></i> Add Unit
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                {% if units %}
+                <div class="row g-3">
+                    {% for unit in units %}
+                    <div class="col-lg-6">
+                        <div class="border rounded p-3 h-100">
+                            <div class="d-flex align-items-start">
+                                <div class="avatar-sm me-3 flex-shrink-0">
+                                    <span class="avatar-title bg-primary-subtle text-primary rounded">
+                                        {{ forloop.counter }}
+                                    </span>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">
+                                        <a href="{% url 'unit_detail' unit.id %}" class="text-dark">
+                                            {{ unit.title }}
+                                        </a>
+                                    </h6>
+                                    <p class="text-muted small mb-2">{{ unit.description|truncatewords:12 }}</p>
+                                    <div class="d-flex align-items-center gap-3 small">
+                                        <span class="text-muted">
+                                            <i class="ri-file-list-3-line me-1"></i>{{ unit.lessons.count }} lessons
+                                        </span>
+                                        {% if unit.is_active %}
+                                        <span class="badge bg-success-subtle text-success">Active</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary-subtle text-secondary">Inactive</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <a href="{% url 'unit_detail' unit.id %}"
+                                   class="btn btn-sm btn-soft-primary"
+                                   title="View Unit"
+                                   aria-label="View {{ unit.title }}">
+                                    <i class="ri-arrow-right-line"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="ri-book-2-line fs-1 text-muted opacity-50"></i>
+                    <h6 class="mt-3">No Units Created</h6>
+                    <p class="text-muted mb-3">Start adding learning units to this level.</p>
+                    {% if perms.courses.add_unit %}
+                    <a href="{% url 'admin:courses_unit_add' %}?level={{ level.id }}" class="btn btn-primary">
+                        <i class="ri-add-line me-1"></i> Add First Unit
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Classes Card -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="ri-home-4-line me-2 text-primary"></i>Classes
+                    <span class="badge bg-primary-subtle text-primary ms-2">{{ classes.count|default:0 }}</span>
+                </h5>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'class_list' %}?level={{ level.id }}" class="btn btn-sm btn-outline-primary">
+                        <i class="ri-eye-line me-1"></i> View All
+                    </a>
+                    {% if perms.courses.add_class %}
+                    <a href="{% url 'class_add' %}?level={{ level.id }}" class="btn btn-sm btn-success">
+                        <i class="ri-add-line me-1"></i> Add Class
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                {% if classes %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Class Name</th>
+                                <th>Teacher</th>
+                                <th class="text-center">Students</th>
+                                <th>Schedule</th>
+                                <th>Status</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for class in classes %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-xs me-2">
+                                            <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                                {{ class.class_name|first|upper }}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <a href="{% url 'class_detail' class.id %}" class="text-dark fw-medium">
+                                                {{ class.class_name }}
+                                            </a>
+                                            <p class="text-muted mb-0 small">{{ class.class_code }}</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if class.teacher %}
+                                    <span class="text-dark">{{ class.teacher.full_name }}</span>
+                                    {% else %}
+                                    <span class="text-muted">Not assigned</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge {% if class.is_full %}bg-danger{% else %}bg-primary{% endif %}">
+                                        {{ class.current_enrollment }}/{{ class.max_students }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if class.schedule %}
+                                    <small class="text-muted">
+                                        <i class="ri-time-line me-1"></i>
+                                        {% for s in class.schedule|slice:":1" %}
+                                            {{ s.day }} {{ s.time }}
+                                        {% endfor %}
+                                        {% if class.schedule|length > 1 %}
+                                            <span class="badge bg-light text-dark">+{{ class.schedule|length|add:"-1" }} more</span>
+                                        {% endif %}
+                                    </small>
+                                    {% else %}
+                                    <span class="text-muted small">No schedule</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if class.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <a href="{% url 'class_detail' class.id %}"
+                                       class="btn btn-sm btn-soft-primary"
+                                       title="View Class"
+                                       aria-label="View {{ class.class_name }}">
+                                        <i class="ri-eye-line"></i>
+                                    </a>
+                                    {% if perms.courses.change_class %}
+                                    <a href="{% url 'class_edit' class.id %}"
+                                       class="btn btn-sm btn-soft-warning"
+                                       title="Edit Class"
+                                       aria-label="Edit {{ class.class_name }}">
+                                        <i class="ri-edit-line"></i>
+                                    </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="ri-home-4-line fs-1 text-muted opacity-50"></i>
+                    <h6 class="mt-3">No Classes Created</h6>
+                    <p class="text-muted mb-3">Add classes to start enrolling students.</p>
+                    {% if perms.courses.add_class %}
+                    <a href="{% url 'class_add' %}?level={{ level.id }}" class="btn btn-primary">
+                        <i class="ri-add-line me-1"></i> Add First Class
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Level Assessments Card -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="ri-file-list-3-line me-2 text-primary"></i>Level Assessments
+                    <span class="badge bg-primary-subtle text-primary ms-2">{{ level_assessments.count|default:0 }}</span>
+                </h5>
+                <a href="{% url 'assessment_list' %}?level={{ level.id }}" class="btn btn-sm btn-outline-primary">
+                    <i class="ri-eye-line me-1"></i> View All
+                </a>
+            </div>
+            <div class="card-body">
+                {% if level_assessments %}
+                <div class="row g-3">
+                    {% for assessment in level_assessments %}
+                    <div class="col-md-6">
+                        <div class="border rounded p-3">
+                            <div class="d-flex align-items-start">
+                                <div class="avatar-sm me-3 flex-shrink-0">
+                                    {% if assessment.assessment_type == 'LEVEL_TEST' %}
+                                    <span class="avatar-title bg-danger-subtle text-danger rounded">
+                                        <i class="ri-award-line"></i>
+                                    </span>
+                                    {% elif assessment.assessment_type == 'PRACTICE_TEST' %}
+                                    <span class="avatar-title bg-info-subtle text-info rounded">
+                                        <i class="ri-edit-box-line"></i>
+                                    </span>
+                                    {% else %}
+                                    <span class="avatar-title bg-warning-subtle text-warning rounded">
+                                        <i class="ri-file-list-3-line"></i>
+                                    </span>
+                                    {% endif %}
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">{{ assessment.title }}</h6>
+                                    <p class="text-muted small mb-2">
+                                        <i class="ri-time-line me-1"></i>{{ assessment.time_limit_minutes }} mins |
+                                        <i class="ri-percent-line me-1"></i>{{ assessment.passing_percentage }}% to pass
+                                    </p>
+                                    <div class="d-flex flex-wrap gap-1">
+                                        {% if assessment.tests_listening %}
+                                        <span class="badge bg-primary-subtle text-primary small">Listening</span>
+                                        {% endif %}
+                                        {% if assessment.tests_reading %}
+                                        <span class="badge bg-info-subtle text-info small">Reading</span>
+                                        {% endif %}
+                                        {% if assessment.tests_writing %}
+                                        <span class="badge bg-success-subtle text-success small">Writing</span>
+                                        {% endif %}
+                                        {% if assessment.tests_speaking %}
+                                        <span class="badge bg-warning-subtle text-warning small">Speaking</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="ri-file-list-3-line fs-1 text-muted opacity-50"></i>
+                    <p class="text-muted mb-0">No level assessments available</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<style>
+.avatar-xxl {
+    width: 120px;
+    height: 120px;
+}
+
+.avatar-xxl .avatar-title {
+    width: 120px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.avatar-xs {
+    width: 28px;
+    height: 28px;
+}
+
+.avatar-xs .avatar-title {
+    width: 28px;
+    height: 28px;
+    font-size: 0.75rem;
+}
+
+.card-animate {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card-animate:hover {
+    transform: translateY(-5px);
+}
+
+.counter-value {
+    font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 768px) {
+    .avatar-xxl {
+        width: 80px;
+        height: 80px;
+    }
+
+    .avatar-xxl .avatar-title {
+        width: 80px;
+        height: 80px;
+        font-size: 2rem !important;
+    }
+}
+</style>
+{% endblock %}

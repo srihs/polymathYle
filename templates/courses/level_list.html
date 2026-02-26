@@ -1,0 +1,375 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block PageTitle %}YLE Levels - Polymath School of English{% endblock %}
+{% block pageTitle %}Cambridge YLE Levels{% endblock %}
+{% block Title %}Courses{% endblock %}
+{% block functionTitle %}YLE Levels{% endblock %}
+
+{% block content %}
+<!-- Statistics Summary -->
+<div class="row">
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate bg-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="fw-medium text-white-75 mb-0">Total Levels</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ levels.count|default:3 }}</h2>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-stack-line text-white"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate bg-info">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="fw-medium text-white-75 mb-0">Active Classes</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ total_classes|default:0 }}</h2>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-home-4-line text-white"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate bg-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="fw-medium text-white-75 mb-0">Total Students</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ total_students|default:0 }}</h2>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-user-line text-white"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate bg-warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="fw-medium text-white-75 mb-0">Total Units</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ total_units|default:0 }}</h2>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-book-2-line text-white"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Page Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                    <div>
+                        <h4 class="mb-1">Cambridge Young Learners English (YLE)</h4>
+                        <p class="text-muted mb-0">
+                            <i class="ri-information-line me-1"></i>
+                            Fun, activity-based English tests for children aged 6-12. Three levels aligned to CEFR standards.
+                        </p>
+                    </div>
+                    {% if perms.courses.add_ylelevel %}
+                    <a href="{% url 'admin:courses_ylelevel_add' %}" class="btn btn-success">
+                        <i class="ri-add-line me-1"></i> Add Level
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- YLE Level Cards -->
+<div class="row" role="list" aria-label="YLE Levels">
+    {% for level in levels %}
+    <div class="col-xl-4 col-lg-6" role="listitem">
+        <div class="card card-animate h-100 overflow-hidden">
+            <!-- Level Header with Color Theme -->
+            <div class="card-header border-0 position-relative"
+                 style="background: linear-gradient(135deg, {{ level.color_theme|default:'#660066' }} 0%, {{ level.color_theme|default:'#660066' }}99 100%); min-height: 120px;">
+                <div class="position-absolute top-0 end-0 p-3">
+                    {% if level.is_active %}
+                    <span class="badge bg-white text-success">
+                        <i class="ri-check-line me-1"></i>Active
+                    </span>
+                    {% else %}
+                    <span class="badge bg-white text-danger">
+                        <i class="ri-close-line me-1"></i>Inactive
+                    </span>
+                    {% endif %}
+                </div>
+                <div class="d-flex align-items-center h-100">
+                    <div class="avatar-lg me-3">
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle" style="width: 80px; height: 80px;">
+                            <i class="{{ level.icon|default:'ri-medal-line' }} text-white" style="font-size: 2.5rem;"></i>
+                        </span>
+                    </div>
+                    <div class="text-white">
+                        <h3 class="mb-1 text-white">{{ level.name }}</h3>
+                        <span class="badge bg-white bg-opacity-25 text-white fs-6">
+                            {{ level.cefr_level }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <!-- Level Description -->
+                <p class="text-muted mb-4">{{ level.description|truncatewords:25 }}</p>
+
+                <!-- Level Info Grid -->
+                <div class="row g-3 mb-4">
+                    <div class="col-6">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-xs me-2">
+                                <span class="avatar-title bg-info-subtle text-info rounded">
+                                    <i class="ri-user-smile-line"></i>
+                                </span>
+                            </div>
+                            <div>
+                                <p class="text-muted mb-0 small">Age Range</p>
+                                <h6 class="mb-0">{{ level.age_range_min }}-{{ level.age_range_max }} years</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-xs me-2">
+                                <span class="avatar-title bg-warning-subtle text-warning rounded">
+                                    <i class="ri-time-line"></i>
+                                </span>
+                            </div>
+                            <div>
+                                <p class="text-muted mb-0 small">Exam Duration</p>
+                                <h6 class="mb-0">{{ level.duration_minutes }} mins</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-xs me-2">
+                                <span class="avatar-title bg-primary-subtle text-primary rounded">
+                                    <i class="ri-home-4-line"></i>
+                                </span>
+                            </div>
+                            <div>
+                                <p class="text-muted mb-0 small">Classes</p>
+                                <h6 class="mb-0">{{ level.classes.count|default:0 }}</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-xs me-2">
+                                <span class="avatar-title bg-success-subtle text-success rounded">
+                                    <i class="ri-book-2-line"></i>
+                                </span>
+                            </div>
+                            <div>
+                                <p class="text-muted mb-0 small">Units</p>
+                                <h6 class="mb-0">{{ level.units.count|default:0 }}</h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Skills Tested -->
+                <div class="mb-4">
+                    <h6 class="text-uppercase text-muted small mb-2">Skills Tested</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        <span class="badge bg-primary-subtle text-primary">
+                            <i class="ri-headphone-line me-1"></i>Listening
+                        </span>
+                        <span class="badge bg-info-subtle text-info">
+                            <i class="ri-book-read-line me-1"></i>Reading
+                        </span>
+                        <span class="badge bg-success-subtle text-success">
+                            <i class="ri-edit-line me-1"></i>Writing
+                        </span>
+                        <span class="badge bg-warning-subtle text-warning">
+                            <i class="ri-speak-line me-1"></i>Speaking
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-footer bg-light border-top">
+                <div class="d-flex gap-2">
+                    <a href="{% url 'level_detail' level.id %}" class="btn btn-primary flex-grow-1">
+                        <i class="ri-eye-line me-1"></i> View Details
+                    </a>
+                    <a href="{% url 'class_list' %}?level={{ level.id }}"
+                       class="btn btn-outline-primary"
+                       title="View Classes"
+                       aria-label="View classes for {{ level.name }}">
+                        <i class="ri-home-4-line"></i>
+                    </a>
+                    {% if perms.courses.change_ylelevel %}
+                    <a href="{% url 'admin:courses_ylelevel_change' level.id %}"
+                       class="btn btn-soft-warning"
+                       title="Edit Level"
+                       aria-label="Edit {{ level.name }}">
+                        <i class="ri-edit-line"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <!-- Empty State -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <div class="avatar-lg mx-auto mb-4">
+                    <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                        <i class="ri-stack-line fs-1"></i>
+                    </span>
+                </div>
+                <h5>No YLE Levels Configured</h5>
+                <p class="text-muted mb-4">
+                    Set up the Cambridge YLE levels (Starters, Movers, Flyers) to start organizing your courses.
+                </p>
+                {% if perms.courses.add_ylelevel %}
+                <a href="{% url 'admin:courses_ylelevel_add' %}" class="btn btn-primary">
+                    <i class="ri-add-line me-1"></i> Add First Level
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Cambridge YLE Information Card -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card bg-light border-0">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-lg-8">
+                        <h5 class="text-primary mb-3">
+                            <i class="ri-information-line me-2"></i>About Cambridge YLE Tests
+                        </h5>
+                        <p class="text-muted mb-2">
+                            Cambridge Young Learners English tests are designed for children in primary and lower-secondary school.
+                            The tests use topics and situations that children are familiar with, making the experience enjoyable.
+                        </p>
+                        <ul class="text-muted mb-0 ps-3">
+                            <li><strong>Starters:</strong> First step in a child's English language learning journey (Pre A1)</li>
+                            <li><strong>Movers:</strong> Next step after Starters, building confidence (A1)</li>
+                            <li><strong>Flyers:</strong> Highest level of YLE tests, prepares for A2 Key (A2)</li>
+                        </ul>
+                    </div>
+                    <div class="col-lg-4 text-center d-none d-lg-block">
+                        <div class="d-flex justify-content-center gap-3">
+                            <div class="text-center">
+                                <div class="avatar-md mx-auto mb-2">
+                                    <span class="avatar-title bg-info-subtle text-info rounded-circle fs-3">
+                                        <i class="ri-seedling-line"></i>
+                                    </span>
+                                </div>
+                                <small class="text-muted">Starters</small>
+                            </div>
+                            <div class="text-center">
+                                <div class="avatar-md mx-auto mb-2">
+                                    <span class="avatar-title bg-warning-subtle text-warning rounded-circle fs-3">
+                                        <i class="ri-run-line"></i>
+                                    </span>
+                                </div>
+                                <small class="text-muted">Movers</small>
+                            </div>
+                            <div class="text-center">
+                                <div class="avatar-md mx-auto mb-2">
+                                    <span class="avatar-title bg-success-subtle text-success rounded-circle fs-3">
+                                        <i class="ri-rocket-line"></i>
+                                    </span>
+                                </div>
+                                <small class="text-muted">Flyers</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<style>
+.avatar-xs {
+    width: 28px;
+    height: 28px;
+}
+
+.avatar-xs .avatar-title {
+    width: 28px;
+    height: 28px;
+    font-size: 0.875rem;
+}
+
+.avatar-md {
+    width: 56px;
+    height: 56px;
+}
+
+.avatar-md .avatar-title {
+    width: 56px;
+    height: 56px;
+}
+
+.avatar-lg {
+    width: 80px;
+    height: 80px;
+}
+
+.card-animate {
+    transition: all 0.3s ease;
+}
+
+.card-animate:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+@media (max-width: 768px) {
+    .card-header .avatar-lg {
+        width: 60px;
+        height: 60px;
+    }
+
+    .card-header .avatar-title i {
+        font-size: 1.75rem !important;
+    }
+
+    .card-header h3 {
+        font-size: 1.25rem;
+    }
+}
+</style>
+{% endblock %}

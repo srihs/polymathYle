@@ -1,0 +1,535 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block PageTitle %}{{ unit.title }} - Polymath School of English{% endblock %}
+{% block pageTitle %}{{ unit.title }}{% endblock %}
+{% block Title %}Courses{% endblock %}
+{% block functionTitle %}Unit Details{% endblock %}
+
+{% block content %}
+<!-- Unit Header -->
+<div class="row">
+    <div class="col-12">
+        <div class="card overflow-hidden">
+            <div class="card-body position-relative"
+                 style="background: linear-gradient(135deg, {{ unit.level.color_theme|default:'#660066' }} 0%, {{ unit.level.color_theme|default:'#660066' }}99 100%); min-height: 120px;">
+            </div>
+            <div class="card-body pt-0">
+                <div class="row align-items-end">
+                    <div class="col-auto" style="margin-top: -50px;">
+                        {% if unit.thumbnail %}
+                        <img src="{{ unit.thumbnail.url }}"
+                             alt="{{ unit.title }}"
+                             class="rounded border border-4 border-white shadow"
+                             style="width: 120px; height: 120px; object-fit: cover;">
+                        {% else %}
+                        <div class="avatar-xxl border border-4 border-white shadow rounded bg-white">
+                            <span class="avatar-title rounded" style="background-color: {{ unit.level.color_theme|default:'#660066' }}20; color: {{ unit.level.color_theme|default:'#660066' }}; font-size: 3rem; width: 120px; height: 120px;">
+                                <i class="ri-book-2-line"></i>
+                            </span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="col">
+                        <div class="d-flex flex-wrap justify-content-between align-items-start">
+                            <div>
+                                <div class="d-flex align-items-center mb-2">
+                                    <span class="badge bg-primary me-2">Unit {{ unit.order }}</span>
+                                    {% if unit.level.short_code == 'STARTERS' %}
+                                    <span class="badge bg-info-subtle text-info">
+                                        <i class="ri-seedling-line me-1"></i>Starters
+                                    </span>
+                                    {% elif unit.level.short_code == 'MOVERS' %}
+                                    <span class="badge bg-warning-subtle text-warning">
+                                        <i class="ri-run-line me-1"></i>Movers
+                                    </span>
+                                    {% else %}
+                                    <span class="badge bg-success-subtle text-success">
+                                        <i class="ri-rocket-line me-1"></i>Flyers
+                                    </span>
+                                    {% endif %}
+                                </div>
+                                <h3 class="mb-1">{{ unit.title }}</h3>
+                                <p class="text-muted mb-2">{{ unit.level.name }} ({{ unit.level.cefr_level }})</p>
+                                <div class="d-flex flex-wrap gap-2">
+                                    {% if unit.is_active %}
+                                    <span class="badge bg-success-subtle text-success">
+                                        <i class="ri-check-line me-1"></i>Active
+                                    </span>
+                                    {% else %}
+                                    <span class="badge bg-danger-subtle text-danger">
+                                        <i class="ri-close-line me-1"></i>Inactive
+                                    </span>
+                                    {% endif %}
+                                    {% if unit.requires_completion_of %}
+                                    <span class="badge bg-warning-subtle text-warning">
+                                        <i class="ri-lock-line me-1"></i>Prerequisite: {{ unit.requires_completion_of.title }}
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2 mt-3 mt-md-0">
+                                {% if perms.courses.change_unit %}
+                                <a href="{% url 'admin:courses_unit_change' unit.id %}" class="btn btn-warning">
+                                    <i class="ri-edit-line me-1"></i> Edit Unit
+                                </a>
+                                {% endif %}
+                                <a href="{% url 'level_detail' unit.level.id %}" class="btn btn-outline-secondary">
+                                    <i class="ri-arrow-left-line me-1"></i> Back to Level
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row">
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-3">Lessons</p>
+                        <h4 class="fs-22 fw-semibold mb-1">
+                            <span class="counter-value">{{ unit.lessons.count|default:0 }}</span>
+                        </h4>
+                        <p class="text-muted mb-0">Total lessons</p>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-primary-subtle rounded-circle fs-3">
+                            <i class="ri-file-list-3-line text-primary"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-3">Duration</p>
+                        <h4 class="fs-22 fw-semibold mb-1">
+                            <span class="counter-value">{{ total_duration|default:0 }}</span>
+                            <span class="text-muted fs-6">mins</span>
+                        </h4>
+                        <p class="text-muted mb-0">Total learning time</p>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-info-subtle rounded-circle fs-3">
+                            <i class="ri-time-line text-info"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-3">Activities</p>
+                        <h4 class="fs-22 fw-semibold mb-1">
+                            <span class="counter-value">{{ total_activities|default:0 }}</span>
+                        </h4>
+                        <p class="text-muted mb-0">Interactive activities</p>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-success-subtle rounded-circle fs-3">
+                            <i class="ri-gamepad-line text-success"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-3">Assessments</p>
+                        <h4 class="fs-22 fw-semibold mb-1">
+                            <span class="counter-value">{{ unit.assessments.count|default:0 }}</span>
+                        </h4>
+                        <p class="text-muted mb-0">Unit tests</p>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-warning-subtle rounded-circle fs-3">
+                            <i class="ri-clipboard-line text-warning"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Left Column -->
+    <div class="col-xl-4">
+        <!-- Unit Information -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="ri-information-line me-2 text-primary"></i>Unit Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">{{ unit.description }}</p>
+
+                <hr>
+
+                <div class="table-responsive">
+                    <table class="table table-borderless mb-0">
+                        <tbody>
+                            <tr>
+                                <th class="ps-0 text-muted" style="width: 40%;">
+                                    <i class="ri-stack-line me-2"></i>Level
+                                </th>
+                                <td>
+                                    <a href="{% url 'level_detail' unit.level.id %}">{{ unit.level.name }}</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-sort-asc me-2"></i>Order
+                                </th>
+                                <td class="fw-medium">{{ unit.order }}</td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-calendar-line me-2"></i>Created
+                                </th>
+                                <td>{{ unit.created_at|date:"M d, Y" }}</td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-refresh-line me-2"></i>Updated
+                                </th>
+                                <td>{{ unit.updated_at|date:"M d, Y" }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Skills Covered -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="ri-lightbulb-line me-2 text-primary"></i>Skills Covered
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-column gap-3">
+                    <div class="d-flex align-items-center justify-content-between p-2 border rounded">
+                        <div class="d-flex align-items-center">
+                            <span class="avatar-xs me-2">
+                                <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                    <i class="ri-headphone-line"></i>
+                                </span>
+                            </span>
+                            <span>Listening</span>
+                        </div>
+                        <span class="badge bg-primary">{{ listening_lessons|default:0 }} lessons</span>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between p-2 border rounded">
+                        <div class="d-flex align-items-center">
+                            <span class="avatar-xs me-2">
+                                <span class="avatar-title bg-info-subtle text-info rounded-circle">
+                                    <i class="ri-book-read-line"></i>
+                                </span>
+                            </span>
+                            <span>Reading</span>
+                        </div>
+                        <span class="badge bg-info">{{ reading_lessons|default:0 }} lessons</span>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between p-2 border rounded">
+                        <div class="d-flex align-items-center">
+                            <span class="avatar-xs me-2">
+                                <span class="avatar-title bg-success-subtle text-success rounded-circle">
+                                    <i class="ri-edit-line"></i>
+                                </span>
+                            </span>
+                            <span>Writing</span>
+                        </div>
+                        <span class="badge bg-success">{{ writing_lessons|default:0 }} lessons</span>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between p-2 border rounded">
+                        <div class="d-flex align-items-center">
+                            <span class="avatar-xs me-2">
+                                <span class="avatar-title bg-warning-subtle text-warning rounded-circle">
+                                    <i class="ri-speak-line"></i>
+                                </span>
+                            </span>
+                            <span>Speaking</span>
+                        </div>
+                        <span class="badge bg-warning">{{ speaking_lessons|default:0 }} lessons</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Unit Assessments -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="ri-clipboard-line me-2 text-primary"></i>Unit Assessments
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if unit.assessments.all %}
+                <div class="d-flex flex-column gap-2">
+                    {% for assessment in unit.assessments.all %}
+                    <a href="{% url 'assessment_detail' assessment.id %}" class="d-flex align-items-center p-2 border rounded text-dark text-decoration-none hover-shadow">
+                        <span class="avatar-xs me-2">
+                            <span class="avatar-title bg-warning-subtle text-warning rounded">
+                                <i class="ri-file-list-3-line"></i>
+                            </span>
+                        </span>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-0">{{ assessment.title }}</h6>
+                            <small class="text-muted">{{ assessment.time_limit_minutes }} mins | {{ assessment.passing_percentage }}% to pass</small>
+                        </div>
+                        <i class="ri-arrow-right-s-line text-muted"></i>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-3">
+                    <i class="ri-clipboard-line fs-1 text-muted opacity-50"></i>
+                    <p class="text-muted mb-0 small">No assessments for this unit</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column - Lessons -->
+    <div class="col-xl-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="ri-file-list-3-line me-2 text-primary"></i>Lessons
+                    <span class="badge bg-primary-subtle text-primary ms-2">{{ lessons.count|default:0 }}</span>
+                </h5>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'lesson_list' %}?unit={{ unit.id }}" class="btn btn-sm btn-outline-primary">
+                        <i class="ri-eye-line me-1"></i> View All
+                    </a>
+                    {% if perms.courses.add_lesson %}
+                    <a href="{% url 'admin:courses_lesson_add' %}?unit={{ unit.id }}" class="btn btn-sm btn-success">
+                        <i class="ri-add-line me-1"></i> Add Lesson
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                {% if lessons %}
+                <div class="timeline">
+                    {% for lesson in lessons %}
+                    <div class="timeline-item {% if forloop.last %}pb-0{% else %}pb-4{% endif %}">
+                        <div class="timeline-icon"
+                             style="background-color: {{ unit.level.color_theme|default:'#660066' }};">
+                            {{ lesson.order }}
+                        </div>
+                        <div class="timeline-content">
+                            <div class="card border mb-0">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-start justify-content-between">
+                                        <div class="flex-grow-1">
+                                            <h5 class="mb-1">
+                                                <a href="{% url 'lesson_detail' lesson.id %}" class="text-dark">
+                                                    {{ lesson.title }}
+                                                </a>
+                                            </h5>
+                                            <p class="text-muted small mb-2">{{ lesson.description|truncatewords:20 }}</p>
+
+                                            <!-- Skills Badges -->
+                                            <div class="d-flex flex-wrap gap-1 mb-2">
+                                                {% if lesson.skill_listening %}
+                                                <span class="badge bg-primary-subtle text-primary">
+                                                    <i class="ri-headphone-line me-1"></i>Listening
+                                                </span>
+                                                {% endif %}
+                                                {% if lesson.skill_reading %}
+                                                <span class="badge bg-info-subtle text-info">
+                                                    <i class="ri-book-read-line me-1"></i>Reading
+                                                </span>
+                                                {% endif %}
+                                                {% if lesson.skill_writing %}
+                                                <span class="badge bg-success-subtle text-success">
+                                                    <i class="ri-edit-line me-1"></i>Writing
+                                                </span>
+                                                {% endif %}
+                                                {% if lesson.skill_speaking %}
+                                                <span class="badge bg-warning-subtle text-warning">
+                                                    <i class="ri-speak-line me-1"></i>Speaking
+                                                </span>
+                                                {% endif %}
+                                            </div>
+
+                                            <!-- Lesson Meta -->
+                                            <div class="d-flex flex-wrap gap-3 text-muted small">
+                                                <span><i class="ri-time-line me-1"></i>{{ lesson.duration_minutes }} mins</span>
+                                                <span><i class="ri-film-line me-1"></i>{{ lesson.get_content_type_display }}</span>
+                                                <span><i class="ri-gamepad-line me-1"></i>{{ lesson.activities.count }} activities</span>
+                                                <span><i class="ri-star-line me-1"></i>{{ lesson.completion_points }} pts</span>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex flex-column gap-1">
+                                            {% if lesson.is_active %}
+                                            <span class="badge bg-success">Active</span>
+                                            {% else %}
+                                            <span class="badge bg-secondary">Inactive</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex gap-2 mt-3 pt-3 border-top">
+                                        <a href="{% url 'lesson_detail' lesson.id %}" class="btn btn-sm btn-primary">
+                                            <i class="ri-eye-line me-1"></i> View Lesson
+                                        </a>
+                                        {% if perms.courses.change_lesson %}
+                                        <a href="{% url 'admin:courses_lesson_change' lesson.id %}" class="btn btn-sm btn-soft-warning">
+                                            <i class="ri-edit-line me-1"></i> Edit
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="ri-file-list-3-line fs-1 text-muted opacity-50"></i>
+                    <h6 class="mt-3">No Lessons Yet</h6>
+                    <p class="text-muted mb-3">Start adding lessons to this unit.</p>
+                    {% if perms.courses.add_lesson %}
+                    <a href="{% url 'admin:courses_lesson_add' %}?unit={{ unit.id }}" class="btn btn-primary">
+                        <i class="ri-add-line me-1"></i> Add First Lesson
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<style>
+.avatar-xxl {
+    width: 120px;
+    height: 120px;
+}
+
+.avatar-xxl .avatar-title {
+    width: 120px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.avatar-xs {
+    width: 28px;
+    height: 28px;
+}
+
+.avatar-xs .avatar-title {
+    width: 28px;
+    height: 28px;
+    font-size: 0.75rem;
+}
+
+.card-animate {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card-animate:hover {
+    transform: translateY(-5px);
+}
+
+/* Timeline Styles */
+.timeline {
+    position: relative;
+    padding-left: 45px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background-color: #e9ebec;
+}
+
+.timeline-item {
+    position: relative;
+}
+
+.timeline-icon {
+    position: absolute;
+    left: -45px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 0.875rem;
+    z-index: 1;
+}
+
+.timeline-content {
+    position: relative;
+}
+
+.hover-shadow:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 768px) {
+    .avatar-xxl {
+        width: 80px;
+        height: 80px;
+    }
+
+    .avatar-xxl .avatar-title {
+        width: 80px;
+        height: 80px;
+        font-size: 2rem !important;
+    }
+
+    .timeline {
+        padding-left: 35px;
+    }
+
+    .timeline-icon {
+        left: -35px;
+        width: 24px;
+        height: 24px;
+        font-size: 0.75rem;
+    }
+}
+</style>
+{% endblock %}

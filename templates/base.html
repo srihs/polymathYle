@@ -255,30 +255,25 @@
                         </a>
                         <div class="collapse menu-dropdown" id="sidebarCourses">
                             <ul class="nav nav-sm flex-column">
+                                {% if perms.courses.view_ylelevel %}
+                                <li class="nav-item">
+                                    <a href="{% url 'level_list' %}" class="nav-link">
+                                        <i class="ri-stack-line"></i> YLE Levels
+                                    </a>
+                                </li>
+                                {% endif %}
                                 {% if perms.courses.view_class %}
                                 <li class="nav-item">
-                                    <a href="/admin/courses/class/" class="nav-link">
+                                    <a href="{% url 'class_list' %}" class="nav-link">
                                         <i class="ri-home-4-line"></i> All Classes
                                     </a>
                                 </li>
                                 {% endif %}
-                                {% if perms.courses.view_ylelevel %}
                                 <li class="nav-item">
-                                    <a href="/admin/courses/ylelevel/" class="nav-link">
-                                        <i class="ri-stack-line"></i> YLE Levels
+                                    <a href="{% url 'assessment_list' %}" class="nav-link">
+                                        <i class="ri-file-list-3-line"></i> Assessments
                                     </a>
                                 </li>
-                                <li class="nav-item">
-                                    <a href="/admin/courses/unit/" class="nav-link">
-                                        <i class="ri-book-2-line"></i> Units
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="/admin/courses/lesson/" class="nav-link">
-                                        <i class="ri-file-list-3-line"></i> Lessons
-                                    </a>
-                                </li>
-                                {% endif %}
                             </ul>
                         </div>
                     </li>
@@ -322,23 +317,23 @@
                         <div class="collapse menu-dropdown" id="sidebarProgress">
                             <ul class="nav nav-sm flex-column">
                                 <li class="nav-item">
-                                    <a href="/admin/progress/skillprogress/" class="nav-link">
+                                    <a href="{% url 'progress_dashboard' %}" class="nav-link">
+                                        <i class="ri-dashboard-line"></i> Progress Dashboard
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{% url 'skill_progress_list' %}" class="nav-link">
                                         <i class="ri-stack-line"></i> Skill Progress
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="/admin/progress/lessonprogress/" class="nav-link">
-                                        <i class="ri-book-read-line"></i> Lesson Progress
+                                    <a href="{% url 'unit_progress_list' %}" class="nav-link">
+                                        <i class="ri-book-read-line"></i> Unit Progress
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="/admin/progress/assessmentresult/" class="nav-link">
-                                        <i class="ri-file-chart-line"></i> Assessment Results
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="/admin/progress/practiceattempt/" class="nav-link">
-                                        <i class="ri-edit-box-line"></i> Practice Attempts
+                                    <a href="{% url 'assessment_list' %}" class="nav-link">
+                                        <i class="ri-file-chart-line"></i> Assessments
                                     </a>
                                 </li>
                             </ul>
@@ -347,7 +342,7 @@
                     {% endif %}
 
                     <!-- Certification Menu -->
-                    {% if perms.certification.view_certificate or perms.certification.view_examregistration %}
+                    {% if perms.certification.view_certificate or perms.certification.view_achievement %}
                     <li class="nav-item">
                         <a href="#sidebarCertification" class="nav-link" data-bs-toggle="collapse" role="button"
                            aria-expanded="false" aria-controls="sidebarCertification">
@@ -356,20 +351,34 @@
                         <div class="collapse menu-dropdown" id="sidebarCertification">
                             <ul class="nav nav-sm flex-column">
                                 <li class="nav-item">
-                                    <a href="/admin/certification/examregistration/" class="nav-link">
-                                        <i class="ri-file-list-line"></i> Exam Registrations
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="/admin/certification/examresult/" class="nav-link">
-                                        <i class="ri-file-chart-line"></i> Exam Results
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="/admin/certification/certificate/" class="nav-link">
+                                    <a href="{% url 'certificate_list' %}" class="nav-link">
                                         <i class="ri-award-fill"></i> Certificates
                                     </a>
                                 </li>
+                                <li class="nav-item">
+                                    <a href="{% url 'achievement_list' %}" class="nav-link">
+                                        <i class="ri-trophy-line"></i> Achievements
+                                    </a>
+                                </li>
+                                {% if perms.certification.add_certificate %}
+                                <li class="nav-item">
+                                    <a href="{% url 'certificate_issue' %}" class="nav-link">
+                                        <i class="ri-file-add-line"></i> Issue Certificate
+                                    </a>
+                                </li>
+                                {% endif %}
+                                <li class="nav-item">
+                                    <a href="{% url 'certificate_verify' %}" class="nav-link">
+                                        <i class="ri-shield-check-line"></i> Verify Certificate
+                                    </a>
+                                </li>
+                                {% if user.is_staff %}
+                                <li class="nav-item">
+                                    <a href="{% url 'certification_report' %}" class="nav-link">
+                                        <i class="ri-bar-chart-box-line"></i> Certification Report
+                                    </a>
+                                </li>
+                                {% endif %}
                             </ul>
                         </div>
                     </li>
@@ -389,18 +398,18 @@
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="#" class="nav-link">
+                                    <a href="{% url 'progress_dashboard' %}" class="nav-link">
                                         <i class="ri-line-chart-line"></i> Progress Report
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="#" class="nav-link">
-                                        <i class="ri-bar-chart-fill"></i> Class Performance
+                                    <a href="{% url 'certification_report' %}" class="nav-link">
+                                        <i class="ri-bar-chart-fill"></i> Certification Report
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="#" class="nav-link">
-                                        <i class="ri-trophy-line"></i> Badge Summary
+                                    <a href="{% url 'achievement_list' %}" class="nav-link">
+                                        <i class="ri-trophy-line"></i> Achievements Summary
                                     </a>
                                 </li>
                             </ul>

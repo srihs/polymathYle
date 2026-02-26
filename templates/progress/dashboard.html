@@ -1,0 +1,645 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block PageTitle %}My Progress - PolymathYLE{% endblock %}
+{% block pageTitle %}My Progress{% endblock %}
+{% block Title %}Progress{% endblock %}
+{% block functionTitle %}Learning Progress{% endblock %}
+
+{% block content %}
+<!-- Welcome Header Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card card-animate bg-primary bg-gradient">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0 me-4">
+                        {% if student.profile_picture %}
+                            <img src="{{ student.profile_picture.url }}" alt="{{ student.full_name }}"
+                                 class="avatar-lg rounded-circle border border-3 border-white border-opacity-50 object-fit-cover">
+                        {% else %}
+                            <div class="avatar-lg bg-white bg-opacity-25 rounded-circle d-flex align-items-center justify-content-center">
+                                <span class="text-white fs-1 fw-bold">{{ student.full_name|first|upper }}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="flex-grow-1">
+                        <h4 class="text-white mb-1">Welcome back, {{ student.full_name }}!</h4>
+                        <p class="text-white-75 mb-0">
+                            <i class="ri-trophy-line me-1"></i> {{ total_points|default:0 }} points earned
+                            <span class="mx-2">|</span>
+                            <i class="ri-fire-line me-1"></i> {{ streak_days|default:0 }} day streak
+                            <span class="mx-2 d-none d-md-inline">|</span>
+                            <span class="d-none d-md-inline"><i class="ri-book-open-line me-1"></i> {{ student.current_level }}</span>
+                        </p>
+                    </div>
+                    <div class="d-none d-lg-block">
+                        <div class="text-end">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="text-center px-3 border-end border-white border-opacity-25">
+                                    <h3 class="text-white mb-0">{{ overall_progress|default:0 }}%</h3>
+                                    <small class="text-white-75">Overall</small>
+                                </div>
+                                <div class="text-center px-3">
+                                    <h3 class="text-white mb-0">{{ badges_count|default:0 }}</h3>
+                                    <small class="text-white-75">Badges</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards Row -->
+<div class="row">
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Lessons Completed</p>
+                        <h2 class="mt-3 mb-0 ff-secondary fw-semibold">
+                            <span class="counter-value" data-target="{{ lessons_completed|default:0 }}">{{ lessons_completed|default:0 }}</span>
+                            <span class="text-muted fs-6">/ {{ total_lessons|default:0 }}</span>
+                        </h2>
+                        <p class="text-muted mb-0 mt-2">
+                            <span class="badge bg-success-subtle text-success me-1">
+                                <i class="ri-book-read-line align-middle"></i>
+                            </span>
+                            <span class="text-muted">lessons done</span>
+                        </p>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-primary-subtle rounded-circle fs-2">
+                            <i class="ri-book-open-line text-primary"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Activities Done</p>
+                        <h2 class="mt-3 mb-0 ff-secondary fw-semibold">
+                            <span class="counter-value" data-target="{{ activities_completed|default:0 }}">{{ activities_completed|default:0 }}</span>
+                            <span class="text-muted fs-6">/ {{ total_activities|default:0 }}</span>
+                        </h2>
+                        <p class="text-muted mb-0 mt-2">
+                            <span class="badge bg-info-subtle text-info me-1">
+                                <i class="ri-gamepad-line align-middle"></i>
+                            </span>
+                            <span class="text-muted">activities</span>
+                        </p>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-info-subtle rounded-circle fs-2">
+                            <i class="ri-gamepad-fill text-info"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Points Earned</p>
+                        <h2 class="mt-3 mb-0 ff-secondary fw-semibold">
+                            <span class="counter-value" data-target="{{ total_points|default:0 }}">{{ total_points|default:0 }}</span>
+                        </h2>
+                        <p class="text-muted mb-0 mt-2">
+                            <span class="badge bg-warning-subtle text-warning me-1">
+                                <i class="ri-star-line align-middle"></i>
+                            </span>
+                            <span class="text-muted">total points</span>
+                        </p>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-warning-subtle rounded-circle fs-2">
+                            <i class="ri-copper-coin-fill text-warning"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Average Score</p>
+                        <h2 class="mt-3 mb-0 ff-secondary fw-semibold">
+                            <span class="counter-value" data-target="{{ average_score|default:0 }}">{{ average_score|default:0 }}</span>%
+                        </h2>
+                        <p class="text-muted mb-0 mt-2">
+                            <span class="badge bg-{% if average_score >= 80 %}success{% elif average_score >= 60 %}warning{% else %}danger{% endif %}-subtle text-{% if average_score >= 80 %}success{% elif average_score >= 60 %}warning{% else %}danger{% endif %} me-1">
+                                <i class="ri-line-chart-line align-middle"></i>
+                            </span>
+                            <span class="text-muted">performance</span>
+                        </p>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-success-subtle rounded-circle fs-2">
+                            <i class="ri-percent-fill text-success"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Skills Progress Section -->
+    <div class="col-xl-8">
+        <div class="card h-100">
+            <div class="card-header border-bottom">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <div class="avatar-sm">
+                                <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                    <i class="ri-bar-chart-grouped-line"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="card-title mb-0">Skills Progress</h5>
+                            <p class="text-muted mb-0 small">Your progress in Cambridge YLE skills</p>
+                        </div>
+                    </div>
+                    <a href="{% url 'progress:skill_progress_list' %}" class="btn btn-sm btn-soft-primary">
+                        View All <i class="ri-arrow-right-line ms-1"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <!-- Listening -->
+                    <div class="col-lg-6">
+                        <a href="{% url 'progress:skill_progress_detail' skill='listening' %}" class="text-decoration-none">
+                            <div class="border rounded p-3 h-100 card-animate">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="avatar-sm flex-shrink-0 me-3">
+                                        <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                            <i class="ri-headphone-line"></i>
+                                        </span>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-0 text-dark">Listening</h6>
+                                        <small class="text-muted">Audio comprehension</small>
+                                    </div>
+                                    <div class="flex-shrink-0">
+                                        <span class="badge bg-primary fs-6">{{ listening_progress|default:0 }}%</span>
+                                    </div>
+                                </div>
+                                <div class="progress" style="height: 10px;" role="progressbar" aria-label="Listening progress" aria-valuenow="{{ listening_progress|default:0 }}" aria-valuemin="0" aria-valuemax="100">
+                                    <div class="progress-bar bg-primary progress-bar-striped progress-bar-animated"
+                                         style="width: {{ listening_progress|default:0 }}%"></div>
+                                </div>
+                                <div class="d-flex justify-content-between mt-2">
+                                    <small class="text-muted">{{ listening_activities_done|default:0 }} activities completed</small>
+                                    <small class="text-muted">Avg: {{ listening_avg_score|default:0 }}%</small>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- Reading -->
+                    <div class="col-lg-6">
+                        <a href="{% url 'progress:skill_progress_detail' skill='reading' %}" class="text-decoration-none">
+                            <div class="border rounded p-3 h-100 card-animate">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="avatar-sm flex-shrink-0 me-3">
+                                        <span class="avatar-title bg-success-subtle text-success rounded-circle">
+                                            <i class="ri-book-read-line"></i>
+                                        </span>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-0 text-dark">Reading</h6>
+                                        <small class="text-muted">Text comprehension</small>
+                                    </div>
+                                    <div class="flex-shrink-0">
+                                        <span class="badge bg-success fs-6">{{ reading_progress|default:0 }}%</span>
+                                    </div>
+                                </div>
+                                <div class="progress" style="height: 10px;" role="progressbar" aria-label="Reading progress" aria-valuenow="{{ reading_progress|default:0 }}" aria-valuemin="0" aria-valuemax="100">
+                                    <div class="progress-bar bg-success progress-bar-striped progress-bar-animated"
+                                         style="width: {{ reading_progress|default:0 }}%"></div>
+                                </div>
+                                <div class="d-flex justify-content-between mt-2">
+                                    <small class="text-muted">{{ reading_activities_done|default:0 }} activities completed</small>
+                                    <small class="text-muted">Avg: {{ reading_avg_score|default:0 }}%</small>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- Writing -->
+                    <div class="col-lg-6">
+                        <a href="{% url 'progress:skill_progress_detail' skill='writing' %}" class="text-decoration-none">
+                            <div class="border rounded p-3 h-100 card-animate">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="avatar-sm flex-shrink-0 me-3">
+                                        <span class="avatar-title bg-warning-subtle text-warning rounded-circle">
+                                            <i class="ri-edit-line"></i>
+                                        </span>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-0 text-dark">Writing</h6>
+                                        <small class="text-muted">Written expression</small>
+                                    </div>
+                                    <div class="flex-shrink-0">
+                                        <span class="badge bg-warning fs-6">{{ writing_progress|default:0 }}%</span>
+                                    </div>
+                                </div>
+                                <div class="progress" style="height: 10px;" role="progressbar" aria-label="Writing progress" aria-valuenow="{{ writing_progress|default:0 }}" aria-valuemin="0" aria-valuemax="100">
+                                    <div class="progress-bar bg-warning progress-bar-striped progress-bar-animated"
+                                         style="width: {{ writing_progress|default:0 }}%"></div>
+                                </div>
+                                <div class="d-flex justify-content-between mt-2">
+                                    <small class="text-muted">{{ writing_activities_done|default:0 }} activities completed</small>
+                                    <small class="text-muted">Avg: {{ writing_avg_score|default:0 }}%</small>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- Speaking -->
+                    <div class="col-lg-6">
+                        <a href="{% url 'progress:skill_progress_detail' skill='speaking' %}" class="text-decoration-none">
+                            <div class="border rounded p-3 h-100 card-animate">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="avatar-sm flex-shrink-0 me-3">
+                                        <span class="avatar-title bg-info-subtle text-info rounded-circle">
+                                            <i class="ri-mic-line"></i>
+                                        </span>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-0 text-dark">Speaking</h6>
+                                        <small class="text-muted">Oral communication</small>
+                                    </div>
+                                    <div class="flex-shrink-0">
+                                        <span class="badge bg-info fs-6">{{ speaking_progress|default:0 }}%</span>
+                                    </div>
+                                </div>
+                                <div class="progress" style="height: 10px;" role="progressbar" aria-label="Speaking progress" aria-valuenow="{{ speaking_progress|default:0 }}" aria-valuemin="0" aria-valuemax="100">
+                                    <div class="progress-bar bg-info progress-bar-striped progress-bar-animated"
+                                         style="width: {{ speaking_progress|default:0 }}%"></div>
+                                </div>
+                                <div class="d-flex justify-content-between mt-2">
+                                    <small class="text-muted">{{ speaking_activities_done|default:0 }} activities completed</small>
+                                    <small class="text-muted">Avg: {{ speaking_avg_score|default:0 }}%</small>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Current Unit Progress Card -->
+    <div class="col-xl-4">
+        <div class="card h-100">
+            <div class="card-header border-bottom">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <div class="avatar-sm">
+                                <span class="avatar-title bg-success-subtle text-success rounded-circle">
+                                    <i class="ri-folder-open-line"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div>
+                            <h5 class="card-title mb-0">Current Unit</h5>
+                            <p class="text-muted mb-0 small">Continue where you left off</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if current_unit %}
+                    <div class="text-center mb-4">
+                        <div class="avatar-lg mx-auto mb-3">
+                            <span class="avatar-title bg-primary-subtle text-primary rounded-circle fs-1">
+                                <i class="ri-book-3-line"></i>
+                            </span>
+                        </div>
+                        <h5 class="mb-1">{{ current_unit.title }}</h5>
+                        <p class="text-muted small mb-3">{{ current_unit.description|truncatechars:80 }}</p>
+
+                        <div class="d-flex justify-content-center gap-3 mb-3">
+                            <div class="text-center">
+                                <h4 class="mb-0 text-primary">{{ current_unit_progress|default:0 }}%</h4>
+                                <small class="text-muted">Complete</small>
+                            </div>
+                            <div class="vr"></div>
+                            <div class="text-center">
+                                <h4 class="mb-0 text-success">{{ current_unit_lessons_done|default:0 }}/{{ current_unit_total_lessons|default:0 }}</h4>
+                                <small class="text-muted">Lessons</small>
+                            </div>
+                        </div>
+
+                        <div class="progress mb-4" style="height: 12px;" role="progressbar" aria-label="Unit progress" aria-valuenow="{{ current_unit_progress|default:0 }}" aria-valuemin="0" aria-valuemax="100">
+                            <div class="progress-bar bg-primary progress-bar-striped progress-bar-animated"
+                                 style="width: {{ current_unit_progress|default:0 }}%"></div>
+                        </div>
+
+                        <a href="{% url 'progress:unit_progress_detail' unit_id=current_unit.id %}" class="btn btn-primary w-100">
+                            <i class="ri-play-circle-line me-1"></i> Continue Learning
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <div class="avatar-lg mx-auto mb-3">
+                            <span class="avatar-title bg-info-subtle text-info rounded-circle">
+                                <i class="ri-rocket-line fs-1"></i>
+                            </span>
+                        </div>
+                        <h5 class="text-muted mb-2">Ready to Start?</h5>
+                        <p class="text-muted mb-3">Begin your learning journey by exploring the available units.</p>
+                        <a href="{% url 'progress:unit_progress_list' %}" class="btn btn-primary">
+                            <i class="ri-folder-open-line me-1"></i> Browse Units
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+            {% if current_unit %}
+            <div class="card-footer bg-light border-top">
+                <a href="{% url 'progress:unit_progress_list' %}" class="btn btn-sm btn-soft-primary w-100">
+                    <i class="ri-grid-line me-1"></i> View All Units
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity Section -->
+<div class="row mt-4">
+    <div class="col-xl-8">
+        <div class="card h-100">
+            <div class="card-header border-bottom">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <div class="avatar-sm">
+                                <span class="avatar-title bg-info-subtle text-info rounded-circle">
+                                    <i class="ri-history-line"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div>
+                            <h5 class="card-title mb-0">Recent Activity</h5>
+                            <p class="text-muted mb-0 small">Your latest learning activities</p>
+                        </div>
+                    </div>
+                    <a href="{% url 'progress:activity_history' %}" class="btn btn-sm btn-soft-info">
+                        View All <i class="ri-arrow-right-line ms-1"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if recent_activities %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Activity</th>
+                                    <th>Skill</th>
+                                    <th class="text-center">Score</th>
+                                    <th>Date</th>
+                                    <th class="text-end">Points</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for activity in recent_activities|slice:":5" %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-xs flex-shrink-0 me-2">
+                                                    <span class="avatar-title bg-{% if activity.activity_type == 'QUIZ' %}primary{% elif activity.activity_type == 'EXERCISE' %}success{% elif activity.activity_type == 'GAME' %}warning{% else %}info{% endif %}-subtle text-{% if activity.activity_type == 'QUIZ' %}primary{% elif activity.activity_type == 'EXERCISE' %}success{% elif activity.activity_type == 'GAME' %}warning{% else %}info{% endif %} rounded-circle">
+                                                        <i class="ri-{% if activity.activity_type == 'QUIZ' %}question{% elif activity.activity_type == 'EXERCISE' %}pencil{% elif activity.activity_type == 'GAME' %}gamepad{% else %}file-list{% endif %}-line"></i>
+                                                    </span>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-0 fw-medium">{{ activity.title }}</h6>
+                                                    <small class="text-muted">{{ activity.get_activity_type_display }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if activity.skill == 'LISTENING' %}
+                                                <span class="badge bg-primary-subtle text-primary">
+                                                    <i class="ri-headphone-line me-1"></i>Listening
+                                                </span>
+                                            {% elif activity.skill == 'READING' %}
+                                                <span class="badge bg-success-subtle text-success">
+                                                    <i class="ri-book-read-line me-1"></i>Reading
+                                                </span>
+                                            {% elif activity.skill == 'WRITING' %}
+                                                <span class="badge bg-warning-subtle text-warning">
+                                                    <i class="ri-edit-line me-1"></i>Writing
+                                                </span>
+                                            {% elif activity.skill == 'SPEAKING' %}
+                                                <span class="badge bg-info-subtle text-info">
+                                                    <i class="ri-mic-line me-1"></i>Speaking
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-{% if activity.score >= 80 %}success{% elif activity.score >= 60 %}warning{% else %}danger{% endif %} fs-6">
+                                                {{ activity.score }}%
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">
+                                                <i class="ri-calendar-line me-1"></i>{{ activity.completed_at|date:"M d, Y" }}
+                                            </small>
+                                        </td>
+                                        <td class="text-end">
+                                            <span class="text-warning fw-medium">
+                                                <i class="ri-star-fill me-1"></i>+{{ activity.points_earned|default:0 }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <div class="avatar-lg mx-auto mb-3">
+                            <span class="avatar-title bg-info-subtle text-info rounded-circle">
+                                <i class="ri-history-line fs-1"></i>
+                            </span>
+                        </div>
+                        <h5 class="text-muted mb-2">No Activity Yet</h5>
+                        <p class="text-muted mb-0">Start completing activities to see your progress here.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Achievements Preview -->
+    <div class="col-xl-4 mt-4 mt-xl-0">
+        <div class="card h-100">
+            <div class="card-header border-bottom">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <div class="avatar-sm">
+                                <span class="avatar-title bg-warning-subtle text-warning rounded-circle">
+                                    <i class="ri-medal-fill"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div>
+                            <h5 class="card-title mb-0">Recent Badges</h5>
+                            <p class="text-muted mb-0 small">Your achievements</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if recent_badges %}
+                    <div class="d-flex flex-column gap-3">
+                        {% for badge in recent_badges|slice:":4" %}
+                            <div class="d-flex align-items-center p-3 border rounded card-animate">
+                                <div class="avatar-sm flex-shrink-0">
+                                    <span class="avatar-title bg-warning-subtle text-warning rounded-circle fs-4">
+                                        {{ badge.badge_icon|default:"" }}
+                                    </span>
+                                </div>
+                                <div class="flex-grow-1 ms-3 overflow-hidden">
+                                    <h6 class="mb-1 text-truncate">{{ badge.badge_name }}</h6>
+                                    <small class="text-muted">
+                                        <i class="ri-calendar-line me-1"></i>{{ badge.earned_date|date:"M d, Y" }}
+                                    </small>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <div class="avatar-lg mx-auto mb-3">
+                            <span class="avatar-title bg-warning-subtle text-warning rounded-circle">
+                                <i class="ri-award-line fs-1"></i>
+                            </span>
+                        </div>
+                        <h5 class="text-muted mb-2">No badges yet</h5>
+                        <p class="text-muted mb-0">Keep learning to earn badges!</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Counter animation
+    $('.counter-value').each(function() {
+        var $this = $(this);
+        var target = parseInt($this.attr('data-target'), 10);
+
+        if (isNaN(target)) {
+            target = 0;
+        }
+
+        $({ Counter: 0 }).animate({ Counter: target }, {
+            duration: 1500,
+            easing: 'swing',
+            step: function() {
+                $this.text(Math.ceil(this.Counter));
+            },
+            complete: function() {
+                $this.text(target);
+            }
+        });
+    });
+});
+</script>
+
+<style>
+.text-white-75 {
+    color: rgba(255, 255, 255, 0.75) !important;
+}
+
+.avatar-lg {
+    width: 64px;
+    height: 64px;
+}
+
+.avatar-md {
+    width: 48px;
+    height: 48px;
+}
+
+.avatar-sm {
+    width: 32px;
+    height: 32px;
+}
+
+.avatar-xs {
+    width: 24px;
+    height: 24px;
+}
+
+.avatar-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.object-fit-cover {
+    object-fit: cover;
+}
+
+.progress {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.card-animate {
+    transition: all 0.3s ease;
+}
+
+.card-animate:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 768px) {
+    .avatar-lg {
+        width: 48px;
+        height: 48px;
+    }
+
+    .avatar-md {
+        width: 40px;
+        height: 40px;
+    }
+}
+</style>
+{% endblock %}

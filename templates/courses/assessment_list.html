@@ -1,0 +1,395 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block PageTitle %}Assessments - Polymath School of English{% endblock %}
+{% block pageTitle %}Assessments{% endblock %}
+{% block Title %}Courses{% endblock %}
+{% block functionTitle %}All Assessments{% endblock %}
+
+{% block content %}
+<!-- Statistics Summary -->
+<div class="row">
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate bg-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="fw-medium text-white-75 mb-0">Total Assessments</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ total_assessments|default:0 }}</h2>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-clipboard-line text-white"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate bg-info">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="fw-medium text-white-75 mb-0">Unit Tests</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ unit_tests|default:0 }}</h2>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-file-list-3-line text-white"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate bg-danger">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="fw-medium text-white-75 mb-0">Level Finals</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ level_tests|default:0 }}</h2>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-award-line text-white"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate bg-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="fw-medium text-white-75 mb-0">Practice Tests</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ practice_tests|default:0 }}</h2>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-edit-box-line text-white"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Section -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header border-bottom">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h5 class="card-title mb-0">
+                            <i class="ri-filter-3-line me-2"></i>Filter Assessments
+                        </h5>
+                    </div>
+                    <div class="col-auto">
+                        {% if perms.courses.add_assessment %}
+                        <a href="{% url 'admin:courses_assessment_add' %}" class="btn btn-success">
+                            <i class="ri-add-line me-1"></i> Add New Assessment
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <form method="get" action="{% url 'assessment_list' %}" id="filterForm">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-lg-3 col-md-6">
+                            <label for="search" class="form-label">Search</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="ri-search-line"></i></span>
+                                <input type="text"
+                                       class="form-control"
+                                       id="search"
+                                       name="search"
+                                       value="{{ search_query }}"
+                                       placeholder="Search assessments..."
+                                       aria-label="Search assessments">
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <label for="level" class="form-label">Level</label>
+                            <select class="form-select" id="level" name="level" aria-label="Filter by level">
+                                <option value="">All Levels</option>
+                                {% for level in levels %}
+                                <option value="{{ level.id }}" {% if level_filter == level.id|stringformat:'i' %}selected{% endif %}>
+                                    {{ level.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <label for="type" class="form-label">Type</label>
+                            <select class="form-select" id="type" name="type" aria-label="Filter by type">
+                                <option value="">All Types</option>
+                                <option value="UNIT_TEST" {% if type_filter == 'UNIT_TEST' %}selected{% endif %}>Unit Test</option>
+                                <option value="LEVEL_TEST" {% if type_filter == 'LEVEL_TEST' %}selected{% endif %}>Level Final</option>
+                                <option value="PRACTICE_TEST" {% if type_filter == 'PRACTICE_TEST' %}selected{% endif %}>Practice Test</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <label for="skill" class="form-label">Skill</label>
+                            <select class="form-select" id="skill" name="skill" aria-label="Filter by skill">
+                                <option value="">All Skills</option>
+                                <option value="listening" {% if skill_filter == 'listening' %}selected{% endif %}>Listening</option>
+                                <option value="reading" {% if skill_filter == 'reading' %}selected{% endif %}>Reading</option>
+                                <option value="writing" {% if skill_filter == 'writing' %}selected{% endif %}>Writing</option>
+                                <option value="speaking" {% if skill_filter == 'speaking' %}selected{% endif %}>Speaking</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary flex-grow-1">
+                                    <i class="ri-search-line me-1"></i> Filter
+                                </button>
+                                <a href="{% url 'assessment_list' %}" class="btn btn-outline-secondary" title="Reset">
+                                    <i class="ri-refresh-line"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Assessments List -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header border-bottom">
+                <h5 class="card-title mb-0">
+                    <i class="ri-clipboard-line me-2"></i>Assessment Library
+                    <span class="badge bg-primary-subtle text-primary ms-2">{{ assessments|length }} assessments</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if assessments %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col">Assessment</th>
+                                <th scope="col">Type</th>
+                                <th scope="col">Level/Unit</th>
+                                <th scope="col">Skills Tested</th>
+                                <th scope="col" class="text-center">Duration</th>
+                                <th scope="col" class="text-center">Passing</th>
+                                <th scope="col">Status</th>
+                                <th scope="col" class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for assessment in assessments %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-sm me-3">
+                                            {% if assessment.assessment_type == 'LEVEL_TEST' %}
+                                            <span class="avatar-title bg-danger-subtle text-danger rounded">
+                                                <i class="ri-award-line"></i>
+                                            </span>
+                                            {% elif assessment.assessment_type == 'PRACTICE_TEST' %}
+                                            <span class="avatar-title bg-success-subtle text-success rounded">
+                                                <i class="ri-edit-box-line"></i>
+                                            </span>
+                                            {% else %}
+                                            <span class="avatar-title bg-info-subtle text-info rounded">
+                                                <i class="ri-file-list-3-line"></i>
+                                            </span>
+                                            {% endif %}
+                                        </div>
+                                        <div>
+                                            <a href="{% url 'assessment_detail' assessment.id %}" class="text-dark fw-medium">
+                                                {{ assessment.title }}
+                                            </a>
+                                            <p class="text-muted mb-0 small">{{ assessment.description|truncatewords:8 }}</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if assessment.assessment_type == 'LEVEL_TEST' %}
+                                    <span class="badge bg-danger-subtle text-danger">Level Final</span>
+                                    {% elif assessment.assessment_type == 'PRACTICE_TEST' %}
+                                    <span class="badge bg-success-subtle text-success">Practice</span>
+                                    {% else %}
+                                    <span class="badge bg-info-subtle text-info">Unit Test</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if assessment.level %}
+                                    <a href="{% url 'level_detail' assessment.level.id %}" class="text-decoration-none">
+                                        {% if assessment.level.short_code == 'STARTERS' %}
+                                        <span class="badge bg-info-subtle text-info">
+                                            <i class="ri-seedling-line me-1"></i>{{ assessment.level.name }}
+                                        </span>
+                                        {% elif assessment.level.short_code == 'MOVERS' %}
+                                        <span class="badge bg-warning-subtle text-warning">
+                                            <i class="ri-run-line me-1"></i>{{ assessment.level.name }}
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-success-subtle text-success">
+                                            <i class="ri-rocket-line me-1"></i>{{ assessment.level.name }}
+                                        </span>
+                                        {% endif %}
+                                    </a>
+                                    {% elif assessment.unit %}
+                                    <a href="{% url 'unit_detail' assessment.unit.id %}" class="text-decoration-none">
+                                        <span class="badge bg-primary-subtle text-primary">{{ assessment.unit.title|truncatewords:3 }}</span>
+                                    </a>
+                                    {% else %}
+                                    <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="d-flex flex-wrap gap-1">
+                                        {% if assessment.tests_listening %}
+                                        <span class="badge bg-primary-subtle text-primary" title="Listening">
+                                            <i class="ri-headphone-line"></i>
+                                        </span>
+                                        {% endif %}
+                                        {% if assessment.tests_reading %}
+                                        <span class="badge bg-info-subtle text-info" title="Reading">
+                                            <i class="ri-book-read-line"></i>
+                                        </span>
+                                        {% endif %}
+                                        {% if assessment.tests_writing %}
+                                        <span class="badge bg-success-subtle text-success" title="Writing">
+                                            <i class="ri-edit-line"></i>
+                                        </span>
+                                        {% endif %}
+                                        {% if assessment.tests_speaking %}
+                                        <span class="badge bg-warning-subtle text-warning" title="Speaking">
+                                            <i class="ri-speak-line"></i>
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <span class="fw-medium">{{ assessment.time_limit_minutes }}</span>
+                                    <small class="text-muted">mins</small>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-primary">{{ assessment.passing_percentage }}%</span>
+                                </td>
+                                <td>
+                                    {% if assessment.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <div class="d-flex justify-content-end gap-1">
+                                        <a href="{% url 'assessment_detail' assessment.id %}"
+                                           class="btn btn-sm btn-soft-primary"
+                                           title="View Details"
+                                           aria-label="View {{ assessment.title }}">
+                                            <i class="ri-eye-line"></i>
+                                        </a>
+                                        {% if perms.courses.change_assessment %}
+                                        <a href="{% url 'admin:courses_assessment_change' assessment.id %}"
+                                           class="btn btn-sm btn-soft-warning"
+                                           title="Edit Assessment"
+                                           aria-label="Edit {{ assessment.title }}">
+                                            <i class="ri-edit-line"></i>
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                {% if page_obj.has_other_pages %}
+                <nav class="mt-4" aria-label="Assessment list pagination">
+                    <ul class="pagination justify-content-center mb-0">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}">
+                                <i class="ri-arrow-left-s-line"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                        <li class="page-item active">
+                            <span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                        </li>
+                        {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}">
+                                <i class="ri-arrow-right-s-line"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+
+                {% else %}
+                <!-- Empty State -->
+                <div class="text-center py-5">
+                    <div class="avatar-lg mx-auto mb-4">
+                        <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                            <i class="ri-clipboard-line fs-1"></i>
+                        </span>
+                    </div>
+                    <h5>No Assessments Found</h5>
+                    <p class="text-muted mb-4">
+                        {% if search_query or level_filter or type_filter or skill_filter %}
+                        No assessments match your current filter criteria.
+                        {% else %}
+                        Get started by creating assessments for your courses.
+                        {% endif %}
+                    </p>
+                    <div class="d-flex justify-content-center gap-2">
+                        {% if search_query or level_filter or type_filter or skill_filter %}
+                        <a href="{% url 'assessment_list' %}" class="btn btn-outline-primary">
+                            <i class="ri-refresh-line me-1"></i>Clear Filters
+                        </a>
+                        {% endif %}
+                        {% if perms.courses.add_assessment %}
+                        <a href="{% url 'admin:courses_assessment_add' %}" class="btn btn-success">
+                            <i class="ri-add-line me-1"></i>Add New Assessment
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Auto-submit on filter change
+    $('#level, #type, #skill').on('change', function() {
+        $('#filterForm').submit();
+    });
+});
+</script>
+
+<style>
+.card-animate {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card-animate:hover {
+    transform: translateY(-3px);
+}
+</style>
+{% endblock %}

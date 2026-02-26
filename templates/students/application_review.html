@@ -7,44 +7,178 @@
 {% block functionTitle %}Review & Approve{% endblock %}
 
 {% block content %}
-<!-- Application Header -->
+<!-- Application Profile Header -->
 <div class="row">
     <div class="col-12">
-        <div class="card">
-            <div class="card-body">
-                <div class="row align-items-center">
-                    <div class="col">
-                        <h3 class="mb-1">{{ application.full_name }}</h3>
-                        <p class="text-muted mb-2">Application Review</p>
-                        <div class="d-flex flex-wrap gap-2">
-                            {% if application.admission_number %}
-                                <span class="badge bg-primary">{{ application.admission_number }}</span>
-                            {% else %}
-                                <span class="badge bg-secondary">No Admission Number</span>
-                            {% endif %}
-                            {% if application.status == 'PENDING' %}
-                                <span class="badge bg-warning">Pending Review</span>
-                            {% elif application.status == 'APPROVED' %}
-                                <span class="badge bg-success">Approved</span>
-                            {% elif application.status == 'REJECTED' %}
-                                <span class="badge bg-danger">Rejected</span>
-                            {% elif application.status == 'WAITLIST' %}
-                                <span class="badge bg-secondary">Waitlist</span>
-                            {% endif %}
-                            {% if application.application_type == 'ONLINE' %}
-                                <span class="badge bg-info">Online Application</span>
-                            {% else %}
-                                <span class="badge bg-secondary">Offline Application</span>
-                            {% endif %}
+        <div class="card overflow-hidden">
+            <div class="card-body bg-primary bg-opacity-10 position-relative" style="min-height: 120px;">
+                <!-- Background pattern -->
+                <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(135deg, var(--bs-primary) 0%, transparent 50%); opacity: 0.1;"></div>
+            </div>
+            <div class="card-body pt-0">
+                <div class="row align-items-end">
+                    <div class="col-auto" style="margin-top: -50px;">
+                        <div class="avatar-xxl border border-4 border-white shadow rounded-circle">
+                            <span class="avatar-title bg-primary text-white rounded-circle" style="font-size: 2.5rem;">
+                                {{ application.full_name|first|upper }}
+                            </span>
                         </div>
                     </div>
-                    <div class="col-auto">
-                        <button onclick="window.history.back()" class="btn btn-secondary me-2">
-                            <i class="ri-arrow-left-line me-1"></i> Back
-                        </button>
-                        <a href="{% url 'application_list' %}" class="btn btn-info">
-                            <i class="ri-file-list-line me-1"></i> All Applications
-                        </a>
+                    <div class="col">
+                        <div class="d-flex flex-wrap justify-content-between align-items-start">
+                            <div>
+                                <h3 class="mb-1">{{ application.full_name }}</h3>
+                                <p class="text-muted mb-2">{{ application.name_with_initials }}</p>
+                                <div class="d-flex flex-wrap gap-2">
+                                    {% if application.admission_number %}
+                                        <span class="badge bg-primary-subtle text-primary">
+                                            <i class="ri-hashtag me-1"></i>{{ application.admission_number }}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-secondary-subtle text-secondary">
+                                            <i class="ri-hashtag me-1"></i>No Admission Number
+                                        </span>
+                                    {% endif %}
+                                    {% if application.status == 'PENDING' %}
+                                        <span class="badge bg-warning-subtle text-warning">
+                                            <i class="ri-time-line me-1"></i>Pending Review
+                                        </span>
+                                    {% elif application.status == 'APPROVED' %}
+                                        <span class="badge bg-success-subtle text-success">
+                                            <i class="ri-check-line me-1"></i>Approved
+                                        </span>
+                                    {% elif application.status == 'REJECTED' %}
+                                        <span class="badge bg-danger-subtle text-danger">
+                                            <i class="ri-close-line me-1"></i>Rejected
+                                        </span>
+                                    {% elif application.status == 'WAITLIST' %}
+                                        <span class="badge bg-info-subtle text-info">
+                                            <i class="ri-list-check me-1"></i>Waitlist
+                                        </span>
+                                    {% endif %}
+                                    {% if application.application_type == 'ONLINE' %}
+                                        <span class="badge bg-info-subtle text-info">
+                                            <i class="ri-global-line me-1"></i>Online Application
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-secondary-subtle text-secondary">
+                                            <i class="ri-file-paper-2-line me-1"></i>Offline Application
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2 mt-3 mt-md-0">
+                                <button onclick="window.history.back()" class="btn btn-outline-secondary">
+                                    <i class="ri-arrow-left-line me-1"></i> Back
+                                </button>
+                                <a href="{% url 'application_list' %}" class="btn btn-soft-primary">
+                                    <i class="ri-file-list-line me-1"></i> All Applications
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row">
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-3">Application Date</p>
+                        <h4 class="fs-22 fw-semibold mb-1">
+                            {{ application.application_date|date:"M d" }}
+                        </h4>
+                        <p class="text-muted mb-0">{{ application.application_date|date:"Y" }}</p>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-primary-subtle rounded-circle fs-3">
+                            <i class="ri-calendar-line text-primary"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-3">Student Age</p>
+                        <h4 class="fs-22 fw-semibold mb-1">
+                            <span class="counter-value">{{ application.age }}</span>
+                        </h4>
+                        <p class="text-muted mb-0">Years Old</p>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-info-subtle rounded-circle fs-3">
+                            <i class="ri-user-line text-info"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-3">Terms Accepted</p>
+                        <h4 class="fs-22 fw-semibold mb-1">
+                            {% if application.terms_accepted %}
+                                <span class="text-success">Yes</span>
+                            {% else %}
+                                <span class="text-danger">No</span>
+                            {% endif %}
+                        </h4>
+                        <p class="text-muted mb-0">
+                            {% if application.terms_accepted_date %}
+                                {{ application.terms_accepted_date|date:"M d, Y" }}
+                            {% else %}
+                                Not accepted
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title {% if application.terms_accepted %}bg-success-subtle{% else %}bg-danger-subtle{% endif %} rounded-circle fs-3">
+                            <i class="{% if application.terms_accepted %}ri-checkbox-circle-line text-success{% else %}ri-close-circle-line text-danger{% endif %}"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-3">Application Type</p>
+                        <h4 class="fs-22 fw-semibold mb-1">
+                            {{ application.get_application_type_display }}
+                        </h4>
+                        <p class="text-muted mb-0">
+                            {% if application.receipt_number %}
+                                Receipt: {{ application.receipt_number }}
+                            {% else %}
+                                No receipt
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-warning-subtle rounded-circle fs-3">
+                            <i class="ri-file-text-line text-warning"></i>
+                        </span>
                     </div>
                 </div>
             </div>
@@ -53,48 +187,77 @@
 </div>
 
 <div class="row">
-    <!-- Student Information -->
+    <!-- Left Column - Student Information -->
     <div class="col-xl-8">
         <!-- Personal Information -->
         <div class="card">
             <div class="card-header">
-                <h5 class="card-title mb-0">Student Personal Information</h5>
+                <h5 class="card-title mb-0">
+                    <i class="ri-user-line me-2 text-primary"></i>Student Personal Information
+                </h5>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
                     <table class="table table-borderless mb-0">
                         <tbody>
                             <tr>
-                                <th class="ps-0" scope="row" width="250">Full Name</th>
-                                <td class="text-muted">{{ application.full_name }}</td>
+                                <th class="ps-0 text-muted" style="width: 35%;">
+                                    <i class="ri-user-line me-2"></i>Full Name
+                                </th>
+                                <td class="fw-medium">{{ application.full_name }}</td>
                             </tr>
                             <tr>
-                                <th class="ps-0" scope="row">Name with Initials</th>
-                                <td class="text-muted">{{ application.name_with_initials }}</td>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-text me-2"></i>Name with Initials
+                                </th>
+                                <td class="fw-medium">{{ application.name_with_initials }}</td>
                             </tr>
                             <tr>
-                                <th class="ps-0" scope="row">Date of Birth</th>
-                                <td class="text-muted">{{ application.date_of_birth|date:"Y-m-d" }} ({{ application.age }} years old)</td>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-cake-2-line me-2"></i>Date of Birth
+                                </th>
+                                <td class="fw-medium">
+                                    {{ application.date_of_birth|date:"F d, Y" }}
+                                    <span class="badge bg-primary-subtle text-primary ms-2">{{ application.age }} years old</span>
+                                </td>
                             </tr>
                             <tr>
-                                <th class="ps-0" scope="row">Gender</th>
-                                <td class="text-muted">{{ application.get_gender_display }}</td>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-user-3-line me-2"></i>Gender
+                                </th>
+                                <td class="fw-medium">{{ application.get_gender_display }}</td>
                             </tr>
                             <tr>
-                                <th class="ps-0" scope="row">Nationality</th>
-                                <td class="text-muted">{{ application.nationality }}</td>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-global-line me-2"></i>Nationality
+                                </th>
+                                <td class="fw-medium">{{ application.nationality }}</td>
                             </tr>
                             <tr>
-                                <th class="ps-0" scope="row">Student NIC</th>
-                                <td class="text-muted">{{ application.student_nic|default:"Not provided" }}</td>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-id-card-line me-2"></i>Student NIC
+                                </th>
+                                <td class="fw-medium">{{ application.student_nic|default:"Not provided" }}</td>
                             </tr>
                             <tr>
-                                <th class="ps-0" scope="row">Student Email</th>
-                                <td class="text-muted">{{ application.student_email|default:"Not provided" }}</td>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-mail-line me-2"></i>Student Email
+                                </th>
+                                <td>
+                                    {% if application.student_email %}
+                                        <a href="mailto:{{ application.student_email }}" class="text-decoration-none">
+                                            {{ application.student_email }}
+                                        </a>
+                                    {% else %}
+                                        <span class="text-muted">Not provided</span>
+                                    {% endif %}
+                                </td>
                             </tr>
                             <tr>
-                                <th class="ps-0" scope="row">Current School</th>
-                                <td class="text-muted">{{ application.current_school|default:"Not provided" }}</td>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-school-line me-2"></i>Current School
+                                </th>
+                                <td class="fw-medium">{{ application.current_school|default:"Not provided" }}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -105,53 +268,86 @@
         <!-- Family Information -->
         <div class="card">
             <div class="card-header">
-                <h5 class="card-title mb-0">Family Information</h5>
+                <h5 class="card-title mb-0">
+                    <i class="ri-parent-line me-2 text-primary"></i>Family Information
+                </h5>
             </div>
             <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <h6 class="text-uppercase fw-semibold mb-3">Mother</h6>
-                        <table class="table table-borderless table-sm mb-0">
-                            <tbody>
-                                <tr>
-                                    <th class="ps-0">Name</th>
-                                    <td class="text-muted">{{ application.mother_name }}</td>
-                                </tr>
-                                <tr>
-                                    <th class="ps-0">Contact</th>
-                                    <td class="text-muted">{{ application.mother_contact_number }}</td>
-                                </tr>
-                                <tr>
-                                    <th class="ps-0">Occupation</th>
-                                    <td class="text-muted">{{ application.mother_occupation|default:"Not provided" }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                <div class="row g-4">
+                    <!-- Mother Information -->
+                    <div class="col-lg-6">
+                        <div class="border rounded p-3 h-100">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="avatar-sm me-3">
+                                    <span class="avatar-title bg-danger-subtle text-danger rounded-circle">
+                                        <i class="ri-women-line"></i>
+                                    </span>
+                                </div>
+                                <h6 class="text-uppercase fw-semibold mb-0">Mother</h6>
+                            </div>
+                            <table class="table table-borderless table-sm mb-0">
+                                <tbody>
+                                    <tr>
+                                        <th class="ps-0 text-muted" style="width: 35%;">Name</th>
+                                        <td class="fw-medium">{{ application.mother_name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="ps-0 text-muted">Contact</th>
+                                        <td>
+                                            <a href="tel:{{ application.mother_contact_number }}" class="text-decoration-none">
+                                                {{ application.mother_contact_number }}
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th class="ps-0 text-muted">Occupation</th>
+                                        <td class="fw-medium">{{ application.mother_occupation|default:"Not provided" }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                    <div class="col-md-6">
-                        <h6 class="text-uppercase fw-semibold mb-3">Father</h6>
-                        <table class="table table-borderless table-sm mb-0">
-                            <tbody>
-                                <tr>
-                                    <th class="ps-0">Name</th>
-                                    <td class="text-muted">{{ application.father_name }}</td>
-                                </tr>
-                                <tr>
-                                    <th class="ps-0">Contact</th>
-                                    <td class="text-muted">{{ application.father_contact_number }}</td>
-                                </tr>
-                                <tr>
-                                    <th class="ps-0">Occupation</th>
-                                    <td class="text-muted">{{ application.father_occupation|default:"Not provided" }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <!-- Father Information -->
+                    <div class="col-lg-6">
+                        <div class="border rounded p-3 h-100">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="avatar-sm me-3">
+                                    <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                        <i class="ri-men-line"></i>
+                                    </span>
+                                </div>
+                                <h6 class="text-uppercase fw-semibold mb-0">Father</h6>
+                            </div>
+                            <table class="table table-borderless table-sm mb-0">
+                                <tbody>
+                                    <tr>
+                                        <th class="ps-0 text-muted" style="width: 35%;">Name</th>
+                                        <td class="fw-medium">{{ application.father_name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="ps-0 text-muted">Contact</th>
+                                        <td>
+                                            <a href="tel:{{ application.father_contact_number }}" class="text-decoration-none">
+                                                {{ application.father_contact_number }}
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th class="ps-0 text-muted">Occupation</th>
+                                        <td class="fw-medium">{{ application.father_occupation|default:"Not provided" }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
                 {% if application.siblings_info %}
-                    <hr>
-                    <h6 class="text-uppercase fw-semibold mb-2">Siblings Information</h6>
-                    <p class="text-muted">{{ application.siblings_info }}</p>
+                    <div class="mt-4 p-3 border rounded bg-light">
+                        <h6 class="text-uppercase fw-semibold mb-2 small">
+                            <i class="ri-user-heart-line me-1"></i>Siblings Information
+                        </h6>
+                        <p class="text-muted mb-0">{{ application.siblings_info }}</p>
+                    </div>
                 {% endif %}
             </div>
         </div>
@@ -159,23 +355,39 @@
         <!-- Contact Information -->
         <div class="card">
             <div class="card-header">
-                <h5 class="card-title mb-0">Contact Information</h5>
+                <h5 class="card-title mb-0">
+                    <i class="ri-contacts-line me-2 text-primary"></i>Contact Information
+                </h5>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
                     <table class="table table-borderless mb-0">
                         <tbody>
                             <tr>
-                                <th class="ps-0" scope="row" width="250">Home Address</th>
-                                <td class="text-muted">{{ application.home_address }}</td>
+                                <th class="ps-0 text-muted" style="width: 35%;">
+                                    <i class="ri-home-line me-2"></i>Home Address
+                                </th>
+                                <td class="fw-medium">{{ application.home_address }}</td>
                             </tr>
                             <tr>
-                                <th class="ps-0" scope="row">WhatsApp Number</th>
-                                <td class="text-muted">{{ application.whatsapp_number }}</td>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-whatsapp-line me-2"></i>WhatsApp Number
+                                </th>
+                                <td>
+                                    <a href="https://wa.me/{{ application.whatsapp_number }}" target="_blank" class="text-decoration-none">
+                                        {{ application.whatsapp_number }}
+                                    </a>
+                                </td>
                             </tr>
                             <tr>
-                                <th class="ps-0" scope="row">Primary Contact Email</th>
-                                <td class="text-muted">{{ application.primary_contact_email }}</td>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-mail-line me-2"></i>Primary Contact Email
+                                </th>
+                                <td>
+                                    <a href="mailto:{{ application.primary_contact_email }}" class="text-decoration-none">
+                                        {{ application.primary_contact_email }}
+                                    </a>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
@@ -187,60 +399,86 @@
         {% if application.special_comments %}
         <div class="card">
             <div class="card-header">
-                <h5 class="card-title mb-0">Special Comments</h5>
+                <h5 class="card-title mb-0">
+                    <i class="ri-chat-quote-line me-2 text-primary"></i>Special Comments
+                </h5>
             </div>
             <div class="card-body">
-                <p class="text-muted mb-0">{{ application.special_comments }}</p>
+                <div class="p-3 border rounded bg-light">
+                    <p class="text-muted mb-0">{{ application.special_comments }}</p>
+                </div>
             </div>
         </div>
         {% endif %}
     </div>
 
-    <!-- Application Details and Actions -->
+    <!-- Right Column - Application Details and Actions -->
     <div class="col-xl-4">
         <!-- Application Details -->
         <div class="card">
             <div class="card-header">
-                <h5 class="card-title mb-0">Application Details</h5>
+                <h5 class="card-title mb-0">
+                    <i class="ri-file-list-3-line me-2 text-primary"></i>Application Details
+                </h5>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
                     <table class="table table-borderless table-sm mb-0">
                         <tbody>
                             <tr>
-                                <th class="ps-0">Application Date</th>
-                                <td class="text-muted">{{ application.application_date|date:"M d, Y" }}</td>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-calendar-line me-2"></i>Application Date
+                                </th>
+                                <td class="fw-medium">{{ application.application_date|date:"M d, Y" }}</td>
                             </tr>
                             <tr>
-                                <th class="ps-0">Receipt Number</th>
-                                <td class="text-muted">{{ application.receipt_number|default:"Not provided" }}</td>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-receipt-line me-2"></i>Receipt Number
+                                </th>
+                                <td class="fw-medium">{{ application.receipt_number|default:"Not provided" }}</td>
                             </tr>
                             <tr>
-                                <th class="ps-0">Type</th>
-                                <td class="text-muted">{{ application.get_application_type_display }}</td>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-file-text-line me-2"></i>Type
+                                </th>
+                                <td class="fw-medium">{{ application.get_application_type_display }}</td>
                             </tr>
                             <tr>
-                                <th class="ps-0">Status</th>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-flag-line me-2"></i>Status
+                                </th>
                                 <td>
                                     {% if application.status == 'PENDING' %}
-                                        <span class="badge bg-warning">Pending</span>
+                                        <span class="badge bg-warning">
+                                            <i class="ri-time-line me-1"></i>Pending
+                                        </span>
                                     {% elif application.status == 'APPROVED' %}
-                                        <span class="badge bg-success">Approved</span>
+                                        <span class="badge bg-success">
+                                            <i class="ri-check-line me-1"></i>Approved
+                                        </span>
                                     {% elif application.status == 'REJECTED' %}
-                                        <span class="badge bg-danger">Rejected</span>
+                                        <span class="badge bg-danger">
+                                            <i class="ri-close-line me-1"></i>Rejected
+                                        </span>
                                     {% elif application.status == 'WAITLIST' %}
-                                        <span class="badge bg-secondary">Waitlist</span>
+                                        <span class="badge bg-info">
+                                            <i class="ri-list-check me-1"></i>Waitlist
+                                        </span>
                                     {% endif %}
                                 </td>
                             </tr>
                             {% if application.authorized_by %}
                                 <tr>
-                                    <th class="ps-0">Authorized By</th>
-                                    <td class="text-muted">{{ application.authorized_by }}</td>
+                                    <th class="ps-0 text-muted">
+                                        <i class="ri-user-star-line me-2"></i>Authorized By
+                                    </th>
+                                    <td class="fw-medium">{{ application.authorized_by }}</td>
                                 </tr>
                                 <tr>
-                                    <th class="ps-0">Authorization Date</th>
-                                    <td class="text-muted">{{ application.authorization_date|date:"M d, Y" }}</td>
+                                    <th class="ps-0 text-muted">
+                                        <i class="ri-calendar-check-line me-2"></i>Authorization Date
+                                    </th>
+                                    <td class="fw-medium">{{ application.authorization_date|date:"M d, Y" }}</td>
                                 </tr>
                             {% endif %}
                         </tbody>
@@ -252,20 +490,31 @@
         <!-- Terms Acceptance -->
         <div class="card">
             <div class="card-header">
-                <h5 class="card-title mb-0">Terms & Conditions</h5>
+                <h5 class="card-title mb-0">
+                    <i class="ri-shield-check-line me-2 text-primary"></i>Terms & Conditions
+                </h5>
             </div>
             <div class="card-body">
-                <div class="d-flex align-items-center">
+                <div class="d-flex align-items-center p-3 border rounded {% if application.terms_accepted %}bg-success-subtle{% else %}bg-danger-subtle{% endif %}">
                     {% if application.terms_accepted %}
-                        <i class="ri-checkbox-circle-fill text-success fs-3 me-3"></i>
+                        <div class="avatar-sm me-3">
+                            <span class="avatar-title bg-success rounded-circle">
+                                <i class="ri-checkbox-circle-fill text-white"></i>
+                            </span>
+                        </div>
                         <div>
-                            <p class="mb-0"><strong>Accepted</strong></p>
+                            <h6 class="mb-1 text-success">Accepted</h6>
                             <small class="text-muted">{{ application.terms_accepted_date|date:"M d, Y H:i" }}</small>
                         </div>
                     {% else %}
-                        <i class="ri-close-circle-fill text-danger fs-3 me-3"></i>
+                        <div class="avatar-sm me-3">
+                            <span class="avatar-title bg-danger rounded-circle">
+                                <i class="ri-close-circle-fill text-white"></i>
+                            </span>
+                        </div>
                         <div>
-                            <p class="mb-0"><strong>Not Accepted</strong></p>
+                            <h6 class="mb-1 text-danger">Not Accepted</h6>
+                            <small class="text-muted">Terms have not been accepted</small>
                         </div>
                     {% endif %}
                 </div>
@@ -274,22 +523,24 @@
 
         <!-- Actions -->
         {% if application.status == 'PENDING' or application.status == 'WAITLIST' %}
-        <div class="card">
-            <div class="card-header bg-soft-primary">
-                <h5 class="card-title mb-0">Actions</h5>
+        <div class="card border-primary">
+            <div class="card-header bg-primary-subtle">
+                <h5 class="card-title mb-0 text-primary">
+                    <i class="ri-settings-3-line me-2"></i>Review Actions
+                </h5>
             </div>
             <div class="card-body">
-                <form method="post" action="{% url 'application_review' application.id %}">
+                <form method="post" action="{% url 'application_review' application.id %}" id="reviewForm">
                     {% csrf_token %}
                     <div class="d-grid gap-2">
                         <button type="submit" name="action" value="approve" class="btn btn-success btn-lg">
-                            <i class="ri-check-line me-1"></i> Approve Application
+                            <i class="ri-check-double-line me-1"></i> Approve Application
                         </button>
-                        <button type="submit" name="action" value="waitlist" class="btn btn-warning btn-lg">
+                        <button type="submit" name="action" value="waitlist" class="btn btn-soft-warning btn-lg">
                             <i class="ri-time-line me-1"></i> Move to Waitlist
                         </button>
-                        <button type="submit" name="action" value="reject" class="btn btn-danger btn-lg" onclick="return confirm('Are you sure you want to reject this application?')">
-                            <i class="ri-close-line me-1"></i> Reject Application
+                        <button type="button" class="btn btn-soft-danger btn-lg" data-bs-toggle="modal" data-bs-target="#rejectModal">
+                            <i class="ri-close-circle-line me-1"></i> Reject Application
                         </button>
                     </div>
                 </form>
@@ -299,23 +550,39 @@
 
         <!-- Enrollment Status -->
         {% if application.status == 'APPROVED' %}
-        <div class="card">
-            <div class="card-header bg-soft-success">
-                <h5 class="card-title mb-0">Enrollment Status</h5>
+        <div class="card border-success">
+            <div class="card-header bg-success-subtle">
+                <h5 class="card-title mb-0 text-success">
+                    <i class="ri-user-add-line me-2"></i>Enrollment Status
+                </h5>
             </div>
             <div class="card-body">
                 {% if application.enrolled_student %}
-                    <div class="alert alert-success mb-3">
-                        <i class="ri-user-check-line me-2"></i>
-                        <strong>Student Enrolled</strong>
+                    <div class="d-flex align-items-center p-3 border rounded bg-success-subtle mb-3">
+                        <div class="avatar-sm me-3">
+                            <span class="avatar-title bg-success rounded-circle">
+                                <i class="ri-user-check-line text-white"></i>
+                            </span>
+                        </div>
+                        <div>
+                            <h6 class="mb-1 text-success">Student Enrolled</h6>
+                            <small class="text-muted">Profile has been created</small>
+                        </div>
                     </div>
-                    <a href="{% url 'student_detail' application.enrolled_student.id %}" class="btn btn-info w-100">
-                        <i class="ri-user-line me-1"></i> View Student Profile
+                    <a href="{% url 'student_detail' application.enrolled_student.id %}" class="btn btn-soft-success w-100">
+                        <i class="ri-eye-line me-1"></i> View Student Profile
                     </a>
                 {% else %}
-                    <div class="alert alert-warning mb-3">
-                        <i class="ri-alert-line me-2"></i>
-                        Application approved but student profile not yet created.
+                    <div class="d-flex align-items-center p-3 border rounded bg-warning-subtle mb-3">
+                        <div class="avatar-sm me-3">
+                            <span class="avatar-title bg-warning rounded-circle">
+                                <i class="ri-alert-line text-white"></i>
+                            </span>
+                        </div>
+                        <div>
+                            <h6 class="mb-1 text-warning">Pending Enrollment</h6>
+                            <small class="text-muted">Student profile not yet created</small>
+                        </div>
                     </div>
                     <a href="{% url 'student_enroll' application.id %}" class="btn btn-success w-100">
                         <i class="ri-user-add-line me-1"></i> Create Student Profile
@@ -329,20 +596,28 @@
         {% if application.signature_image or application.application_form_scan %}
         <div class="card">
             <div class="card-header">
-                <h5 class="card-title mb-0">Documents</h5>
+                <h5 class="card-title mb-0">
+                    <i class="ri-folder-line me-2 text-primary"></i>Documents
+                </h5>
             </div>
             <div class="card-body">
                 {% if application.signature_image %}
                     <div class="mb-3">
-                        <h6 class="text-uppercase fw-semibold mb-2 small">Signature</h6>
-                        <img src="{{ application.signature_image.url }}" alt="Signature" class="img-thumbnail" style="max-width: 200px;">
+                        <h6 class="text-uppercase fw-semibold mb-2 small text-muted">
+                            <i class="ri-quill-pen-line me-1"></i>Signature
+                        </h6>
+                        <div class="p-3 border rounded bg-light text-center">
+                            <img src="{{ application.signature_image.url }}" alt="Signature" class="img-fluid" style="max-width: 200px; max-height: 100px;">
+                        </div>
                     </div>
                 {% endif %}
                 {% if application.application_form_scan %}
                     <div>
-                        <h6 class="text-uppercase fw-semibold mb-2 small">Application Form Scan</h6>
-                        <a href="{{ application.application_form_scan.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                            <i class="ri-file-download-line me-1"></i> Download
+                        <h6 class="text-uppercase fw-semibold mb-2 small text-muted">
+                            <i class="ri-file-download-line me-1"></i>Application Form Scan
+                        </h6>
+                        <a href="{{ application.application_form_scan.url }}" target="_blank" class="btn btn-soft-primary w-100">
+                            <i class="ri-download-line me-1"></i> Download Application Form
                         </a>
                     </div>
                 {% endif %}
@@ -352,4 +627,76 @@
     </div>
 </div>
 
+<!-- Reject Modal -->
+{% if application.status == 'PENDING' or application.status == 'WAITLIST' %}
+<div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger-subtle">
+                <h5 class="modal-title text-danger" id="rejectModalLabel">
+                    <i class="ri-alert-line me-2"></i>Confirm Rejection
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">Are you sure you want to reject the application for <strong>{{ application.full_name }}</strong>?</p>
+                <p class="text-muted small mt-2 mb-0">This action cannot be easily undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="post" action="{% url 'application_review' application.id %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" name="action" value="reject" class="btn btn-danger">
+                        <i class="ri-close-circle-line me-1"></i> Reject Application
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<style>
+.avatar-xxl {
+    width: 120px;
+    height: 120px;
+}
+
+.avatar-xxl .avatar-title {
+    width: 120px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.avatar-sm {
+    width: 32px;
+    height: 32px;
+}
+
+.avatar-sm .avatar-title {
+    width: 32px;
+    height: 32px;
+}
+
+.card-animate {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card-animate:hover {
+    transform: translateY(-5px);
+}
+
+.counter-value {
+    font-variant-numeric: tabular-nums;
+}
+
+.fs-22 {
+    font-size: 22px;
+}
+</style>
 {% endblock %}

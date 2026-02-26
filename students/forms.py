@@ -11,11 +11,11 @@ class ApplicationForm(forms.ModelForm):
         model = Application
         fields = [
             'name_with_initials', 'full_name', 'date_of_birth', 'gender', 'nationality',
-            'student_email', 'current_school', 'siblings_info',
+            'student_email', 'student_nic', 'current_school', 'siblings_info',
             'mother_name', 'mother_contact_number', 'mother_occupation',
             'father_name', 'father_contact_number', 'father_occupation',
             'home_address', 'whatsapp_number', 'primary_contact_email',
-            'special_comments', 'terms_accepted'
+            'schedule_preferences', 'special_comments', 'terms_accepted'
         ]
 
         widgets = {
@@ -41,6 +41,10 @@ class ApplicationForm(forms.ModelForm):
             'student_email': forms.EmailInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'student@email.com'
+            }),
+            'student_nic': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': '200012345678 or 901234567V'
             }),
             'current_school': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -95,11 +99,14 @@ class ApplicationForm(forms.ModelForm):
                 'placeholder': 'parent@email.com'
             }),
 
+            # Schedule Preferences
+            'schedule_preferences': forms.HiddenInput(),
+
             # Special Comments
             'special_comments': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 4,
-                'placeholder': 'Any additional information you would like to share...'
+                'placeholder': 'Any additional information...'
             }),
 
             # Terms

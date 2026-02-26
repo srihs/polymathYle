@@ -1,0 +1,814 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block PageTitle %}Assessment Results - {{ assessment.title }}{% endblock %}
+{% block pageTitle %}Assessment Results{% endblock %}
+{% block Title %}Courses{% endblock %}
+{% block functionTitle %}Your Results{% endblock %}
+
+{% block content %}
+<!-- Result Summary Header -->
+<div class="row">
+    <div class="col-12">
+        <div class="card overflow-hidden">
+            <div class="card-body position-relative {% if result.passed %}bg-success{% else %}bg-danger{% endif %}" style="min-height: 120px;">
+                <div class="position-absolute top-0 end-0 p-3 opacity-25">
+                    {% if result.passed %}
+                    <i class="ri-trophy-line" style="font-size: 8rem;"></i>
+                    {% else %}
+                    <i class="ri-emotion-sad-line" style="font-size: 8rem;"></i>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body pt-0">
+                <div class="row align-items-end">
+                    <div class="col-auto" style="margin-top: -50px;">
+                        <div class="avatar-xl border border-4 border-white shadow rounded-circle {% if result.passed %}bg-success{% else %}bg-danger{% endif %}">
+                            <span class="avatar-title rounded-circle text-white" style="width: 100px; height: 100px; font-size: 2rem;">
+                                {{ result.percentage }}%
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="d-flex flex-wrap justify-content-between align-items-start">
+                            <div>
+                                <div class="d-flex align-items-center mb-2">
+                                    {% if result.passed %}
+                                    <span class="badge bg-success-subtle text-success fs-6 me-2">
+                                        <i class="ri-check-double-line me-1"></i>Passed
+                                    </span>
+                                    {% else %}
+                                    <span class="badge bg-danger-subtle text-danger fs-6 me-2">
+                                        <i class="ri-close-line me-1"></i>Not Passed
+                                    </span>
+                                    {% endif %}
+                                    {% if assessment.assessment_type == 'LEVEL_TEST' %}
+                                    <span class="badge bg-danger-subtle text-danger">Level Final</span>
+                                    {% elif assessment.assessment_type == 'PRACTICE_TEST' %}
+                                    <span class="badge bg-success-subtle text-success">Practice</span>
+                                    {% else %}
+                                    <span class="badge bg-info-subtle text-info">Unit Test</span>
+                                    {% endif %}
+                                </div>
+                                <h3 class="mb-1">{{ assessment.title }}</h3>
+                                <p class="text-muted mb-2">
+                                    {% if assessment.level %}
+                                    <a href="{% url 'level_detail' assessment.level.id %}" class="text-decoration-none">
+                                        {{ assessment.level.name }}
+                                    </a>
+                                    {% elif assessment.unit %}
+                                    <a href="{% url 'unit_detail' assessment.unit.id %}" class="text-decoration-none">
+                                        {{ assessment.unit.title }}
+                                    </a>
+                                    {% endif %}
+                                </p>
+                                <p class="text-muted mb-0 small">
+                                    <i class="ri-calendar-line me-1"></i>Completed on {{ result.completed_at|date:"F d, Y" }} at {{ result.completed_at|time:"H:i" }}
+                                </p>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2 mt-3 mt-md-0">
+                                {% if not result.passed %}
+                                <a href="{% url 'assessment_detail' assessment.id %}" class="btn btn-primary">
+                                    <i class="ri-refresh-line me-1"></i> Try Again
+                                </a>
+                                {% endif %}
+                                <a href="{% url 'assessment_list' %}" class="btn btn-outline-secondary">
+                                    <i class="ri-arrow-left-line me-1"></i> Back to Assessments
+                                </a>
+                                <button type="button" class="btn btn-outline-primary" onclick="window.print();">
+                                    <i class="ri-printer-line me-1"></i> Print
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Score Statistics -->
+<div class="row">
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-3">Your Score</p>
+                        <h4 class="fs-22 fw-semibold mb-1">
+                            <span class="counter-value">{{ result.score }}</span>
+                            <span class="text-muted fs-6">/ {{ assessment.max_score }}</span>
+                        </h4>
+                        <p class="text-muted mb-0">Points earned</p>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title {% if result.passed %}bg-success-subtle text-success{% else %}bg-danger-subtle text-danger{% endif %} rounded-circle fs-3">
+                            <i class="ri-star-line"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-3">Percentage</p>
+                        <h4 class="fs-22 fw-semibold mb-1">
+                            <span class="counter-value">{{ result.percentage }}</span>
+                            <span class="text-muted fs-6">%</span>
+                        </h4>
+                        <p class="text-muted mb-0">Pass mark: {{ assessment.passing_percentage }}%</p>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-primary-subtle text-primary rounded-circle fs-3">
+                            <i class="ri-percent-line"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-3">Time Taken</p>
+                        <h4 class="fs-22 fw-semibold mb-1">
+                            <span class="counter-value">{{ result.time_taken_minutes|default:0 }}</span>
+                            <span class="text-muted fs-6">mins</span>
+                        </h4>
+                        <p class="text-muted mb-0">Out of {{ assessment.time_limit_minutes }} mins</p>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-info-subtle text-info rounded-circle fs-3">
+                            <i class="ri-time-line"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-3">Correct Answers</p>
+                        <h4 class="fs-22 fw-semibold mb-1">
+                            <span class="counter-value">{{ result.correct_count|default:0 }}</span>
+                            <span class="text-muted fs-6">/ {{ result.total_questions|default:0 }}</span>
+                        </h4>
+                        <p class="text-muted mb-0">Questions answered correctly</p>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-success-subtle text-success rounded-circle fs-3">
+                            <i class="ri-checkbox-circle-line"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Skills Breakdown -->
+    <div class="col-xl-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="ri-pie-chart-line me-2 text-primary"></i>Skills Breakdown
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-column gap-4">
+                    {% if assessment.tests_listening %}
+                    <div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <div class="d-flex align-items-center">
+                                <span class="avatar-xs me-2">
+                                    <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                        <i class="ri-headphone-line"></i>
+                                    </span>
+                                </span>
+                                <span>Listening</span>
+                            </div>
+                            <span class="fw-medium">{{ result.listening_percentage|default:0 }}%</span>
+                        </div>
+                        <div class="progress" style="height: 8px;" role="progressbar" aria-valuenow="{{ result.listening_percentage|default:0 }}" aria-valuemin="0" aria-valuemax="100" aria-label="Listening score">
+                            <div class="progress-bar bg-primary" style="width: {{ result.listening_percentage|default:0 }}%"></div>
+                        </div>
+                        <small class="text-muted">{{ result.listening_correct|default:0 }}/{{ result.listening_total|default:0 }} correct</small>
+                    </div>
+                    {% endif %}
+
+                    {% if assessment.tests_reading %}
+                    <div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <div class="d-flex align-items-center">
+                                <span class="avatar-xs me-2">
+                                    <span class="avatar-title bg-info-subtle text-info rounded-circle">
+                                        <i class="ri-book-read-line"></i>
+                                    </span>
+                                </span>
+                                <span>Reading</span>
+                            </div>
+                            <span class="fw-medium">{{ result.reading_percentage|default:0 }}%</span>
+                        </div>
+                        <div class="progress" style="height: 8px;" role="progressbar" aria-valuenow="{{ result.reading_percentage|default:0 }}" aria-valuemin="0" aria-valuemax="100" aria-label="Reading score">
+                            <div class="progress-bar bg-info" style="width: {{ result.reading_percentage|default:0 }}%"></div>
+                        </div>
+                        <small class="text-muted">{{ result.reading_correct|default:0 }}/{{ result.reading_total|default:0 }} correct</small>
+                    </div>
+                    {% endif %}
+
+                    {% if assessment.tests_writing %}
+                    <div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <div class="d-flex align-items-center">
+                                <span class="avatar-xs me-2">
+                                    <span class="avatar-title bg-success-subtle text-success rounded-circle">
+                                        <i class="ri-edit-line"></i>
+                                    </span>
+                                </span>
+                                <span>Writing</span>
+                            </div>
+                            <span class="fw-medium">{{ result.writing_percentage|default:0 }}%</span>
+                        </div>
+                        <div class="progress" style="height: 8px;" role="progressbar" aria-valuenow="{{ result.writing_percentage|default:0 }}" aria-valuemin="0" aria-valuemax="100" aria-label="Writing score">
+                            <div class="progress-bar bg-success" style="width: {{ result.writing_percentage|default:0 }}%"></div>
+                        </div>
+                        <small class="text-muted">{{ result.writing_correct|default:0 }}/{{ result.writing_total|default:0 }} correct</small>
+                    </div>
+                    {% endif %}
+
+                    {% if assessment.tests_speaking %}
+                    <div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <div class="d-flex align-items-center">
+                                <span class="avatar-xs me-2">
+                                    <span class="avatar-title bg-warning-subtle text-warning rounded-circle">
+                                        <i class="ri-speak-line"></i>
+                                    </span>
+                                </span>
+                                <span>Speaking</span>
+                            </div>
+                            <span class="fw-medium">{{ result.speaking_percentage|default:0 }}%</span>
+                        </div>
+                        <div class="progress" style="height: 8px;" role="progressbar" aria-valuenow="{{ result.speaking_percentage|default:0 }}" aria-valuemin="0" aria-valuemax="100" aria-label="Speaking score">
+                            <div class="progress-bar bg-warning" style="width: {{ result.speaking_percentage|default:0 }}%"></div>
+                        </div>
+                        <small class="text-muted">{{ result.speaking_correct|default:0 }}/{{ result.speaking_total|default:0 }} correct</small>
+                    </div>
+                    {% endif %}
+                </div>
+
+                {% if result.passed %}
+                <div class="mt-4 p-3 bg-success-subtle rounded text-center">
+                    <i class="ri-trophy-line text-success fs-3"></i>
+                    <h6 class="text-success mt-2 mb-1">Congratulations!</h6>
+                    <p class="text-muted mb-0 small">You've successfully passed this assessment.</p>
+                </div>
+                {% else %}
+                <div class="mt-4 p-3 bg-warning-subtle rounded text-center">
+                    <i class="ri-lightbulb-line text-warning fs-3"></i>
+                    <h6 class="text-warning mt-2 mb-1">Keep Practicing!</h6>
+                    <p class="text-muted mb-0 small">Review the questions below and try again when ready.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Comparison -->
+    <div class="col-xl-8">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="ri-bar-chart-grouped-line me-2 text-primary"></i>How You Compare
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <!-- Your Performance Visual -->
+                    <div class="col-md-6">
+                        <div class="text-center p-4 border rounded">
+                            <div class="position-relative d-inline-block">
+                                <svg class="circular-progress" viewBox="0 0 100 100" style="width: 150px; height: 150px;">
+                                    <circle class="bg" cx="50" cy="50" r="45" stroke="#e9ecef" stroke-width="8" fill="none"/>
+                                    <circle class="progress-circle" cx="50" cy="50" r="45"
+                                            stroke="{% if result.passed %}#22c55e{% else %}#ef4444{% endif %}"
+                                            stroke-width="8"
+                                            fill="none"
+                                            stroke-linecap="round"
+                                            stroke-dasharray="283"
+                                            stroke-dashoffset="{{ 283|add:'-'|add:result.percentage|floatformat:0|add:'*2.83'|floatformat:0 }}"
+                                            transform="rotate(-90 50 50)"/>
+                                </svg>
+                                <div class="position-absolute top-50 start-50 translate-middle text-center">
+                                    <h2 class="mb-0 {% if result.passed %}text-success{% else %}text-danger{% endif %}">{{ result.percentage }}%</h2>
+                                    <small class="text-muted">Your Score</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Statistics -->
+                    <div class="col-md-6">
+                        <div class="d-flex flex-column gap-3">
+                            <div class="d-flex justify-content-between align-items-center p-3 border rounded">
+                                <div>
+                                    <h6 class="mb-1">Pass Rate</h6>
+                                    <small class="text-muted">Students who passed</small>
+                                </div>
+                                <span class="badge bg-success fs-6">{{ pass_rate|default:0 }}%</span>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center p-3 border rounded">
+                                <div>
+                                    <h6 class="mb-1">Average Score</h6>
+                                    <small class="text-muted">All attempts</small>
+                                </div>
+                                <span class="badge bg-primary fs-6">{{ average_score|default:0 }}%</span>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center p-3 border rounded">
+                                <div>
+                                    <h6 class="mb-1">Highest Score</h6>
+                                    <small class="text-muted">Best performance</small>
+                                </div>
+                                <span class="badge bg-info fs-6">{{ highest_score|default:0 }}%</span>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center p-3 border rounded">
+                                <div>
+                                    <h6 class="mb-1">Your Rank</h6>
+                                    <small class="text-muted">Among all attempts</small>
+                                </div>
+                                <span class="badge bg-warning fs-6">#{{ result.rank|default:"N/A" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Question Review -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="ri-file-list-3-line me-2 text-primary"></i>Question Review
+                </h5>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-primary filter-btn active" data-filter="all">
+                        All <span class="badge bg-primary ms-1">{{ result.total_questions|default:0 }}</span>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-success filter-btn" data-filter="correct">
+                        <i class="ri-check-line me-1"></i>Correct <span class="badge bg-success ms-1">{{ result.correct_count|default:0 }}</span>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-danger filter-btn" data-filter="incorrect">
+                        <i class="ri-close-line me-1"></i>Incorrect <span class="badge bg-danger ms-1">{{ result.incorrect_count|default:0 }}</span>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if questions %}
+                <div class="accordion" id="questionReviewAccordion">
+                    {% for question in questions %}
+                    <div class="accordion-item question-item" data-status="{% if question.is_correct %}correct{% else %}incorrect{% endif %}">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#question-{{ forloop.counter }}" aria-expanded="false" aria-controls="question-{{ forloop.counter }}">
+                                <div class="d-flex align-items-center justify-content-between w-100 me-3">
+                                    <div class="d-flex align-items-center">
+                                        <span class="me-3">
+                                            {% if question.is_correct %}
+                                            <span class="avatar-xs">
+                                                <span class="avatar-title bg-success-subtle text-success rounded-circle">
+                                                    <i class="ri-check-line"></i>
+                                                </span>
+                                            </span>
+                                            {% else %}
+                                            <span class="avatar-xs">
+                                                <span class="avatar-title bg-danger-subtle text-danger rounded-circle">
+                                                    <i class="ri-close-line"></i>
+                                                </span>
+                                            </span>
+                                            {% endif %}
+                                        </span>
+                                        <div>
+                                            <span class="fw-medium">Question {{ forloop.counter }}</span>
+                                            <div class="d-flex gap-2 mt-1">
+                                                {% if question.skill == 'listening' %}
+                                                <span class="badge bg-primary-subtle text-primary small">Listening</span>
+                                                {% elif question.skill == 'reading' %}
+                                                <span class="badge bg-info-subtle text-info small">Reading</span>
+                                                {% elif question.skill == 'writing' %}
+                                                <span class="badge bg-success-subtle text-success small">Writing</span>
+                                                {% elif question.skill == 'speaking' %}
+                                                <span class="badge bg-warning-subtle text-warning small">Speaking</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        {% if question.is_correct %}
+                                        <span class="badge bg-success">+{{ question.points }} pts</span>
+                                        {% else %}
+                                        <span class="badge bg-danger">0 pts</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </button>
+                        </h2>
+                        <div id="question-{{ forloop.counter }}" class="accordion-collapse collapse" data-bs-parent="#questionReviewAccordion">
+                            <div class="accordion-body">
+                                <div class="mb-4">
+                                    <p class="lead mb-0">{{ question.text }}</p>
+                                </div>
+
+                                {% if question.question_type == 'multiple_choice' or question.question_type == 'true_false' %}
+                                <div class="row g-3">
+                                    {% for option in question.options %}
+                                    <div class="col-md-6">
+                                        <div class="p-3 border rounded
+                                            {% if option.value == question.correct_answer %}bg-success-subtle border-success{% endif %}
+                                            {% if option.value == question.user_answer and not question.is_correct %}bg-danger-subtle border-danger{% endif %}">
+                                            <div class="d-flex align-items-center">
+                                                {% if option.value == question.correct_answer %}
+                                                <i class="ri-check-double-line text-success me-2"></i>
+                                                {% elif option.value == question.user_answer and not question.is_correct %}
+                                                <i class="ri-close-line text-danger me-2"></i>
+                                                {% else %}
+                                                <span class="badge bg-secondary-subtle text-secondary me-2">{{ forloop.counter|add:64|chr }}</span>
+                                                {% endif %}
+                                                <span>{{ option.text }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="p-3 border rounded {% if question.is_correct %}bg-success-subtle border-success{% else %}bg-danger-subtle border-danger{% endif %}">
+                                            <small class="text-muted d-block mb-1">Your Answer:</small>
+                                            <span class="fw-medium">{{ question.user_answer|default:"No answer provided" }}</span>
+                                        </div>
+                                    </div>
+                                    {% if not question.is_correct %}
+                                    <div class="col-md-6">
+                                        <div class="p-3 border rounded bg-success-subtle border-success">
+                                            <small class="text-muted d-block mb-1">Correct Answer:</small>
+                                            <span class="fw-medium">{{ question.correct_answer }}</span>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+
+                                {% if question.explanation %}
+                                <div class="mt-4 p-3 bg-light rounded">
+                                    <h6 class="mb-2"><i class="ri-lightbulb-line text-warning me-1"></i>Explanation</h6>
+                                    <p class="mb-0 text-muted">{{ question.explanation }}</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <!-- Demo question items for template display -->
+                <div class="accordion" id="questionReviewAccordionDemo">
+                    <div class="accordion-item question-item" data-status="correct">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#demo-q1">
+                                <div class="d-flex align-items-center justify-content-between w-100 me-3">
+                                    <div class="d-flex align-items-center">
+                                        <span class="me-3">
+                                            <span class="avatar-xs">
+                                                <span class="avatar-title bg-success-subtle text-success rounded-circle">
+                                                    <i class="ri-check-line"></i>
+                                                </span>
+                                            </span>
+                                        </span>
+                                        <div>
+                                            <span class="fw-medium">Question 1</span>
+                                            <div class="d-flex gap-2 mt-1">
+                                                <span class="badge bg-primary-subtle text-primary small">Listening</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-success">+2 pts</span>
+                                </div>
+                            </button>
+                        </h2>
+                        <div id="demo-q1" class="accordion-collapse collapse">
+                            <div class="accordion-body">
+                                <p class="lead mb-4">Sample question text would appear here.</p>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="p-3 border rounded bg-success-subtle border-success">
+                                            <i class="ri-check-double-line text-success me-2"></i>
+                                            Correct answer option
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item question-item" data-status="incorrect">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#demo-q2">
+                                <div class="d-flex align-items-center justify-content-between w-100 me-3">
+                                    <div class="d-flex align-items-center">
+                                        <span class="me-3">
+                                            <span class="avatar-xs">
+                                                <span class="avatar-title bg-danger-subtle text-danger rounded-circle">
+                                                    <i class="ri-close-line"></i>
+                                                </span>
+                                            </span>
+                                        </span>
+                                        <div>
+                                            <span class="fw-medium">Question 2</span>
+                                            <div class="d-flex gap-2 mt-1">
+                                                <span class="badge bg-info-subtle text-info small">Reading</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-danger">0 pts</span>
+                                </div>
+                            </button>
+                        </h2>
+                        <div id="demo-q2" class="accordion-collapse collapse">
+                            <div class="accordion-body">
+                                <p class="lead mb-4">Sample incorrect question would appear here.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recommendations -->
+{% if not result.passed %}
+<div class="row">
+    <div class="col-12">
+        <div class="card border-warning">
+            <div class="card-header bg-warning-subtle">
+                <h5 class="card-title mb-0 text-warning">
+                    <i class="ri-lightbulb-flash-line me-2"></i>Recommendations for Improvement
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    {% if result.listening_percentage < assessment.passing_percentage and assessment.tests_listening %}
+                    <div class="col-md-6 col-lg-3">
+                        <div class="d-flex">
+                            <div class="avatar-sm me-3 flex-shrink-0">
+                                <span class="avatar-title bg-primary-subtle text-primary rounded">
+                                    <i class="ri-headphone-line"></i>
+                                </span>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">Practice Listening</h6>
+                                <p class="text-muted mb-0 small">Focus on audio exercises and practice with native speakers.</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if result.reading_percentage < assessment.passing_percentage and assessment.tests_reading %}
+                    <div class="col-md-6 col-lg-3">
+                        <div class="d-flex">
+                            <div class="avatar-sm me-3 flex-shrink-0">
+                                <span class="avatar-title bg-info-subtle text-info rounded">
+                                    <i class="ri-book-read-line"></i>
+                                </span>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">Improve Reading</h6>
+                                <p class="text-muted mb-0 small">Read more texts and practice comprehension exercises.</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if result.writing_percentage < assessment.passing_percentage and assessment.tests_writing %}
+                    <div class="col-md-6 col-lg-3">
+                        <div class="d-flex">
+                            <div class="avatar-sm me-3 flex-shrink-0">
+                                <span class="avatar-title bg-success-subtle text-success rounded">
+                                    <i class="ri-edit-line"></i>
+                                </span>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">Enhance Writing</h6>
+                                <p class="text-muted mb-0 small">Practice writing sentences and short paragraphs regularly.</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if result.speaking_percentage < assessment.passing_percentage and assessment.tests_speaking %}
+                    <div class="col-md-6 col-lg-3">
+                        <div class="d-flex">
+                            <div class="avatar-sm me-3 flex-shrink-0">
+                                <span class="avatar-title bg-warning-subtle text-warning rounded">
+                                    <i class="ri-speak-line"></i>
+                                </span>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">Develop Speaking</h6>
+                                <p class="text-muted mb-0 small">Practice pronunciation and conversation with peers.</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <hr class="my-4">
+
+                <div class="d-flex flex-wrap justify-content-center gap-3">
+                    {% if assessment.unit %}
+                    <a href="{% url 'unit_detail' assessment.unit.id %}" class="btn btn-soft-primary">
+                        <i class="ri-book-2-line me-1"></i> Review Unit Material
+                    </a>
+                    {% endif %}
+                    {% if assessment.level %}
+                    <a href="{% url 'level_detail' assessment.level.id %}" class="btn btn-soft-info">
+                        <i class="ri-stack-line me-1"></i> View Level Content
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'assessment_detail' assessment.id %}" class="btn btn-primary">
+                        <i class="ri-refresh-line me-1"></i> Take Assessment Again
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Certificate Section (for passed assessments) -->
+{% if result.passed and assessment.assessment_type == 'LEVEL_TEST' %}
+<div class="row">
+    <div class="col-12">
+        <div class="card border-success">
+            <div class="card-header bg-success-subtle">
+                <h5 class="card-title mb-0 text-success">
+                    <i class="ri-award-line me-2"></i>Certificate of Completion
+                </h5>
+            </div>
+            <div class="card-body text-center py-5">
+                <div class="avatar-xl mx-auto mb-4">
+                    <span class="avatar-title bg-success-subtle text-success rounded-circle" style="width: 100px; height: 100px;">
+                        <i class="ri-trophy-line fs-1"></i>
+                    </span>
+                </div>
+                <h4 class="mb-2">Congratulations!</h4>
+                <p class="text-muted mb-4">You have successfully completed the {{ assessment.level.name }} level final exam.</p>
+                <a href="{% url 'certificate_download' result.id %}" class="btn btn-success">
+                    <i class="ri-download-line me-1"></i> Download Certificate
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Filter questions
+    $('.filter-btn').on('click', function() {
+        var filter = $(this).data('filter');
+
+        // Update active button
+        $('.filter-btn').removeClass('active');
+        $(this).addClass('active');
+
+        // Filter question items
+        if (filter === 'all') {
+            $('.question-item').show();
+        } else {
+            $('.question-item').hide();
+            $('.question-item[data-status="' + filter + '"]').show();
+        }
+    });
+
+    // Animate progress circle
+    var percentage = {{ result.percentage|default:0 }};
+    var circumference = 2 * Math.PI * 45;
+    var offset = circumference - (percentage / 100) * circumference;
+
+    $('.progress-circle').css({
+        'stroke-dasharray': circumference,
+        'stroke-dashoffset': circumference
+    });
+
+    setTimeout(function() {
+        $('.progress-circle').css({
+            'transition': 'stroke-dashoffset 1s ease-out',
+            'stroke-dashoffset': offset
+        });
+    }, 500);
+});
+</script>
+
+<style>
+.avatar-xl {
+    width: 100px;
+    height: 100px;
+}
+
+.avatar-xl .avatar-title {
+    width: 100px;
+    height: 100px;
+    font-size: 2rem;
+}
+
+.avatar-sm {
+    width: 36px;
+    height: 36px;
+}
+
+.avatar-sm .avatar-title {
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+}
+
+.avatar-xs {
+    width: 28px;
+    height: 28px;
+}
+
+.avatar-xs .avatar-title {
+    width: 28px;
+    height: 28px;
+    font-size: 0.75rem;
+}
+
+.card-animate {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card-animate:hover {
+    transform: translateY(-5px);
+}
+
+.circular-progress {
+    transform: rotate(-90deg);
+}
+
+.progress-circle {
+    transition: stroke-dashoffset 1s ease-out;
+}
+
+.accordion-button:not(.collapsed) {
+    background-color: rgba(var(--bs-primary-rgb), 0.05);
+}
+
+.filter-btn.active {
+    background-color: var(--bs-primary);
+    color: white;
+    border-color: var(--bs-primary);
+}
+
+.filter-btn.active .badge {
+    background-color: white !important;
+    color: var(--bs-primary) !important;
+}
+
+@media print {
+    .btn, .filter-btn, .accordion-button {
+        display: none !important;
+    }
+
+    .accordion-collapse {
+        display: block !important;
+    }
+
+    .card {
+        break-inside: avoid;
+    }
+}
+</style>
+{% endblock %}

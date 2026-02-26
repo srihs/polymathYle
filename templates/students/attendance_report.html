@@ -10,86 +10,67 @@
 <!-- Statistics Cards -->
 <div class="row">
     <div class="col-xl-3 col-md-6">
-        <div class="card card-animate">
+        <div class="card card-animate bg-primary">
             <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-grow-1 overflow-hidden">
-                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Total Records</p>
-                    </div>
-                </div>
-                <div class="d-flex align-items-end justify-content-between mt-4">
+                <div class="d-flex justify-content-between">
                     <div>
-                        <h4 class="fs-22 fw-semibold ff-secondary mb-4">{{ total_records }}</h4>
+                        <p class="fw-medium text-white-75 mb-0">Total Records</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ total_records|default:0 }}</h2>
                     </div>
                     <div class="avatar-sm flex-shrink-0">
-                        <span class="avatar-title bg-info-subtle rounded fs-3">
-                            <i class="bx bx-file text-info"></i>
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-file-list-line text-white"></i>
                         </span>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
     <div class="col-xl-3 col-md-6">
-        <div class="card card-animate">
+        <div class="card card-animate bg-success">
             <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-grow-1 overflow-hidden">
-                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Present</p>
-                    </div>
-                </div>
-                <div class="d-flex align-items-end justify-content-between mt-4">
+                <div class="d-flex justify-content-between">
                     <div>
-                        <h4 class="fs-22 fw-semibold ff-secondary mb-4">{{ present_count }}</h4>
+                        <p class="fw-medium text-white-75 mb-0">Present</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ present_count|default:0 }}</h2>
                     </div>
                     <div class="avatar-sm flex-shrink-0">
-                        <span class="avatar-title bg-success-subtle rounded fs-3">
-                            <i class="bx bx-check-circle text-success"></i>
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-check-double-line text-white"></i>
                         </span>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
     <div class="col-xl-3 col-md-6">
-        <div class="card card-animate">
+        <div class="card card-animate bg-danger">
             <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-grow-1 overflow-hidden">
-                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Absent</p>
-                    </div>
-                </div>
-                <div class="d-flex align-items-end justify-content-between mt-4">
+                <div class="d-flex justify-content-between">
                     <div>
-                        <h4 class="fs-22 fw-semibold ff-secondary mb-4">{{ absent_count }}</h4>
+                        <p class="fw-medium text-white-75 mb-0">Absent</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ absent_count|default:0 }}</h2>
                     </div>
                     <div class="avatar-sm flex-shrink-0">
-                        <span class="avatar-title bg-danger-subtle rounded fs-3">
-                            <i class="bx bx-x-circle text-danger"></i>
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-close-circle-line text-white"></i>
                         </span>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
     <div class="col-xl-3 col-md-6">
-        <div class="card card-animate">
+        <div class="card card-animate bg-info">
             <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-grow-1 overflow-hidden">
-                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Attendance %</p>
-                    </div>
-                </div>
-                <div class="d-flex align-items-end justify-content-between mt-4">
+                <div class="d-flex justify-content-between">
                     <div>
-                        <h4 class="fs-22 fw-semibold ff-secondary mb-4">{{ attendance_percentage }}%</h4>
+                        <p class="fw-medium text-white-75 mb-0">Attendance Rate</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ attendance_percentage|default:0 }}%</h2>
                     </div>
                     <div class="avatar-sm flex-shrink-0">
-                        <span class="avatar-title bg-primary-subtle rounded fs-3">
-                            <i class="bx bx-trending-up text-primary"></i>
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-percent-line text-white"></i>
                         </span>
                     </div>
                 </div>
@@ -102,15 +83,22 @@
 <div class="row">
     <div class="col-12">
         <div class="card">
-            <div class="card-header">
+            <div class="card-header border-bottom">
                 <div class="row align-items-center">
                     <div class="col">
-                        <h5 class="card-title mb-0">Filter Reports</h5>
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-sm me-3">
+                                <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                    <i class="ri-filter-3-line fs-4"></i>
+                                </span>
+                            </div>
+                            <div>
+                                <h5 class="card-title mb-0">Filter Reports</h5>
+                                <p class="text-muted mb-0 small">Narrow down attendance records by criteria</p>
+                            </div>
+                        </div>
                     </div>
                     <div class="col-auto">
-                        <button onclick="window.history.back()" class="btn btn-secondary me-2">
-                            <i class="ri-arrow-left-line me-1"></i> Back
-                        </button>
                         <a href="{% url 'attendance_mark' %}" class="btn btn-success">
                             <i class="ri-checkbox-multiple-line me-1"></i> Mark Attendance
                         </a>
@@ -118,43 +106,69 @@
                 </div>
             </div>
             <div class="card-body">
-                <form method="get" action="{% url 'attendance_report' %}" class="row g-3">
-                    <div class="col-md-3">
-                        <label class="form-label">Student</label>
-                        <select class="form-select" name="student_id">
-                            <option value="">All Students</option>
-                            {% for s in students %}
-                                <option value="{{ s.id }}" {% if student and student.id == s.id %}selected{% endif %}>
-                                    {{ s.admission_number }} - {{ s.full_name }}
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Class</label>
-                        <select class="form-select" name="class_id">
-                            <option value="">All Classes</option>
-                            {% for class in classes %}
-                                <option value="{{ class.id }}" {% if selected_class and selected_class.id == class.id %}selected{% endif %}>
-                                    {{ class.class_name }} - {{ class.get_level_display }}
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">From Date</label>
-                        <input type="date" class="form-control" name="date_from" value="{{ date_from|date:'Y-m-d' }}">
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">To Date</label>
-                        <input type="date" class="form-control" name="date_to" value="{{ date_to|date:'Y-m-d' }}">
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">&nbsp;</label>
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="ri-search-line me-1"></i> Filter
-                            </button>
+                <form method="get" action="{% url 'attendance_report' %}" id="filterForm">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-xl-3 col-lg-4 col-md-6">
+                            <label for="student_id" class="form-label">Student</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="ri-user-line"></i></span>
+                                <select class="form-select" id="student_id" name="student_id" aria-label="Filter by student">
+                                    <option value="">All Students</option>
+                                    {% for s in students %}
+                                        <option value="{{ s.id }}" {% if student and student.id == s.id %}selected{% endif %}>
+                                            {{ s.admission_number }} - {{ s.full_name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-lg-4 col-md-6">
+                            <label for="class_id" class="form-label">Class</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="ri-book-open-line"></i></span>
+                                <select class="form-select" id="class_id" name="class_id" aria-label="Filter by class">
+                                    <option value="">All Classes</option>
+                                    {% for class in classes %}
+                                        <option value="{{ class.id }}" {% if selected_class and selected_class.id == class.id %}selected{% endif %}>
+                                            {{ class.class_name }} - {{ class.get_level_display }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-xl-2 col-lg-4 col-md-6">
+                            <label for="date_from" class="form-label">From Date</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="ri-calendar-line"></i></span>
+                                <input type="date"
+                                       class="form-control"
+                                       id="date_from"
+                                       name="date_from"
+                                       value="{{ date_from|date:'Y-m-d' }}"
+                                       aria-label="Filter from date">
+                            </div>
+                        </div>
+                        <div class="col-xl-2 col-lg-4 col-md-6">
+                            <label for="date_to" class="form-label">To Date</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="ri-calendar-line"></i></span>
+                                <input type="date"
+                                       class="form-control"
+                                       id="date_to"
+                                       name="date_to"
+                                       value="{{ date_to|date:'Y-m-d' }}"
+                                       aria-label="Filter to date">
+                            </div>
+                        </div>
+                        <div class="col-xl-2 col-lg-4 col-md-6">
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary flex-grow-1">
+                                    <i class="ri-search-line me-1"></i> Filter
+                                </button>
+                                <a href="{% url 'attendance_report' %}" class="btn btn-outline-secondary" title="Reset filters">
+                                    <i class="ri-refresh-line"></i>
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -163,84 +177,154 @@
     </div>
 </div>
 
-<!-- Additional Statistics -->
+<!-- Filter Summary (when filters are active) -->
 {% if student or selected_class %}
 <div class="row">
     <div class="col-12">
         <div class="card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">Filter Summary</h5>
+            <div class="card-header border-bottom">
+                <div class="d-flex align-items-center">
+                    <div class="avatar-sm me-3">
+                        <span class="avatar-title bg-info-subtle text-info rounded-circle">
+                            <i class="ri-pie-chart-line fs-4"></i>
+                        </span>
+                    </div>
+                    <div>
+                        <h5 class="card-title mb-0">Filter Summary</h5>
+                        <p class="text-muted mb-0 small">Statistics for selected filters</p>
+                    </div>
+                </div>
             </div>
             <div class="card-body">
-                <div class="row">
+                <div class="row g-3">
                     {% if student %}
-                        <div class="col-md-6">
-                            <p class="mb-1"><strong>Student:</strong> {{ student.admission_number }} - {{ student.full_name }}</p>
-                            <p class="mb-0 text-muted small">{{ student.get_current_level_display }}</p>
+                        <div class="col-lg-6">
+                            <div class="d-flex align-items-center p-3 bg-light rounded">
+                                {% if student.profile_picture %}
+                                    <img src="{{ student.profile_picture.url }}"
+                                         alt="{{ student.full_name }}"
+                                         class="rounded-circle me-3"
+                                         width="48"
+                                         height="48"
+                                         style="object-fit: cover;">
+                                {% else %}
+                                    <div class="avatar-sm me-3">
+                                        <span class="avatar-title rounded-circle bg-primary-subtle text-primary fs-5">
+                                            {{ student.full_name|first|upper }}
+                                        </span>
+                                    </div>
+                                {% endif %}
+                                <div>
+                                    <h6 class="mb-1">{{ student.full_name }}</h6>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge bg-primary-subtle text-primary">{{ student.admission_number }}</span>
+                                        {% if student.current_level == 'STARTERS' %}
+                                            <span class="badge bg-info-subtle text-info">
+                                                <i class="ri-seedling-line me-1"></i>Starters
+                                            </span>
+                                        {% elif student.current_level == 'MOVERS' %}
+                                            <span class="badge bg-warning-subtle text-warning">
+                                                <i class="ri-run-line me-1"></i>Movers
+                                            </span>
+                                        {% elif student.current_level == 'FLYERS' %}
+                                            <span class="badge bg-success-subtle text-success">
+                                                <i class="ri-rocket-line me-1"></i>Flyers
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     {% endif %}
                     {% if selected_class %}
-                        <div class="col-md-6">
-                            <p class="mb-1"><strong>Class:</strong> {{ selected_class.class_name }}</p>
-                            <p class="mb-0 text-muted small">{{ selected_class.get_level_display }}</p>
+                        <div class="col-lg-6">
+                            <div class="d-flex align-items-center p-3 bg-light rounded">
+                                <div class="avatar-sm me-3">
+                                    {% if selected_class.level == 'STARTERS' %}
+                                        <span class="avatar-title bg-info-subtle text-info rounded-circle">
+                                            <i class="ri-seedling-line fs-4"></i>
+                                        </span>
+                                    {% elif selected_class.level == 'MOVERS' %}
+                                        <span class="avatar-title bg-warning-subtle text-warning rounded-circle">
+                                            <i class="ri-run-line fs-4"></i>
+                                        </span>
+                                    {% else %}
+                                        <span class="avatar-title bg-success-subtle text-success rounded-circle">
+                                            <i class="ri-rocket-line fs-4"></i>
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">{{ selected_class.class_name }}</h6>
+                                    <span class="text-muted small">{{ selected_class.get_level_display }}</span>
+                                </div>
+                            </div>
                         </div>
                     {% endif %}
                 </div>
+
+                <!-- Date Range -->
                 <div class="row mt-3">
-                    <div class="col-md-12">
-                        <p class="mb-0"><strong>Date Range:</strong> {{ date_from|date:"M d, Y" }} to {{ date_to|date:"M d, Y" }}</p>
+                    <div class="col-12">
+                        <div class="d-flex align-items-center">
+                            <i class="ri-calendar-2-line text-muted me-2"></i>
+                            <span class="text-muted">Date Range:</span>
+                            <span class="fw-medium ms-2">{{ date_from|date:"M d, Y" }} - {{ date_to|date:"M d, Y" }}</span>
+                        </div>
                     </div>
                 </div>
-                <div class="row mt-3">
-                    <div class="col-md-3">
+
+                <!-- Statistics Breakdown -->
+                <div class="row g-3 mt-3">
+                    <div class="col-xl-3 col-md-6">
                         <div class="d-flex align-items-center">
-                            <div class="avatar-xs me-2">
+                            <div class="avatar-sm me-3 flex-shrink-0">
                                 <span class="avatar-title rounded bg-success-subtle text-success">
-                                    <i class="ri-check-line"></i>
+                                    <i class="ri-check-line fs-5"></i>
                                 </span>
                             </div>
                             <div>
                                 <p class="mb-0 text-muted small">Present</p>
-                                <h6 class="mb-0">{{ present_count }}</h6>
+                                <h5 class="mb-0">{{ present_count|default:0 }}</h5>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-xl-3 col-md-6">
                         <div class="d-flex align-items-center">
-                            <div class="avatar-xs me-2">
+                            <div class="avatar-sm me-3 flex-shrink-0">
                                 <span class="avatar-title rounded bg-danger-subtle text-danger">
-                                    <i class="ri-close-line"></i>
+                                    <i class="ri-close-line fs-5"></i>
                                 </span>
                             </div>
                             <div>
                                 <p class="mb-0 text-muted small">Absent</p>
-                                <h6 class="mb-0">{{ absent_count }}</h6>
+                                <h5 class="mb-0">{{ absent_count|default:0 }}</h5>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-xl-3 col-md-6">
                         <div class="d-flex align-items-center">
-                            <div class="avatar-xs me-2">
+                            <div class="avatar-sm me-3 flex-shrink-0">
                                 <span class="avatar-title rounded bg-warning-subtle text-warning">
-                                    <i class="ri-time-line"></i>
+                                    <i class="ri-time-line fs-5"></i>
                                 </span>
                             </div>
                             <div>
                                 <p class="mb-0 text-muted small">Late</p>
-                                <h6 class="mb-0">{{ late_count }}</h6>
+                                <h5 class="mb-0">{{ late_count|default:0 }}</h5>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-xl-3 col-md-6">
                         <div class="d-flex align-items-center">
-                            <div class="avatar-xs me-2">
+                            <div class="avatar-sm me-3 flex-shrink-0">
                                 <span class="avatar-title rounded bg-info-subtle text-info">
-                                    <i class="ri-information-line"></i>
+                                    <i class="ri-information-line fs-5"></i>
                                 </span>
                             </div>
                             <div>
                                 <p class="mb-0 text-muted small">Excused</p>
-                                <h6 class="mb-0">{{ excused_count }}</h6>
+                                <h5 class="mb-0">{{ excused_count|default:0 }}</h5>
                             </div>
                         </div>
                     </div>
@@ -255,75 +339,169 @@
 <div class="row">
     <div class="col-12">
         <div class="card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">Attendance Records</h5>
+            <div class="card-header border-bottom">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-sm me-3">
+                                <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                    <i class="ri-table-line fs-4"></i>
+                                </span>
+                            </div>
+                            <div>
+                                <h5 class="card-title mb-0">
+                                    Attendance Records
+                                    <span class="badge bg-primary-subtle text-primary ms-2">
+                                        {{ total_records|default:0 }} records
+                                    </span>
+                                </h5>
+                                <p class="text-muted mb-0 small">Detailed attendance history</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        {% if attendance_records %}
+                            <div class="dropdown">
+                                <button class="btn btn-soft-secondary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="ri-download-line me-1"></i> Export
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportDropdown">
+                                    <li>
+                                        <a class="dropdown-item" href="#" onclick="window.print();">
+                                            <i class="ri-printer-line me-2"></i> Print
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'attendance_report' %}?{{ request.GET.urlencode }}&export=csv">
+                                            <i class="ri-file-text-line me-2"></i> Export CSV
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
             <div class="card-body">
                 {% if attendance_records %}
+                    <!-- Search within Table -->
+                    <div class="row mb-3">
+                        <div class="col-md-6 col-lg-4">
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="ri-search-line"></i></span>
+                                <input type="text"
+                                       class="form-control"
+                                       id="tableSearch"
+                                       placeholder="Search records..."
+                                       aria-label="Search within table">
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
+                        <table class="table table-hover align-middle table-nowrap mb-0" id="attendanceTable">
                             <thead class="table-light">
                                 <tr>
-                                    <th>Date</th>
-                                    <th>Student</th>
-                                    <th>Admission No.</th>
-                                    <th>Class</th>
-                                    <th>Status</th>
-                                    <th>Notes</th>
-                                    <th>Marked By</th>
+                                    <th scope="col">
+                                        <a href="?sort={% if sort_by == 'date' and sort_order == 'asc' %}-{% endif %}date&{{ request.GET.urlencode }}" class="text-dark text-decoration-none">
+                                            Date
+                                            {% if sort_by == 'date' %}
+                                                <i class="ri-arrow-{% if sort_order == 'asc' %}up{% else %}down{% endif %}-s-line"></i>
+                                            {% else %}
+                                                <i class="ri-arrow-up-down-line text-muted"></i>
+                                            {% endif %}
+                                        </a>
+                                    </th>
+                                    <th scope="col">Student</th>
+                                    <th scope="col">Admission No.</th>
+                                    <th scope="col">Class</th>
+                                    <th scope="col">Status</th>
+                                    <th scope="col">Notes</th>
+                                    <th scope="col">Marked By</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for record in attendance_records %}
-                                    <tr>
-                                        <td>{{ record.date|date:"M d, Y (D)" }}</td>
+                                    <tr class="record-row">
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <i class="ri-calendar-event-line text-muted me-2"></i>
+                                                <span class="fw-medium">{{ record.date|date:"M d, Y" }}</span>
+                                                <span class="badge bg-light text-muted ms-2">{{ record.date|date:"D" }}</span>
+                                            </div>
+                                        </td>
                                         <td>
                                             <div class="d-flex align-items-center">
                                                 {% if record.student.profile_picture %}
-                                                    <img src="{{ record.student.profile_picture.url }}" alt="{{ record.student.full_name }}" class="rounded-circle me-2" width="32" height="32">
+                                                    <img src="{{ record.student.profile_picture.url }}"
+                                                         alt="{{ record.student.full_name }}"
+                                                         class="rounded-circle me-2"
+                                                         width="36"
+                                                         height="36"
+                                                         style="object-fit: cover;">
                                                 {% else %}
-                                                    <div class="avatar-xs me-2">
-                                                        <span class="avatar-title rounded-circle bg-soft-primary text-primary">
+                                                    <div class="avatar-sm me-2">
+                                                        <span class="avatar-title rounded-circle bg-primary-subtle text-primary">
                                                             {{ record.student.full_name|first|upper }}
                                                         </span>
                                                     </div>
                                                 {% endif %}
                                                 <div>
-                                                    <h6 class="mb-0">{{ record.student.full_name }}</h6>
+                                                    <h6 class="mb-0 fw-medium">{{ record.student.full_name }}</h6>
                                                     <small class="text-muted">{{ record.student.name_with_initials }}</small>
                                                 </div>
                                             </div>
                                         </td>
                                         <td>
-                                            <span class="badge bg-primary">{{ record.student.admission_number }}</span>
+                                            <span class="badge bg-primary-subtle text-primary fw-medium">
+                                                {{ record.student.admission_number }}
+                                            </span>
                                         </td>
                                         <td>
                                             {% if record.class_session %}
-                                                {{ record.class_session.class_name }}
-                                            {% else %}
-                                                <span class="text-muted">N/A</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            {% if record.status == 'PRESENT' %}
-                                                <span class="badge bg-success">Present</span>
-                                            {% elif record.status == 'ABSENT' %}
-                                                <span class="badge bg-danger">Absent</span>
-                                            {% elif record.status == 'LATE' %}
-                                                <span class="badge bg-warning">Late</span>
-                                            {% elif record.status == 'EXCUSED' %}
-                                                <span class="badge bg-info">Excused</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            {% if record.notes %}
-                                                <small class="text-muted">{{ record.notes }}</small>
+                                                <span class="fw-medium">{{ record.class_session.class_name }}</span>
                                             {% else %}
                                                 <span class="text-muted">-</span>
                                             {% endif %}
                                         </td>
                                         <td>
-                                            <small>{{ record.marked_by.get_full_name|default:record.marked_by.username }}</small>
+                                            {% if record.status == 'PRESENT' %}
+                                                <span class="badge bg-success">
+                                                    <i class="ri-check-line me-1"></i>Present
+                                                </span>
+                                            {% elif record.status == 'ABSENT' %}
+                                                <span class="badge bg-danger">
+                                                    <i class="ri-close-line me-1"></i>Absent
+                                                </span>
+                                            {% elif record.status == 'LATE' %}
+                                                <span class="badge bg-warning">
+                                                    <i class="ri-time-line me-1"></i>Late
+                                                </span>
+                                            {% elif record.status == 'EXCUSED' %}
+                                                <span class="badge bg-info">
+                                                    <i class="ri-information-line me-1"></i>Excused
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if record.notes %}
+                                                <span class="text-muted" title="{{ record.notes }}">
+                                                    <i class="ri-sticky-note-line me-1"></i>
+                                                    {{ record.notes|truncatechars:30 }}
+                                                </span>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-xs me-2">
+                                                    <span class="avatar-title rounded-circle bg-secondary-subtle text-secondary">
+                                                        {{ record.marked_by.get_full_name|first|upper|default:record.marked_by.username|first|upper }}
+                                                    </span>
+                                                </div>
+                                                <small class="text-muted">{{ record.marked_by.get_full_name|default:record.marked_by.username }}</small>
+                                            </div>
                                         </td>
                                     </tr>
                                 {% endfor %}
@@ -333,14 +511,25 @@
 
                     <!-- Pagination -->
                     {% if page_obj.has_other_pages %}
-                        <nav class="mt-4">
-                            <ul class="pagination justify-content-center">
+                        <nav class="mt-4" aria-label="Attendance records pagination">
+                            <ul class="pagination justify-content-center mb-0">
                                 {% if page_obj.has_previous %}
                                     <li class="page-item">
-                                        <a class="page-link" href="?page=1&{{ request.GET.urlencode }}">First</a>
+                                        <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="First page">
+                                            <i class="ri-skip-back-mini-line"></i>
+                                        </a>
                                     </li>
                                     <li class="page-item">
-                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}">Previous</a>
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Previous page">
+                                            <i class="ri-arrow-left-s-line"></i>
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link"><i class="ri-skip-back-mini-line"></i></span>
+                                    </li>
+                                    <li class="page-item disabled">
+                                        <span class="page-link"><i class="ri-arrow-left-s-line"></i></span>
                                     </li>
                                 {% endif %}
 
@@ -352,23 +541,146 @@
 
                                 {% if page_obj.has_next %}
                                     <li class="page-item">
-                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}">Next</a>
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Next page">
+                                            <i class="ri-arrow-right-s-line"></i>
+                                        </a>
                                     </li>
                                     <li class="page-item">
-                                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&{{ request.GET.urlencode }}">Last</a>
+                                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Last page">
+                                            <i class="ri-skip-forward-mini-line"></i>
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link"><i class="ri-arrow-right-s-line"></i></span>
+                                    </li>
+                                    <li class="page-item disabled">
+                                        <span class="page-link"><i class="ri-skip-forward-mini-line"></i></span>
                                     </li>
                                 {% endif %}
                             </ul>
                         </nav>
                     {% endif %}
                 {% else %}
-                    <div class="alert alert-info">
-                        <i class="ri-information-line me-2"></i> No attendance records found for the selected criteria.
+                    <!-- Empty State -->
+                    <div class="text-center py-5">
+                        <div class="avatar-lg mx-auto mb-4">
+                            <span class="avatar-title bg-info-subtle text-info rounded-circle">
+                                <i class="ri-search-eye-line fs-1"></i>
+                            </span>
+                        </div>
+                        <h5>No Attendance Records Found</h5>
+                        <p class="text-muted mb-4">
+                            {% if student or selected_class or date_from or date_to %}
+                                No records match your current filter criteria.
+                            {% else %}
+                                There are no attendance records in the system yet.
+                            {% endif %}
+                        </p>
+                        <div class="d-flex justify-content-center gap-2">
+                            {% if student or selected_class or date_from or date_to %}
+                                <a href="{% url 'attendance_report' %}" class="btn btn-outline-primary">
+                                    <i class="ri-refresh-line me-1"></i> Clear Filters
+                                </a>
+                            {% endif %}
+                            <a href="{% url 'attendance_mark' %}" class="btn btn-success">
+                                <i class="ri-checkbox-multiple-line me-1"></i> Mark Attendance
+                            </a>
+                        </div>
                     </div>
                 {% endif %}
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
 
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Auto-submit form on filter change
+    $('#student_id, #class_id').on('change', function() {
+        $('#filterForm').submit();
+    });
+
+    // Table search functionality
+    $('#tableSearch').on('keyup', function() {
+        var searchTerm = $(this).val().toLowerCase();
+
+        $('.record-row').each(function() {
+            var rowText = $(this).text().toLowerCase();
+            if (rowText.indexOf(searchTerm) > -1) {
+                $(this).show();
+            } else {
+                $(this).hide();
+            }
+        });
+    });
+
+    // Initialize Select2 if available
+    if ($.fn.select2) {
+        $('#student_id, #class_id').select2({
+            theme: 'bootstrap-5',
+            allowClear: true,
+            placeholder: function() {
+                return $(this).data('placeholder') || 'Select...';
+            }
+        });
+    }
+});
+</script>
+
+<style>
+.avatar-xs {
+    width: 24px;
+    height: 24px;
+}
+
+.avatar-xs .avatar-title {
+    font-size: 12px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.table th a {
+    white-space: nowrap;
+}
+
+.table th a:hover {
+    color: var(--bs-primary) !important;
+}
+
+.table tbody tr:hover {
+    background-color: rgba(102, 0, 102, 0.02);
+}
+
+@media (max-width: 768px) {
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+}
+
+/* Print styles */
+@media print {
+    .card-header .col-auto,
+    .btn,
+    .input-group,
+    .pagination,
+    nav {
+        display: none !important;
+    }
+
+    .card {
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    .table {
+        font-size: 10pt;
+    }
+}
+</style>
 {% endblock %}
