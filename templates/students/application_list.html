@@ -7,89 +7,70 @@
 {% block functionTitle %}Application Management{% endblock %}
 
 {% block content %}
-<!-- Statistics Cards -->
+<!-- Statistics Summary -->
 <div class="row">
     <div class="col-xl-3 col-md-6">
-        <div class="card card-animate">
+        <div class="card card-animate bg-primary">
             <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-grow-1 overflow-hidden">
-                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Total Applications</p>
-                    </div>
-                </div>
-                <div class="d-flex align-items-end justify-content-between mt-4">
+                <div class="d-flex justify-content-between">
                     <div>
-                        <h4 class="fs-22 fw-semibold ff-secondary mb-4">{{ total_applications }}</h4>
+                        <p class="fw-medium text-white-75 mb-0">Total Applications</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ total_applications|default:0 }}</h2>
                     </div>
                     <div class="avatar-sm flex-shrink-0">
-                        <span class="avatar-title bg-info-subtle rounded fs-3">
-                            <i class="bx bx-file text-info"></i>
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-file-list-3-line text-white"></i>
                         </span>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
     <div class="col-xl-3 col-md-6">
-        <div class="card card-animate">
+        <div class="card card-animate bg-warning">
             <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-grow-1 overflow-hidden">
-                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Pending</p>
-                    </div>
-                </div>
-                <div class="d-flex align-items-end justify-content-between mt-4">
+                <div class="d-flex justify-content-between">
                     <div>
-                        <h4 class="fs-22 fw-semibold ff-secondary mb-4">{{ pending_count }}</h4>
+                        <p class="fw-medium text-white-75 mb-0">Pending Review</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ pending_count|default:0 }}</h2>
                     </div>
                     <div class="avatar-sm flex-shrink-0">
-                        <span class="avatar-title bg-warning-subtle rounded fs-3">
-                            <i class="bx bx-time text-warning"></i>
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-time-line text-white"></i>
                         </span>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
     <div class="col-xl-3 col-md-6">
-        <div class="card card-animate">
+        <div class="card card-animate bg-success">
             <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-grow-1 overflow-hidden">
-                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Approved</p>
-                    </div>
-                </div>
-                <div class="d-flex align-items-end justify-content-between mt-4">
+                <div class="d-flex justify-content-between">
                     <div>
-                        <h4 class="fs-22 fw-semibold ff-secondary mb-4">{{ approved_count }}</h4>
+                        <p class="fw-medium text-white-75 mb-0">Approved</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ approved_count|default:0 }}</h2>
                     </div>
                     <div class="avatar-sm flex-shrink-0">
-                        <span class="avatar-title bg-success-subtle rounded fs-3">
-                            <i class="bx bx-check-circle text-success"></i>
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-check-double-line text-white"></i>
                         </span>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
     <div class="col-xl-3 col-md-6">
-        <div class="card card-animate">
+        <div class="card card-animate bg-danger">
             <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-grow-1 overflow-hidden">
-                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Rejected</p>
-                    </div>
-                </div>
-                <div class="d-flex align-items-end justify-content-between mt-4">
+                <div class="d-flex justify-content-between">
                     <div>
-                        <h4 class="fs-22 fw-semibold ff-secondary mb-4">{{ rejected_count }}</h4>
+                        <p class="fw-medium text-white-75 mb-0">Rejected</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ rejected_count|default:0 }}</h2>
                     </div>
                     <div class="avatar-sm flex-shrink-0">
-                        <span class="avatar-title bg-danger-subtle rounded fs-3">
-                            <i class="bx bx-x-circle text-danger"></i>
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-close-circle-line text-white"></i>
                         </span>
                     </div>
                 </div>
@@ -102,15 +83,14 @@
 <div class="row">
     <div class="col-12">
         <div class="card">
-            <div class="card-header">
+            <div class="card-header border-bottom">
                 <div class="row align-items-center">
                     <div class="col">
-                        <h5 class="card-title mb-0">Filter Applications</h5>
+                        <h5 class="card-title mb-0">
+                            <i class="ri-filter-3-line me-2"></i>Search & Filter Applications
+                        </h5>
                     </div>
                     <div class="col-auto">
-                        <button onclick="window.history.back()" class="btn btn-secondary me-2">
-                            <i class="ri-arrow-left-line me-1"></i> Back
-                        </button>
                         <a href="{% url 'apply' %}" class="btn btn-success" target="_blank">
                             <i class="ri-file-add-line me-1"></i> New Application
                         </a>
@@ -118,43 +98,67 @@
                 </div>
             </div>
             <div class="card-body">
-                <form method="get" action="{% url 'application_list' %}" class="row g-3">
-                    <div class="col-md-3">
-                        <label class="form-label">Search</label>
-                        <input type="text" class="form-control" name="search" value="{{ search_query }}" placeholder="Name, Admission No., Email...">
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">Status</label>
-                        <select class="form-select" name="status">
-                            <option value="">All Status</option>
-                            <option value="PENDING" {% if status_filter == 'PENDING' %}selected{% endif %}>Pending</option>
-                            <option value="APPROVED" {% if status_filter == 'APPROVED' %}selected{% endif %}>Approved</option>
-                            <option value="REJECTED" {% if status_filter == 'REJECTED' %}selected{% endif %}>Rejected</option>
-                            <option value="WAITLIST" {% if status_filter == 'WAITLIST' %}selected{% endif %}>Waitlist</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">Type</label>
-                        <select class="form-select" name="type">
-                            <option value="">All Types</option>
-                            <option value="ONLINE" {% if type_filter == 'ONLINE' %}selected{% endif %}>Online</option>
-                            <option value="OFFLINE" {% if type_filter == 'OFFLINE' %}selected{% endif %}>Offline</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">From Date</label>
-                        <input type="date" class="form-control" name="date_from" value="{{ date_from }}">
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">To Date</label>
-                        <input type="date" class="form-control" name="date_to" value="{{ date_to }}">
-                    </div>
-                    <div class="col-md-1">
-                        <label class="form-label">&nbsp;</label>
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="ri-search-line"></i>
-                            </button>
+                <form method="get" action="{% url 'application_list' %}" id="filterForm">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-lg-3 col-md-6">
+                            <label for="search" class="form-label">Search</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="ri-search-line"></i></span>
+                                <input type="text"
+                                       class="form-control"
+                                       id="search"
+                                       name="search"
+                                       value="{{ search_query }}"
+                                       placeholder="Name, Admission No., Email..."
+                                       aria-label="Search applications">
+                                {% if search_query %}
+                                    <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('search').value=''; document.getElementById('filterForm').submit();" aria-label="Clear search">
+                                        <i class="ri-close-line"></i>
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select" id="status" name="status" aria-label="Filter by status">
+                                <option value="">All Status</option>
+                                <option value="PENDING" {% if status_filter == 'PENDING' %}selected{% endif %}>Pending</option>
+                                <option value="APPROVED" {% if status_filter == 'APPROVED' %}selected{% endif %}>Approved</option>
+                                <option value="REJECTED" {% if status_filter == 'REJECTED' %}selected{% endif %}>Rejected</option>
+                                <option value="WAITLIST" {% if status_filter == 'WAITLIST' %}selected{% endif %}>Waitlist</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <label for="type" class="form-label">Type</label>
+                            <select class="form-select" id="type" name="type" aria-label="Filter by type">
+                                <option value="">All Types</option>
+                                <option value="ONLINE" {% if type_filter == 'ONLINE' %}selected{% endif %}>Online</option>
+                                <option value="OFFLINE" {% if type_filter == 'OFFLINE' %}selected{% endif %}>Offline</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <label for="date_from" class="form-label">From Date</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="ri-calendar-line"></i></span>
+                                <input type="date" class="form-control" id="date_from" name="date_from" value="{{ date_from }}">
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <label for="date_to" class="form-label">To Date</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="ri-calendar-line"></i></span>
+                                <input type="date" class="form-control" id="date_to" name="date_to" value="{{ date_to }}">
+                            </div>
+                        </div>
+                        <div class="col-lg-1 col-md-6">
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary flex-grow-1" title="Apply filters">
+                                    <i class="ri-search-line"></i>
+                                </button>
+                                <a href="{% url 'application_list' %}" class="btn btn-outline-secondary" title="Reset filters">
+                                    <i class="ri-refresh-line"></i>
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -167,99 +171,255 @@
 <div class="row">
     <div class="col-12">
         <div class="card">
+            <div class="card-header border-bottom">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h5 class="card-title mb-0">
+                            <i class="ri-file-list-3-line me-2"></i>Applications
+                            <span class="badge bg-primary-subtle text-primary ms-2">
+                                {{ applications|length }} of {{ total_applications }} applications
+                            </span>
+                        </h5>
+                    </div>
+                    <div class="col-auto">
+                        <div class="btn-group" role="group" aria-label="View options">
+                            <button type="button" class="btn btn-outline-primary btn-sm active" id="tableViewBtn" title="Table view">
+                                <i class="ri-list-check"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="cardViewBtn" title="Card view">
+                                <i class="ri-grid-fill"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="card-body">
                 {% if applications %}
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Application Date</th>
-                                    <th>Admission No.</th>
-                                    <th>Full Name</th>
-                                    <th>Age/Gender</th>
-                                    <th>Contact</th>
-                                    <th>Type</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for app in applications %}
+                    <!-- Table View -->
+                    <div id="tableView">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle table-nowrap mb-0">
+                                <thead class="table-light">
                                     <tr>
-                                        <td>{{ app.application_date|date:"M d, Y" }}</td>
-                                        <td>
-                                            {% if app.admission_number %}
-                                                <span class="badge bg-primary">{{ app.admission_number }}</span>
-                                            {% else %}
-                                                <span class="text-muted">Pending</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            <h6 class="mb-0">{{ app.full_name }}</h6>
-                                            <small class="text-muted">{{ app.name_with_initials }}</small>
-                                        </td>
-                                        <td>
-                                            {{ app.age }} years
-                                            <br>
-                                            <small class="text-muted">{{ app.get_gender_display }}</small>
-                                        </td>
-                                        <td>
-                                            <small>
-                                                <i class="ri-mail-line"></i> {{ app.primary_contact_email }}<br>
-                                                <i class="ri-phone-line"></i> {{ app.mother_contact_number }}
-                                            </small>
-                                        </td>
-                                        <td>
-                                            {% if app.application_type == 'ONLINE' %}
-                                                <span class="badge bg-info">Online</span>
-                                            {% else %}
-                                                <span class="badge bg-secondary">Offline</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            {% if app.status == 'PENDING' %}
-                                                <span class="badge bg-warning">Pending</span>
-                                            {% elif app.status == 'APPROVED' %}
-                                                <span class="badge bg-success">Approved</span>
-                                            {% elif app.status == 'REJECTED' %}
-                                                <span class="badge bg-danger">Rejected</span>
-                                            {% elif app.status == 'WAITLIST' %}
-                                                <span class="badge bg-secondary">Waitlist</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            <div class="btn-group btn-group-sm">
-                                                <a href="{% url 'application_review' app.id %}" class="btn btn-primary" title="Review">
-                                                    <i class="ri-eye-line"></i>
+                                        <th scope="col">Date</th>
+                                        <th scope="col">Admission No.</th>
+                                        <th scope="col">Student</th>
+                                        <th scope="col">Age/Gender</th>
+                                        <th scope="col">Contact</th>
+                                        <th scope="col">Type</th>
+                                        <th scope="col">Status</th>
+                                        <th scope="col" class="text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for app in applications %}
+                                        <tr>
+                                            <td>
+                                                <span class="text-muted small">
+                                                    {{ app.application_date|date:"M d, Y" }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {% if app.admission_number %}
+                                                    <span class="badge bg-primary-subtle text-primary fw-medium">
+                                                        {{ app.admission_number }}
+                                                    </span>
+                                                {% else %}
+                                                    <span class="text-muted small">Pending</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="avatar-sm me-3">
+                                                        <span class="avatar-title rounded-circle bg-{% if app.gender == 'M' %}info{% else %}pink{% endif %}-subtle text-{% if app.gender == 'M' %}info{% else %}pink{% endif %}">
+                                                            {{ app.full_name|first|upper }}
+                                                        </span>
+                                                    </div>
+                                                    <div>
+                                                        <h6 class="mb-0">{{ app.full_name }}</h6>
+                                                        <p class="text-muted mb-0 small">{{ app.name_with_initials }}</p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="fw-medium">{{ app.age }}</span>
+                                                <span class="text-muted">years</span>
+                                                <br>
+                                                <small class="text-muted">
+                                                    {% if app.gender == 'M' %}
+                                                        <i class="ri-men-line text-info"></i> Male
+                                                    {% else %}
+                                                        <i class="ri-women-line text-pink"></i> Female
+                                                    {% endif %}
+                                                </small>
+                                            </td>
+                                            <td>
+                                                <div class="small">
+                                                    <a href="mailto:{{ app.primary_contact_email }}" class="text-muted text-decoration-none d-block mb-1">
+                                                        <i class="ri-mail-line me-1"></i>{{ app.primary_contact_email|truncatechars:20 }}
+                                                    </a>
+                                                    <a href="tel:{{ app.mother_contact_number }}" class="text-muted text-decoration-none">
+                                                        <i class="ri-phone-line me-1"></i>{{ app.mother_contact_number }}
+                                                    </a>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                {% if app.application_type == 'ONLINE' %}
+                                                    <span class="badge bg-info-subtle text-info">
+                                                        <i class="ri-global-line me-1"></i>Online
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary-subtle text-secondary">
+                                                        <i class="ri-file-paper-line me-1"></i>Offline
+                                                    </span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if app.status == 'PENDING' %}
+                                                    <span class="badge bg-warning">
+                                                        <i class="ri-time-line me-1"></i>Pending
+                                                    </span>
+                                                {% elif app.status == 'APPROVED' %}
+                                                    <span class="badge bg-success">
+                                                        <i class="ri-check-line me-1"></i>Approved
+                                                    </span>
+                                                {% elif app.status == 'REJECTED' %}
+                                                    <span class="badge bg-danger">
+                                                        <i class="ri-close-line me-1"></i>Rejected
+                                                    </span>
+                                                {% elif app.status == 'WAITLIST' %}
+                                                    <span class="badge bg-secondary">
+                                                        <i class="ri-list-check me-1"></i>Waitlist
+                                                    </span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="d-flex justify-content-end gap-1">
+                                                    <a href="{% url 'application_review' app.id %}"
+                                                       class="btn btn-sm btn-soft-primary"
+                                                       title="Review Application"
+                                                       aria-label="Review {{ app.full_name }}'s application">
+                                                        <i class="ri-eye-line"></i>
+                                                    </a>
+                                                    {% if app.status == 'APPROVED' and not app.enrolled_student %}
+                                                        <a href="{% url 'student_enroll' app.id %}"
+                                                           class="btn btn-sm btn-soft-success"
+                                                           title="Enroll Student"
+                                                           aria-label="Enroll {{ app.full_name }}">
+                                                            <i class="ri-user-add-line"></i>
+                                                        </a>
+                                                    {% endif %}
+                                                    {% if app.enrolled_student %}
+                                                        <a href="{% url 'student_detail' app.enrolled_student.id %}"
+                                                           class="btn btn-sm btn-soft-info"
+                                                           title="View Enrolled Student"
+                                                           aria-label="View {{ app.full_name }}'s student profile">
+                                                            <i class="ri-user-line"></i>
+                                                        </a>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Card View (hidden by default) -->
+                    <div id="cardView" class="d-none">
+                        <div class="row g-3">
+                            {% for app in applications %}
+                                <div class="col-xl-4 col-lg-6">
+                                    <div class="card border mb-0 h-100">
+                                        <div class="card-body">
+                                            <div class="d-flex align-items-start mb-3">
+                                                <div class="avatar-md me-3">
+                                                    <span class="avatar-title bg-{% if app.gender == 'M' %}info{% else %}pink{% endif %}-subtle text-{% if app.gender == 'M' %}info{% else %}pink{% endif %} rounded-circle fs-4">
+                                                        {{ app.full_name|first|upper }}
+                                                    </span>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <h5 class="mb-1">{{ app.full_name }}</h5>
+                                                    <p class="text-muted mb-2 small">{{ app.name_with_initials }}</p>
+                                                    <div class="d-flex flex-wrap gap-1">
+                                                        {% if app.admission_number %}
+                                                            <span class="badge bg-primary-subtle text-primary">{{ app.admission_number }}</span>
+                                                        {% endif %}
+                                                        {% if app.status == 'PENDING' %}
+                                                            <span class="badge bg-warning">Pending</span>
+                                                        {% elif app.status == 'APPROVED' %}
+                                                            <span class="badge bg-success">Approved</span>
+                                                        {% elif app.status == 'REJECTED' %}
+                                                            <span class="badge bg-danger">Rejected</span>
+                                                        {% else %}
+                                                            <span class="badge bg-secondary">Waitlist</span>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="border-top pt-3">
+                                                <div class="row g-2 text-center">
+                                                    <div class="col-4">
+                                                        <p class="text-muted mb-1 small">Age</p>
+                                                        <h6 class="mb-0">{{ app.age }} yrs</h6>
+                                                    </div>
+                                                    <div class="col-4">
+                                                        <p class="text-muted mb-1 small">Gender</p>
+                                                        <h6 class="mb-0">{{ app.get_gender_display }}</h6>
+                                                    </div>
+                                                    <div class="col-4">
+                                                        <p class="text-muted mb-1 small">Type</p>
+                                                        <h6 class="mb-0">
+                                                            {% if app.application_type == 'ONLINE' %}
+                                                                <i class="ri-global-line text-info"></i>
+                                                            {% else %}
+                                                                <i class="ri-file-paper-line text-secondary"></i>
+                                                            {% endif %}
+                                                        </h6>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="d-flex gap-2 mt-3">
+                                                <a href="{% url 'application_review' app.id %}" class="btn btn-sm btn-primary flex-grow-1">
+                                                    <i class="ri-eye-line me-1"></i>Review
                                                 </a>
                                                 {% if app.status == 'APPROVED' and not app.enrolled_student %}
-                                                    <a href="{% url 'student_enroll' app.id %}" class="btn btn-success" title="Enroll Student">
+                                                    <a href="{% url 'student_enroll' app.id %}" class="btn btn-sm btn-success">
                                                         <i class="ri-user-add-line"></i>
                                                     </a>
                                                 {% endif %}
-                                                {% if app.enrolled_student %}
-                                                    <a href="{% url 'student_detail' app.enrolled_student.id %}" class="btn btn-info" title="View Student">
-                                                        <i class="ri-user-line"></i>
-                                                    </a>
-                                                {% endif %}
                                             </div>
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
                     </div>
 
                     <!-- Pagination -->
                     {% if page_obj.has_other_pages %}
-                        <nav class="mt-4">
-                            <ul class="pagination justify-content-center">
+                        <nav class="mt-4" aria-label="Application list pagination">
+                            <ul class="pagination justify-content-center mb-0">
                                 {% if page_obj.has_previous %}
                                     <li class="page-item">
-                                        <a class="page-link" href="?page=1&{{ request.GET.urlencode }}">First</a>
+                                        <a class="page-link" href="?page=1&{{ request.GET.urlencode }}" aria-label="First page">
+                                            <i class="ri-skip-back-mini-line"></i>
+                                        </a>
                                     </li>
                                     <li class="page-item">
-                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}">Previous</a>
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}" aria-label="Previous page">
+                                            <i class="ri-arrow-left-s-line"></i>
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link"><i class="ri-skip-back-mini-line"></i></span>
+                                    </li>
+                                    <li class="page-item disabled">
+                                        <span class="page-link"><i class="ri-arrow-left-s-line"></i></span>
                                     </li>
                                 {% endif %}
 
@@ -271,18 +431,53 @@
 
                                 {% if page_obj.has_next %}
                                     <li class="page-item">
-                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}">Next</a>
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}" aria-label="Next page">
+                                            <i class="ri-arrow-right-s-line"></i>
+                                        </a>
                                     </li>
                                     <li class="page-item">
-                                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&{{ request.GET.urlencode }}">Last</a>
+                                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&{{ request.GET.urlencode }}" aria-label="Last page">
+                                            <i class="ri-skip-forward-mini-line"></i>
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link"><i class="ri-arrow-right-s-line"></i></span>
+                                    </li>
+                                    <li class="page-item disabled">
+                                        <span class="page-link"><i class="ri-skip-forward-mini-line"></i></span>
                                     </li>
                                 {% endif %}
                             </ul>
                         </nav>
                     {% endif %}
+
                 {% else %}
-                    <div class="alert alert-info">
-                        <i class="ri-information-line me-2"></i> No applications found matching your criteria.
+                    <!-- Empty State -->
+                    <div class="text-center py-5">
+                        <div class="avatar-lg mx-auto mb-4">
+                            <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                <i class="ri-file-search-line fs-1"></i>
+                            </span>
+                        </div>
+                        <h5>No Applications Found</h5>
+                        <p class="text-muted mb-4">
+                            {% if search_query or status_filter or type_filter or date_from or date_to %}
+                                No applications match your current filter criteria.
+                            {% else %}
+                                There are no applications in the system yet.
+                            {% endif %}
+                        </p>
+                        <div class="d-flex justify-content-center gap-2">
+                            {% if search_query or status_filter or type_filter or date_from or date_to %}
+                                <a href="{% url 'application_list' %}" class="btn btn-outline-primary">
+                                    <i class="ri-refresh-line me-1"></i>Clear Filters
+                                </a>
+                            {% endif %}
+                            <a href="{% url 'apply' %}" class="btn btn-success" target="_blank">
+                                <i class="ri-file-add-line me-1"></i>New Application
+                            </a>
+                        </div>
                     </div>
                 {% endif %}
             </div>
@@ -290,4 +485,81 @@
     </div>
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // View toggle functionality
+    $('#tableViewBtn').on('click', function() {
+        $('#tableView').removeClass('d-none');
+        $('#cardView').addClass('d-none');
+        $(this).addClass('active');
+        $('#cardViewBtn').removeClass('active');
+        localStorage.setItem('applicationViewPreference', 'table');
+    });
+
+    $('#cardViewBtn').on('click', function() {
+        $('#cardView').removeClass('d-none');
+        $('#tableView').addClass('d-none');
+        $(this).addClass('active');
+        $('#tableViewBtn').removeClass('active');
+        localStorage.setItem('applicationViewPreference', 'card');
+    });
+
+    // Restore view preference
+    var viewPreference = localStorage.getItem('applicationViewPreference');
+    if (viewPreference === 'card') {
+        $('#cardViewBtn').click();
+    }
+
+    // Auto-submit form on filter change
+    $('#status, #type').on('change', function() {
+        $('#filterForm').submit();
+    });
+
+    // Search on Enter key
+    $('#search').on('keypress', function(e) {
+        if (e.which === 13) {
+            $('#filterForm').submit();
+        }
+    });
+});
+</script>
+
+<style>
+.card-animate {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card-animate:hover {
+    transform: translateY(-3px);
+}
+
+.avatar-md {
+    width: 60px;
+    height: 60px;
+}
+
+.avatar-md .avatar-title {
+    width: 60px;
+    height: 60px;
+}
+
+.text-pink {
+    color: #e83e8c !important;
+}
+
+.bg-pink-subtle {
+    background-color: rgba(232, 62, 140, 0.1) !important;
+}
+
+/* btn-soft-* styles moved to yle-custom.css */
+
+@media (max-width: 768px) {
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+}
+</style>
 {% endblock %}

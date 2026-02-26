@@ -1,60 +1,80 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block PageTitle %}{{ student.full_name }} - Polymath School of English{% endblock %}
+{% block PageTitle %}{{ student.full_name }} - Student Profile - Polymath School of English{% endblock %}
 {% block pageTitle %}Student Profile{% endblock %}
 {% block Title %}Students{% endblock %}
-{% block functionTitle %}Profile Details{% endblock %}
+{% block functionTitle %}{{ student.full_name }}{% endblock %}
 
 {% block content %}
-<!-- Student Header -->
+<!-- Student Profile Header -->
 <div class="row">
     <div class="col-12">
-        <div class="card">
-            <div class="card-body">
-                <div class="row align-items-center">
-                    <div class="col-auto">
+        <div class="card overflow-hidden">
+            <div class="card-body bg-primary bg-opacity-10 position-relative" style="min-height: 120px;">
+                <!-- Background pattern -->
+                <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(135deg, var(--bs-primary) 0%, transparent 50%); opacity: 0.1;"></div>
+            </div>
+            <div class="card-body pt-0">
+                <div class="row align-items-end">
+                    <div class="col-auto" style="margin-top: -50px;">
                         {% if student.profile_picture %}
-                            <img src="{{ student.profile_picture.url }}" alt="{{ student.full_name }}" class="rounded-circle" width="100" height="100">
+                            <img src="{{ student.profile_picture.url }}"
+                                 alt="{{ student.full_name }}"
+                                 class="rounded-circle border border-4 border-white shadow"
+                                 style="width: 120px; height: 120px; object-fit: cover;">
                         {% else %}
-                            <div class="avatar-xl">
-                                <span class="avatar-title rounded-circle bg-soft-primary text-primary fs-1">
+                            <div class="avatar-xxl border border-4 border-white shadow rounded-circle">
+                                <span class="avatar-title bg-primary text-white rounded-circle" style="font-size: 2.5rem;">
                                     {{ student.full_name|first|upper }}
                                 </span>
                             </div>
                         {% endif %}
                     </div>
                     <div class="col">
-                        <h3 class="mb-1">{{ student.full_name }}</h3>
-                        <p class="text-muted mb-2">{{ student.name_with_initials }}</p>
-                        <div class="d-flex flex-wrap gap-2">
-                            <span class="badge bg-primary">{{ student.admission_number }}</span>
-                            {% if student.current_level == 'STARTERS' %}
-                                <span class="badge bg-info">Pre A1 Starters</span>
-                            {% elif student.current_level == 'MOVERS' %}
-                                <span class="badge bg-warning">A1 Movers</span>
-                            {% elif student.current_level == 'FLYERS' %}
-                                <span class="badge bg-success">A2 Flyers</span>
-                            {% endif %}
-                            {% if student.is_active %}
-                                <span class="badge bg-success">Active</span>
-                            {% else %}
-                                <span class="badge bg-danger">Inactive</span>
-                            {% endif %}
+                        <div class="d-flex flex-wrap justify-content-between align-items-start">
+                            <div>
+                                <h3 class="mb-1">{{ student.full_name }}</h3>
+                                <p class="text-muted mb-2">{{ student.name_with_initials }}</p>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <span class="badge bg-primary-subtle text-primary">
+                                        <i class="ri-hashtag me-1"></i>{{ student.admission_number }}
+                                    </span>
+                                    {% if student.current_level == 'STARTERS' %}
+                                        <span class="badge bg-info-subtle text-info">
+                                            <i class="ri-seedling-line me-1"></i>Pre A1 Starters
+                                        </span>
+                                    {% elif student.current_level == 'MOVERS' %}
+                                        <span class="badge bg-warning-subtle text-warning">
+                                            <i class="ri-run-line me-1"></i>A1 Movers
+                                        </span>
+                                    {% elif student.current_level == 'FLYERS' %}
+                                        <span class="badge bg-success-subtle text-success">
+                                            <i class="ri-rocket-line me-1"></i>A2 Flyers
+                                        </span>
+                                    {% endif %}
+                                    {% if student.is_active %}
+                                        <span class="badge bg-success-subtle text-success">
+                                            <i class="ri-check-line me-1"></i>Active
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-danger-subtle text-danger">
+                                            <i class="ri-close-line me-1"></i>Inactive
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2 mt-3 mt-md-0">
+                                {% if perms.students.change_student %}
+                                    <a href="{% url 'student_edit' student.id %}" class="btn btn-warning">
+                                        <i class="ri-edit-line me-1"></i> Edit Profile
+                                    </a>
+                                {% endif %}
+                                <a href="{% url 'student_list' %}" class="btn btn-outline-secondary">
+                                    <i class="ri-team-line me-1"></i> All Students
+                                </a>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-auto">
-                        {% if perms.students.change_student %}
-                            <a href="{% url 'student_edit' student.id %}" class="btn btn-warning me-2">
-                                <i class="ri-edit-line me-1"></i> Edit Profile
-                            </a>
-                        {% endif %}
-                        <button onclick="window.history.back()" class="btn btn-secondary me-2">
-                            <i class="ri-arrow-left-line me-1"></i> Back
-                        </button>
-                        <a href="{% url 'student_list' %}" class="btn btn-info">
-                            <i class="ri-team-line me-1"></i> All Students
-                        </a>
                     </div>
                 </div>
             </div>
@@ -65,24 +85,17 @@
 <!-- Statistics Cards -->
 <div class="row">
     <div class="col-xl-3 col-md-6">
-        <div class="card card-animate">
+        <div class="card card-animate bg-success">
             <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-grow-1 overflow-hidden">
-                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Attendance</p>
-                    </div>
-                    <div class="flex-shrink-0">
-                        <h5 class="text-success mb-0">{{ attendance_percentage }}%</h5>
-                    </div>
-                </div>
-                <div class="d-flex align-items-end justify-content-between mt-4">
+                <div class="d-flex justify-content-between">
                     <div>
-                        <h4 class="fs-22 fw-semibold ff-secondary mb-2">{{ present_count }}/{{ total_classes }}</h4>
-                        <p class="text-muted mb-0">Last 30 Days</p>
+                        <p class="fw-medium text-white-75 mb-0">Attendance</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ attendance_percentage|default:0 }}%</h2>
+                        <p class="text-white-50 mb-0 small">{{ present_count|default:0 }}/{{ total_classes|default:0 }} classes</p>
                     </div>
                     <div class="avatar-sm flex-shrink-0">
-                        <span class="avatar-title bg-success-subtle rounded fs-3">
-                            <i class="bx bx-check-circle text-success"></i>
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-calendar-check-line text-white"></i>
                         </span>
                     </div>
                 </div>
@@ -91,21 +104,17 @@
     </div>
 
     <div class="col-xl-3 col-md-6">
-        <div class="card card-animate">
+        <div class="card card-animate bg-warning">
             <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-grow-1 overflow-hidden">
-                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Total Points</p>
-                    </div>
-                </div>
-                <div class="d-flex align-items-end justify-content-between mt-4">
+                <div class="d-flex justify-content-between">
                     <div>
-                        <h4 class="fs-22 fw-semibold ff-secondary mb-2">{{ student.total_points }}</h4>
-                        <p class="text-muted mb-0">Gamification Points</p>
+                        <p class="fw-medium text-white-75 mb-0">Total Points</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ student.total_points|default:0 }}</h2>
+                        <p class="text-white-50 mb-0 small">Gamification Points</p>
                     </div>
                     <div class="avatar-sm flex-shrink-0">
-                        <span class="avatar-title bg-warning-subtle rounded fs-3">
-                            <i class="bx bx-star text-warning"></i>
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-star-line text-white"></i>
                         </span>
                     </div>
                 </div>
@@ -114,21 +123,17 @@
     </div>
 
     <div class="col-xl-3 col-md-6">
-        <div class="card card-animate">
+        <div class="card card-animate bg-danger">
             <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-grow-1 overflow-hidden">
-                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Streak Days</p>
-                    </div>
-                </div>
-                <div class="d-flex align-items-end justify-content-between mt-4">
+                <div class="d-flex justify-content-between">
                     <div>
-                        <h4 class="fs-22 fw-semibold ff-secondary mb-2">{{ student.streak_days }}</h4>
-                        <p class="text-muted mb-0">Consecutive Days</p>
+                        <p class="fw-medium text-white-75 mb-0">Streak Days</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ student.streak_days|default:0 }}</h2>
+                        <p class="text-white-50 mb-0 small">Consecutive Days</p>
                     </div>
                     <div class="avatar-sm flex-shrink-0">
-                        <span class="avatar-title bg-danger-subtle rounded fs-3">
-                            <i class="bx bx-trending-up text-danger"></i>
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-fire-line text-white"></i>
                         </span>
                     </div>
                 </div>
@@ -137,21 +142,17 @@
     </div>
 
     <div class="col-xl-3 col-md-6">
-        <div class="card card-animate">
+        <div class="card card-animate bg-info">
             <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-grow-1 overflow-hidden">
-                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Badges Earned</p>
-                    </div>
-                </div>
-                <div class="d-flex align-items-end justify-content-between mt-4">
+                <div class="d-flex justify-content-between">
                     <div>
-                        <h4 class="fs-22 fw-semibold ff-secondary mb-2">{{ badges.count }}</h4>
-                        <p class="text-muted mb-0">Achievements</p>
+                        <p class="fw-medium text-white-75 mb-0">Badges Earned</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ badges.count|default:0 }}</h2>
+                        <p class="text-white-50 mb-0 small">Achievements</p>
                     </div>
                     <div class="avatar-sm flex-shrink-0">
-                        <span class="avatar-title bg-info-subtle rounded fs-3">
-                            <i class="bx bx-award text-info"></i>
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-award-line text-white"></i>
                         </span>
                     </div>
                 </div>
@@ -161,47 +162,69 @@
 </div>
 
 <div class="row">
-    <!-- Personal Information -->
-    <div class="col-xl-6">
+    <!-- Left Column -->
+    <div class="col-xl-4">
+        <!-- Personal Information Card -->
         <div class="card">
             <div class="card-header">
-                <h5 class="card-title mb-0">Personal Information</h5>
+                <h5 class="card-title mb-0">
+                    <i class="ri-user-line me-2 text-primary"></i>Personal Information
+                </h5>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
                     <table class="table table-borderless mb-0">
                         <tbody>
                             <tr>
-                                <th class="ps-0" scope="row">Admission Number</th>
-                                <td class="text-muted">{{ student.admission_number }}</td>
+                                <th class="ps-0 text-muted" style="width: 40%;">
+                                    <i class="ri-hashtag me-2"></i>Admission No.
+                                </th>
+                                <td class="fw-medium">{{ student.admission_number }}</td>
                             </tr>
                             <tr>
-                                <th class="ps-0" scope="row">Full Name</th>
-                                <td class="text-muted">{{ student.full_name }}</td>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-user-line me-2"></i>Full Name
+                                </th>
+                                <td class="fw-medium">{{ student.full_name }}</td>
                             </tr>
                             <tr>
-                                <th class="ps-0" scope="row">Name with Initials</th>
-                                <td class="text-muted">{{ student.name_with_initials }}</td>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-text me-2"></i>Name w/ Initials
+                                </th>
+                                <td class="fw-medium">{{ student.name_with_initials }}</td>
                             </tr>
                             <tr>
-                                <th class="ps-0" scope="row">Date of Birth</th>
-                                <td class="text-muted">{{ student.date_of_birth|date:"Y-m-d" }} ({{ student.age }} years old)</td>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-cake-2-line me-2"></i>Date of Birth
+                                </th>
+                                <td class="fw-medium">
+                                    {{ student.date_of_birth|date:"F d, Y" }}
+                                    <span class="badge bg-primary-subtle text-primary ms-1">{{ student.age }} years</span>
+                                </td>
                             </tr>
                             <tr>
-                                <th class="ps-0" scope="row">Gender</th>
-                                <td class="text-muted">{{ student.get_gender_display }}</td>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-user-3-line me-2"></i>Gender
+                                </th>
+                                <td class="fw-medium">{{ student.get_gender_display }}</td>
                             </tr>
                             <tr>
-                                <th class="ps-0" scope="row">Nationality</th>
-                                <td class="text-muted">{{ student.nationality }}</td>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-global-line me-2"></i>Nationality
+                                </th>
+                                <td class="fw-medium">{{ student.nationality|default:"Not specified" }}</td>
                             </tr>
                             <tr>
-                                <th class="ps-0" scope="row">Current School</th>
-                                <td class="text-muted">{{ student.current_school|default:"Not provided" }}</td>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-school-line me-2"></i>Current School
+                                </th>
+                                <td class="fw-medium">{{ student.current_school|default:"Not provided" }}</td>
                             </tr>
                             <tr>
-                                <th class="ps-0" scope="row">Enrollment Date</th>
-                                <td class="text-muted">{{ student.enrollment_date|date:"Y-m-d" }}</td>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-calendar-line me-2"></i>Enrolled
+                                </th>
+                                <td class="fw-medium">{{ student.enrollment_date|date:"F d, Y" }}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -209,100 +232,60 @@
             </div>
         </div>
 
-        <!-- Guardians -->
+        <!-- Contact Information Card -->
         <div class="card">
             <div class="card-header">
-                <h5 class="card-title mb-0">Guardians / Parents</h5>
-            </div>
-            <div class="card-body">
-                {% if guardians %}
-                    {% for guardian in guardians %}
-                        <div class="d-flex align-items-center mb-3 {% if not forloop.last %}pb-3 border-bottom{% endif %}">
-                            <div class="avatar-sm me-3">
-                                <span class="avatar-title rounded-circle bg-soft-info text-info">
-                                    <i class="ri-user-line fs-5"></i>
-                                </span>
-                            </div>
-                            <div class="flex-grow-1">
-                                <h6 class="mb-1">{{ guardian.full_name }}</h6>
-                                <p class="text-muted mb-0 small">{{ guardian.get_relationship_display }}</p>
-                                <p class="text-muted mb-0 small">
-                                    <i class="ri-phone-line"></i> {{ guardian.contact_number }}
-                                    {% if guardian.email %}
-                                        <br><i class="ri-mail-line"></i> {{ guardian.email }}
-                                    {% endif %}
-                                </p>
-                                {% if guardian.occupation %}
-                                    <p class="text-muted mb-0 small"><i class="ri-briefcase-line"></i> {{ guardian.occupation }}</p>
-                                {% endif %}
-                            </div>
-                        </div>
-                    {% endfor %}
-                {% else %}
-                    <p class="text-muted mb-0">No guardian information available.</p>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-
-    <div class="col-xl-6">
-        <!-- Contact Information -->
-        <div class="card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">Contact Information</h5>
+                <h5 class="card-title mb-0">
+                    <i class="ri-contacts-line me-2 text-primary"></i>Contact Information
+                </h5>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
                     <table class="table table-borderless mb-0">
                         <tbody>
                             <tr>
-                                <th class="ps-0" scope="row">Email</th>
-                                <td class="text-muted">{{ student.student_email|default:"Not provided" }}</td>
-                            </tr>
-                            <tr>
-                                <th class="ps-0" scope="row">Primary Contact</th>
-                                <td class="text-muted">{{ student.primary_contact_number }}</td>
-                            </tr>
-                            <tr>
-                                <th class="ps-0" scope="row">WhatsApp</th>
-                                <td class="text-muted">{{ student.whatsapp_number|default:"Not provided" }}</td>
-                            </tr>
-                            <tr>
-                                <th class="ps-0" scope="row">Home Address</th>
-                                <td class="text-muted">{{ student.home_address }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- Academic Information -->
-        <div class="card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">Academic Information</h5>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-borderless mb-0">
-                        <tbody>
-                            <tr>
-                                <th class="ps-0" scope="row">Current Level</th>
-                                <td class="text-muted">{{ student.get_current_level_display }}</td>
-                            </tr>
-                            <tr>
-                                <th class="ps-0" scope="row">Assigned Class</th>
-                                <td class="text-muted">
-                                    {% if student.assigned_class %}
-                                        {{ student.assigned_class.class_name }}
+                                <th class="ps-0 text-muted" style="width: 40%;">
+                                    <i class="ri-mail-line me-2"></i>Email
+                                </th>
+                                <td>
+                                    {% if student.student_email %}
+                                        <a href="mailto:{{ student.student_email }}" class="text-decoration-none">
+                                            {{ student.student_email }}
+                                        </a>
                                     {% else %}
-                                        <span class="text-warning">Not Assigned</span>
+                                        <span class="text-muted">Not provided</span>
                                     {% endif %}
                                 </td>
                             </tr>
                             <tr>
-                                <th class="ps-0" scope="row">Username</th>
-                                <td class="text-muted">{{ student.user.username }}</td>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-phone-line me-2"></i>Primary Contact
+                                </th>
+                                <td>
+                                    <a href="tel:{{ student.primary_contact_number }}" class="text-decoration-none">
+                                        {{ student.primary_contact_number }}
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-whatsapp-line me-2"></i>WhatsApp
+                                </th>
+                                <td>
+                                    {% if student.whatsapp_number %}
+                                        <a href="https://wa.me/{{ student.whatsapp_number }}" target="_blank" class="text-decoration-none">
+                                            {{ student.whatsapp_number }}
+                                        </a>
+                                    {% else %}
+                                        <span class="text-muted">Not provided</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-home-line me-2"></i>Address
+                                </th>
+                                <td class="fw-medium">{{ student.home_address|default:"Not provided" }}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -310,51 +293,222 @@
             </div>
         </div>
 
-        <!-- Recent Badges -->
-        {% if badges %}
+        <!-- YLE Level Card -->
         <div class="card">
             <div class="card-header">
-                <h5 class="card-title mb-0">Recent Badges</h5>
+                <h5 class="card-title mb-0">
+                    <i class="ri-graduation-cap-line me-2 text-primary"></i>Academic Information
+                </h5>
             </div>
             <div class="card-body">
-                {% for badge in badges %}
-                    <div class="d-flex align-items-center mb-3 {% if not forloop.last %}pb-3 border-bottom{% endif %}">
+                <h6 class="text-uppercase fw-semibold text-muted mb-3 small">Current YLE Level</h6>
+                <div class="mb-4">
+                    {% if student.current_level == 'STARTERS' %}
+                        <div class="d-flex align-items-center p-3 border rounded bg-info-subtle">
+                            <div class="avatar-sm me-3">
+                                <span class="avatar-title bg-info rounded-circle">
+                                    <i class="ri-seedling-line fs-4 text-white"></i>
+                                </span>
+                            </div>
+                            <div>
+                                <strong class="d-block text-info">Pre A1 Starters</strong>
+                                <small class="text-muted">Beginner Level (Ages 6-8)</small>
+                            </div>
+                        </div>
+                    {% elif student.current_level == 'MOVERS' %}
+                        <div class="d-flex align-items-center p-3 border rounded bg-warning-subtle">
+                            <div class="avatar-sm me-3">
+                                <span class="avatar-title bg-warning rounded-circle">
+                                    <i class="ri-run-line fs-4 text-white"></i>
+                                </span>
+                            </div>
+                            <div>
+                                <strong class="d-block text-warning">A1 Movers</strong>
+                                <small class="text-muted">Elementary Level (Ages 8-10)</small>
+                            </div>
+                        </div>
+                    {% elif student.current_level == 'FLYERS' %}
+                        <div class="d-flex align-items-center p-3 border rounded bg-success-subtle">
+                            <div class="avatar-sm me-3">
+                                <span class="avatar-title bg-success rounded-circle">
+                                    <i class="ri-rocket-line fs-4 text-white"></i>
+                                </span>
+                            </div>
+                            <div>
+                                <strong class="d-block text-success">A2 Flyers</strong>
+                                <small class="text-muted">Pre-Intermediate Level (Ages 10-12)</small>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <h6 class="text-uppercase fw-semibold text-muted mb-3 small">Assigned Class</h6>
+                {% if student.assigned_class %}
+                    <div class="d-flex align-items-center p-3 border rounded bg-primary-subtle">
                         <div class="avatar-sm me-3">
-                            <span class="avatar-title rounded-circle bg-soft-warning text-warning">
-                                <i class="{{ badge.badge_icon }} fs-5"></i>
+                            <span class="avatar-title bg-primary rounded-circle">
+                                <i class="ri-book-open-line fs-4 text-white"></i>
                             </span>
                         </div>
-                        <div class="flex-grow-1">
-                            <h6 class="mb-1">{{ badge.badge_name }}</h6>
-                            <p class="text-muted mb-0 small">{{ badge.description }}</p>
-                            <p class="text-muted mb-0 small">
-                                <i class="ri-calendar-line"></i> {{ badge.earned_date|date:"M d, Y" }}
-                                <span class="ms-2 text-warning"><i class="ri-star-fill"></i> +{{ badge.points_awarded }} points</span>
-                            </p>
+                        <div>
+                            <strong class="d-block">{{ student.assigned_class.class_name }}</strong>
+                            <small class="text-muted">{{ student.assigned_class.get_level_display }}</small>
                         </div>
                     </div>
-                {% endfor %}
+                {% else %}
+                    <div class="text-center py-3 border rounded bg-light">
+                        <i class="ri-information-line fs-3 text-muted"></i>
+                        <p class="text-muted mb-0">No class assigned yet</p>
+                        {% if perms.students.change_student %}
+                            <a href="{% url 'student_edit' student.id %}" class="btn btn-sm btn-outline-primary mt-2">
+                                <i class="ri-add-line me-1"></i>Assign Class
+                            </a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+
+                <h6 class="text-uppercase fw-semibold text-muted mt-4 mb-3 small">Language Skills</h6>
+                <div class="d-flex flex-wrap gap-2">
+                    <span class="badge bg-primary fs-6">
+                        <i class="ri-headphone-line me-1"></i>Listening
+                    </span>
+                    <span class="badge bg-primary fs-6">
+                        <i class="ri-book-read-line me-1"></i>Reading
+                    </span>
+                    <span class="badge bg-primary fs-6">
+                        <i class="ri-edit-line me-1"></i>Writing
+                    </span>
+                    <span class="badge bg-primary fs-6">
+                        <i class="ri-speak-line me-1"></i>Speaking
+                    </span>
+                </div>
+                <p class="text-muted small mt-2 mb-0">
+                    <i class="ri-information-line me-1"></i>Cambridge YLE tests all four language skills
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column -->
+    <div class="col-xl-8">
+        <!-- Guardians Card -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="ri-parent-line me-2 text-primary"></i>Guardians / Parents
+                    <span class="badge bg-primary-subtle text-primary ms-2">{{ guardians.count|default:0 }}</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if guardians %}
+                    <div class="row g-3">
+                        {% for guardian in guardians %}
+                            <div class="col-md-6">
+                                <div class="card border mb-0 h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-start">
+                                            <div class="avatar-md me-3 flex-shrink-0">
+                                                <span class="avatar-title bg-{% if guardian.relationship == 'MOTHER' %}danger{% elif guardian.relationship == 'FATHER' %}primary{% else %}info{% endif %}-subtle text-{% if guardian.relationship == 'MOTHER' %}danger{% elif guardian.relationship == 'FATHER' %}primary{% else %}info{% endif %} rounded-circle fs-4">
+                                                    {% if guardian.relationship == 'MOTHER' %}
+                                                        <i class="ri-women-line"></i>
+                                                    {% elif guardian.relationship == 'FATHER' %}
+                                                        <i class="ri-men-line"></i>
+                                                    {% else %}
+                                                        <i class="ri-user-line"></i>
+                                                    {% endif %}
+                                                </span>
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <h6 class="mb-1">{{ guardian.full_name }}</h6>
+                                                <span class="badge bg-secondary-subtle text-secondary mb-2">
+                                                    {{ guardian.get_relationship_display }}
+                                                </span>
+                                                <div class="text-muted small">
+                                                    <p class="mb-1">
+                                                        <i class="ri-phone-line me-1"></i>
+                                                        <a href="tel:{{ guardian.contact_number }}" class="text-muted text-decoration-none">
+                                                            {{ guardian.contact_number }}
+                                                        </a>
+                                                    </p>
+                                                    {% if guardian.email %}
+                                                        <p class="mb-1">
+                                                            <i class="ri-mail-line me-1"></i>
+                                                            <a href="mailto:{{ guardian.email }}" class="text-muted text-decoration-none">
+                                                                {{ guardian.email }}
+                                                            </a>
+                                                        </p>
+                                                    {% endif %}
+                                                    {% if guardian.occupation %}
+                                                        <p class="mb-0">
+                                                            <i class="ri-briefcase-line me-1"></i>{{ guardian.occupation }}
+                                                        </p>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="ri-parent-line fs-1 text-muted opacity-50"></i>
+                        <h6 class="mt-3">No Guardian Information</h6>
+                        <p class="text-muted mb-0">No guardian/parent information has been recorded for this student.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Recent Badges Card -->
+        {% if badges %}
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="ri-award-line me-2 text-primary"></i>Recent Badges & Achievements
+                    <span class="badge bg-primary-subtle text-primary ms-2">{{ badges.count }}</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    {% for badge in badges %}
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center p-3 border rounded">
+                                <div class="avatar-md me-3 flex-shrink-0">
+                                    <span class="avatar-title bg-warning-subtle text-warning rounded-circle fs-4">
+                                        <i class="{{ badge.badge_icon|default:'ri-award-line' }}"></i>
+                                    </span>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">{{ badge.badge_name }}</h6>
+                                    <p class="text-muted mb-1 small">{{ badge.description|truncatewords:10 }}</p>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <small class="text-muted">
+                                            <i class="ri-calendar-line me-1"></i>{{ badge.earned_date|date:"M d, Y" }}
+                                        </small>
+                                        <span class="badge bg-warning-subtle text-warning">
+                                            <i class="ri-star-fill me-1"></i>+{{ badge.points_awarded }} pts
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
             </div>
         </div>
         {% endif %}
-    </div>
-</div>
 
-<!-- Recent Attendance -->
-<div class="row">
-    <div class="col-12">
+        <!-- Recent Attendance Card -->
         <div class="card">
-            <div class="card-header">
-                <div class="row align-items-center">
-                    <div class="col">
-                        <h5 class="card-title mb-0">Recent Attendance (Last 30 Days)</h5>
-                    </div>
-                    <div class="col-auto">
-                        <a href="{% url 'attendance_report' %}?student_id={{ student.id }}" class="btn btn-sm btn-primary">
-                            <i class="ri-file-chart-line me-1"></i> Full Report
-                        </a>
-                    </div>
-                </div>
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="ri-calendar-check-line me-2 text-primary"></i>Recent Attendance (Last 30 Days)
+                </h5>
+                <a href="{% url 'attendance_report' %}?student_id={{ student.id }}" class="btn btn-sm btn-outline-primary">
+                    <i class="ri-file-chart-line me-1"></i>Full Report
+                </a>
             </div>
             <div class="card-body">
                 {% if recent_attendance %}
@@ -372,34 +526,140 @@
                             <tbody>
                                 {% for attendance in recent_attendance %}
                                     <tr>
-                                        <td>{{ attendance.date|date:"M d, Y (D)" }}</td>
-                                        <td>{{ attendance.class_session.class_name|default:"N/A" }}</td>
                                         <td>
-                                            {% if attendance.status == 'PRESENT' %}
-                                                <span class="badge bg-success">Present</span>
-                                            {% elif attendance.status == 'ABSENT' %}
-                                                <span class="badge bg-danger">Absent</span>
-                                            {% elif attendance.status == 'LATE' %}
-                                                <span class="badge bg-warning">Late</span>
-                                            {% elif attendance.status == 'EXCUSED' %}
-                                                <span class="badge bg-info">Excused</span>
+                                            <i class="ri-calendar-line me-1 text-muted"></i>
+                                            {{ attendance.date|date:"M d, Y (D)" }}
+                                        </td>
+                                        <td>
+                                            {% if attendance.class_session %}
+                                                <span class="fw-medium">{{ attendance.class_session.class_name }}</span>
+                                            {% else %}
+                                                <span class="text-muted">N/A</span>
                                             {% endif %}
                                         </td>
-                                        <td>{{ attendance.notes|default:"-" }}</td>
-                                        <td><small>{{ attendance.marked_by.get_full_name|default:attendance.marked_by.username }}</small></td>
+                                        <td>
+                                            {% if attendance.status == 'PRESENT' %}
+                                                <span class="badge bg-success">
+                                                    <i class="ri-check-line me-1"></i>Present
+                                                </span>
+                                            {% elif attendance.status == 'ABSENT' %}
+                                                <span class="badge bg-danger">
+                                                    <i class="ri-close-line me-1"></i>Absent
+                                                </span>
+                                            {% elif attendance.status == 'LATE' %}
+                                                <span class="badge bg-warning">
+                                                    <i class="ri-time-line me-1"></i>Late
+                                                </span>
+                                            {% elif attendance.status == 'EXCUSED' %}
+                                                <span class="badge bg-info">
+                                                    <i class="ri-information-line me-1"></i>Excused
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">{{ attendance.notes|default:"-" }}</small>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">
+                                                {{ attendance.marked_by.get_full_name|default:attendance.marked_by.username }}
+                                            </small>
+                                        </td>
                                     </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
                     </div>
                 {% else %}
-                    <div class="alert alert-info mb-0">
-                        <i class="ri-information-line me-2"></i> No attendance records found for the last 30 days.
+                    <div class="text-center py-5">
+                        <i class="ri-calendar-check-line fs-1 text-muted opacity-50"></i>
+                        <h6 class="mt-3">No Attendance Records</h6>
+                        <p class="text-muted mb-0">No attendance records found for the last 30 days.</p>
                     </div>
                 {% endif %}
+            </div>
+        </div>
+
+        <!-- System Information Card -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="ri-settings-3-line me-2 text-primary"></i>System Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded bg-light">
+                            <p class="text-muted mb-1 small">Username</p>
+                            <h6 class="mb-0">
+                                <i class="ri-at-line me-1 text-primary"></i>{{ student.user.username }}
+                            </h6>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded bg-light">
+                            <p class="text-muted mb-1 small">Account Created</p>
+                            <h6 class="mb-0">
+                                <i class="ri-calendar-line me-1 text-primary"></i>{{ student.user.date_joined|date:"M d, Y" }}
+                            </h6>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded bg-light">
+                            <p class="text-muted mb-1 small">Last Login</p>
+                            <h6 class="mb-0">
+                                <i class="ri-time-line me-1 text-primary"></i>
+                                {% if student.user.last_login %}
+                                    {{ student.user.last_login|date:"M d, Y" }}
+                                {% else %}
+                                    Never
+                                {% endif %}
+                            </h6>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+<style>
+.avatar-xxl {
+    width: 120px;
+    height: 120px;
+}
+
+.avatar-xxl .avatar-title {
+    width: 120px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.avatar-md {
+    width: 60px;
+    height: 60px;
+}
+
+.avatar-md .avatar-title {
+    width: 60px;
+    height: 60px;
+}
+
+.card-animate {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card-animate:hover {
+    transform: translateY(-5px);
+}
+
+.counter-value {
+    font-variant-numeric: tabular-nums;
+}
+</style>
 {% endblock %}

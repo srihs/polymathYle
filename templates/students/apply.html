@@ -8,201 +8,311 @@
 
 {% block content %}
 <div class="row">
-        <div class="col-lg-12">
-            <div class="card">
-                <div class="card-header align-items-center d-flex">
-                    <h4 class="card-title mb-0 flex-grow-1">Cambridge English Young Learners Application Form</h4>
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header border-bottom">
+                <div class="d-flex align-items-center">
+                    <div class="avatar-sm me-3">
+                        <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                            <i class="ri-file-add-line fs-4"></i>
+                        </span>
+                    </div>
+                    <div>
+                        <h5 class="card-title mb-0">Cambridge English Young Learners Application</h5>
+                        <p class="text-muted mb-0 small">Fill in the details below to apply for enrollment</p>
+                    </div>
                 </div>
-                <div class="card-body">
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                                {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
+            </div>
+            <div class="card-body">
+                <!-- Form Progress Indicator -->
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-2 flex-wrap gap-1">
+                        <span class="badge bg-primary-subtle text-primary" id="step1Badge">Step 1: Student Info</span>
+                        <span class="badge bg-light text-muted" id="step2Badge">Step 2: Parents</span>
+                        <span class="badge bg-light text-muted" id="step3Badge">Step 3: Contact</span>
+                        <span class="badge bg-light text-muted" id="step4Badge">Step 4: Submit</span>
+                    </div>
+                    <div class="progress" style="height: 4px;" role="progressbar" aria-label="Form progress" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
+                        <div class="progress-bar" id="formProgress" style="width: 25%"></div>
+                    </div>
+                </div>
 
-                    <form method="post" enctype="multipart/form-data" id="applicationForm">
-                        {% csrf_token %}
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            <i class="ri-{% if message.tags == 'success' %}check{% elif message.tags == 'error' %}error-warning{% else %}information{% endif %}-line me-2"></i>
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
 
-                        <!-- Student Personal Information -->
-                        <div class="row mb-4">
-                            <div class="col-12">
-                                <h5 class="text-primary mb-3">
-                                    <i class="ri-user-line"></i> Student Information
-                                </h5>
-                            </div>
+                <form method="post" enctype="multipart/form-data" id="applicationForm" novalidate>
+                    {% csrf_token %}
 
-                            <div class="col-md-6 mb-3">
-                                <label for="name_with_initials" class="form-label">Name with Initials <span class="text-danger">*</span></label>
-                                {{ form.name_with_initials }}
-                                {% if form.name_with_initials.errors %}
-                                    <div class="invalid-feedback d-block">{{ form.name_with_initials.errors }}</div>
-                                {% endif %}
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label for="full_name" class="form-label">Full Name <span class="text-danger">*</span></label>
-                                {{ form.full_name }}
-                                {% if form.full_name.errors %}
-                                    <div class="invalid-feedback d-block">{{ form.full_name.errors }}</div>
-                                {% endif %}
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                                <label for="date_of_birth" class="form-label">Date of Birth <span class="text-danger">*</span></label>
-                                {{ form.date_of_birth }}
-                                {% if form.date_of_birth.errors %}
-                                    <div class="invalid-feedback d-block">{{ form.date_of_birth.errors }}</div>
-                                {% endif %}
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                                <label for="gender" class="form-label">Gender <span class="text-danger">*</span></label>
-                                {{ form.gender }}
-                                {% if form.gender.errors %}
-                                    <div class="invalid-feedback d-block">{{ form.gender.errors }}</div>
-                                {% endif %}
+                    <!-- Student Personal Information -->
+                    <fieldset class="mb-4">
+                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
+                            <i class="ri-user-line me-2"></i>Student Information
+                        </legend>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="name_with_initials" class="form-label">
+                                    Name with Initials <span class="text-danger" aria-label="required">*</span>
+                                </label>
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text"><i class="ri-text"></i></span>
+                                    {{ form.name_with_initials }}
+                                    <div class="invalid-feedback">
+                                        {% if form.name_with_initials.errors %}{{ form.name_with_initials.errors }}{% else %}Please enter name with initials.{% endif %}
+                                    </div>
+                                </div>
+                                <div class="form-text">e.g., K.M. Silva</div>
                             </div>
 
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-6">
+                                <label for="full_name" class="form-label">
+                                    Full Name <span class="text-danger" aria-label="required">*</span>
+                                </label>
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text"><i class="ri-user-line"></i></span>
+                                    {{ form.full_name }}
+                                    <div class="invalid-feedback">
+                                        {% if form.full_name.errors %}{{ form.full_name.errors }}{% else %}Please enter full name.{% endif %}
+                                    </div>
+                                </div>
+                                <div class="form-text">e.g., Kamal Mahinda Silva</div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="date_of_birth" class="form-label">
+                                    Date of Birth <span class="text-danger" aria-label="required">*</span>
+                                </label>
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text"><i class="ri-calendar-line"></i></span>
+                                    {{ form.date_of_birth }}
+                                    <div class="invalid-feedback">
+                                        {% if form.date_of_birth.errors %}{{ form.date_of_birth.errors }}{% else %}Please select date of birth.{% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="gender" class="form-label">
+                                    Gender <span class="text-danger" aria-label="required">*</span>
+                                </label>
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text"><i class="ri-genderless-line"></i></span>
+                                    {{ form.gender }}
+                                    <div class="invalid-feedback">
+                                        {% if form.gender.errors %}{{ form.gender.errors }}{% else %}Please select gender.{% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
                                 <label for="nationality" class="form-label">Nationality</label>
-                                {{ form.nationality }}
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="ri-global-line"></i></span>
+                                    {{ form.nationality }}
+                                </div>
                             </div>
 
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <label for="student_email" class="form-label">Student Email (if any)</label>
-                                {{ form.student_email }}
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="ri-mail-line"></i></span>
+                                    {{ form.student_email }}
+                                </div>
+                                <div class="form-text">Optional - for older students</div>
                             </div>
 
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <label for="current_school" class="form-label">Current School</label>
-                                {{ form.current_school }}
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="ri-school-line"></i></span>
+                                    {{ form.current_school }}
+                                </div>
                             </div>
 
-                            <div class="col-12 mb-3">
+                            <div class="col-12">
                                 <label for="siblings_info" class="form-label">Siblings Currently Attending (if any)</label>
-                                {{ form.siblings_info }}
-                                <small class="form-text text-muted">Please provide names and levels of siblings</small>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="ri-group-line"></i></span>
+                                    {{ form.siblings_info }}
+                                </div>
+                                <div class="form-text">Please provide names and levels of siblings</div>
                             </div>
                         </div>
+                    </fieldset>
 
-                        <!-- Mother Information -->
-                        <div class="row mb-4">
-                            <div class="col-12">
-                                <h5 class="text-primary mb-3">
-                                    <i class="ri-parent-line"></i> Mother's Information
-                                </h5>
+                    <!-- Mother Information -->
+                    <fieldset class="mb-4">
+                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
+                            <i class="ri-women-line me-2"></i>Mother's Information
+                        </legend>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label for="mother_name" class="form-label">
+                                    Mother's Name <span class="text-danger" aria-label="required">*</span>
+                                </label>
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text"><i class="ri-user-line"></i></span>
+                                    {{ form.mother_name }}
+                                    <div class="invalid-feedback">
+                                        {% if form.mother_name.errors %}{{ form.mother_name.errors }}{% else %}Please enter mother's name.{% endif %}
+                                    </div>
+                                </div>
                             </div>
 
-                            <div class="col-md-4 mb-3">
-                                <label for="mother_name" class="form-label">Mother's Name <span class="text-danger">*</span></label>
-                                {{ form.mother_name }}
-                                {% if form.mother_name.errors %}
-                                    <div class="invalid-feedback d-block">{{ form.mother_name.errors }}</div>
-                                {% endif %}
+                            <div class="col-md-4">
+                                <label for="mother_contact_number" class="form-label">
+                                    Contact Number <span class="text-danger" aria-label="required">*</span>
+                                </label>
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text"><i class="ri-phone-line"></i></span>
+                                    {{ form.mother_contact_number }}
+                                    <div class="invalid-feedback">
+                                        {% if form.mother_contact_number.errors %}{{ form.mother_contact_number.errors }}{% else %}Please enter contact number.{% endif %}
+                                    </div>
+                                </div>
+                                <div class="form-text">e.g., +94 77 123 4567</div>
                             </div>
 
-                            <div class="col-md-4 mb-3">
-                                <label for="mother_contact_number" class="form-label">Contact Number <span class="text-danger">*</span></label>
-                                {{ form.mother_contact_number }}
-                                {% if form.mother_contact_number.errors %}
-                                    <div class="invalid-feedback d-block">{{ form.mother_contact_number.errors }}</div>
-                                {% endif %}
-                            </div>
-
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-4">
                                 <label for="mother_occupation" class="form-label">Occupation</label>
-                                {{ form.mother_occupation }}
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="ri-briefcase-line"></i></span>
+                                    {{ form.mother_occupation }}
+                                </div>
                             </div>
                         </div>
+                    </fieldset>
 
-                        <!-- Father Information -->
-                        <div class="row mb-4">
-                            <div class="col-12">
-                                <h5 class="text-primary mb-3">
-                                    <i class="ri-parent-line"></i> Father's Information
-                                </h5>
+                    <!-- Father Information -->
+                    <fieldset class="mb-4">
+                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
+                            <i class="ri-men-line me-2"></i>Father's Information
+                        </legend>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label for="father_name" class="form-label">
+                                    Father's Name <span class="text-danger" aria-label="required">*</span>
+                                </label>
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text"><i class="ri-user-line"></i></span>
+                                    {{ form.father_name }}
+                                    <div class="invalid-feedback">
+                                        {% if form.father_name.errors %}{{ form.father_name.errors }}{% else %}Please enter father's name.{% endif %}
+                                    </div>
+                                </div>
                             </div>
 
-                            <div class="col-md-4 mb-3">
-                                <label for="father_name" class="form-label">Father's Name <span class="text-danger">*</span></label>
-                                {{ form.father_name }}
-                                {% if form.father_name.errors %}
-                                    <div class="invalid-feedback d-block">{{ form.father_name.errors }}</div>
-                                {% endif %}
+                            <div class="col-md-4">
+                                <label for="father_contact_number" class="form-label">
+                                    Contact Number <span class="text-danger" aria-label="required">*</span>
+                                </label>
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text"><i class="ri-phone-line"></i></span>
+                                    {{ form.father_contact_number }}
+                                    <div class="invalid-feedback">
+                                        {% if form.father_contact_number.errors %}{{ form.father_contact_number.errors }}{% else %}Please enter contact number.{% endif %}
+                                    </div>
+                                </div>
+                                <div class="form-text">e.g., +94 77 123 4567</div>
                             </div>
 
-                            <div class="col-md-4 mb-3">
-                                <label for="father_contact_number" class="form-label">Contact Number <span class="text-danger">*</span></label>
-                                {{ form.father_contact_number }}
-                                {% if form.father_contact_number.errors %}
-                                    <div class="invalid-feedback d-block">{{ form.father_contact_number.errors }}</div>
-                                {% endif %}
-                            </div>
-
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-4">
                                 <label for="father_occupation" class="form-label">Occupation</label>
-                                {{ form.father_occupation }}
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="ri-briefcase-line"></i></span>
+                                    {{ form.father_occupation }}
+                                </div>
                             </div>
                         </div>
+                    </fieldset>
 
-                        <!-- Contact Information -->
-                        <div class="row mb-4">
+                    <!-- Contact Information -->
+                    <fieldset class="mb-4">
+                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
+                            <i class="ri-map-pin-line me-2"></i>Contact Information
+                        </legend>
+                        <div class="row g-3">
                             <div class="col-12">
-                                <h5 class="text-primary mb-3">
-                                    <i class="ri-map-pin-line"></i> Contact Information
-                                </h5>
+                                <label for="home_address" class="form-label">
+                                    Home Address <span class="text-danger" aria-label="required">*</span>
+                                </label>
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text"><i class="ri-home-line"></i></span>
+                                    {{ form.home_address }}
+                                    <div class="invalid-feedback">
+                                        {% if form.home_address.errors %}{{ form.home_address.errors }}{% else %}Please enter home address.{% endif %}
+                                    </div>
+                                </div>
                             </div>
 
-                            <div class="col-12 mb-3">
-                                <label for="home_address" class="form-label">Home Address <span class="text-danger">*</span></label>
-                                {{ form.home_address }}
-                                {% if form.home_address.errors %}
-                                    <div class="invalid-feedback d-block">{{ form.home_address.errors }}</div>
-                                {% endif %}
+                            <div class="col-md-6">
+                                <label for="whatsapp_number" class="form-label">
+                                    WhatsApp Number <span class="text-danger" aria-label="required">*</span>
+                                </label>
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text"><i class="ri-whatsapp-line text-success"></i></span>
+                                    {{ form.whatsapp_number }}
+                                    <div class="invalid-feedback">
+                                        {% if form.whatsapp_number.errors %}{{ form.whatsapp_number.errors }}{% else %}Please enter WhatsApp number.{% endif %}
+                                    </div>
+                                </div>
+                                <div class="form-text">We'll use this for quick updates</div>
                             </div>
 
-                            <div class="col-md-6 mb-3">
-                                <label for="whatsapp_number" class="form-label">WhatsApp Number <span class="text-danger">*</span></label>
-                                {{ form.whatsapp_number }}
-                                {% if form.whatsapp_number.errors %}
-                                    <div class="invalid-feedback d-block">{{ form.whatsapp_number.errors }}</div>
-                                {% endif %}
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label for="primary_contact_email" class="form-label">Primary Email <span class="text-danger">*</span></label>
-                                {{ form.primary_contact_email }}
-                                {% if form.primary_contact_email.errors %}
-                                    <div class="invalid-feedback d-block">{{ form.primary_contact_email.errors }}</div>
-                                {% endif %}
+                            <div class="col-md-6">
+                                <label for="primary_contact_email" class="form-label">
+                                    Primary Email <span class="text-danger" aria-label="required">*</span>
+                                </label>
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text"><i class="ri-mail-line"></i></span>
+                                    {{ form.primary_contact_email }}
+                                    <div class="invalid-feedback">
+                                        {% if form.primary_contact_email.errors %}{{ form.primary_contact_email.errors }}{% else %}Please enter email address.{% endif %}
+                                    </div>
+                                </div>
+                                <div class="form-text">For official correspondence</div>
                             </div>
                         </div>
+                    </fieldset>
 
-                        <!-- Special Comments -->
-                        <div class="row mb-4">
+                    <!-- Special Comments -->
+                    <fieldset class="mb-4">
+                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
+                            <i class="ri-chat-3-line me-2"></i>Additional Information
+                        </legend>
+                        <div class="row g-3">
                             <div class="col-12">
-                                <h5 class="text-primary mb-3">
-                                    <i class="ri-chat-3-line"></i> Additional Information
-                                </h5>
-                            </div>
-
-                            <div class="col-12 mb-3">
                                 <label for="special_comments" class="form-label">Special Comments</label>
-                                {{ form.special_comments }}
-                                <small class="form-text text-muted">Any additional information you'd like to share</small>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="ri-edit-line"></i></span>
+                                    {{ form.special_comments }}
+                                </div>
+                                <div class="form-text">Any allergies, medical conditions, learning needs, or other information we should know</div>
                             </div>
                         </div>
+                    </fieldset>
 
-                        <!-- Terms and Conditions -->
-                        <div class="row mb-4">
-                            <div class="col-12">
+                    <!-- Terms and Conditions -->
+                    <fieldset class="mb-4">
+                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
+                            <i class="ri-file-list-3-line me-2"></i>Terms & Conditions
+                        </legend>
+                        <div class="card bg-light border-0">
+                            <div class="card-body">
                                 <div class="form-check">
                                     {{ form.terms_accepted }}
                                     <label class="form-check-label" for="{{ form.terms_accepted.id_for_label }}">
-                                        I agree to the <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">Terms and Conditions</a> <span class="text-danger">*</span>
+                                        I have read and agree to the
+                                        <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal" class="text-primary fw-medium">
+                                            Terms and Conditions
+                                        </a>
+                                        <span class="text-danger" aria-label="required">*</span>
                                     </label>
                                     {% if form.terms_accepted.errors %}
                                         <div class="invalid-feedback d-block">{{ form.terms_accepted.errors }}</div>
@@ -210,53 +320,298 @@
                                 </div>
                             </div>
                         </div>
+                    </fieldset>
 
-                        <!-- Submit Button -->
-                        <div class="row">
-                            <div class="col-12">
-                                <button type="submit" class="btn btn-primary btn-lg">
-                                    <i class="ri-send-plane-fill"></i> Submit Application
-                                </button>
-                                <a href="/" class="btn btn-secondary btn-lg">
-                                    <i class="ri-close-line"></i> Cancel
+                    <!-- Form Actions -->
+                    <div class="border-top pt-4 mt-4">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                            <div class="text-muted small">
+                                <span class="text-danger">*</span> indicates required fields
+                            </div>
+                            <div class="d-flex flex-wrap gap-2">
+                                <a href="/" class="btn btn-outline-secondary">
+                                    <i class="ri-close-line me-1"></i> Cancel
                                 </a>
+                                <button type="reset" class="btn btn-light">
+                                    <i class="ri-refresh-line me-1"></i> Reset Form
+                                </button>
+                                <button type="submit" class="btn btn-success" id="submitBtn">
+                                    <span class="spinner-border spinner-border-sm d-none me-1" role="status" aria-hidden="true" id="submitSpinner"></span>
+                                    <i class="ri-file-add-line me-1" id="submitIcon"></i>
+                                    <span id="submitText">Submit Application</span>
+                                </button>
                             </div>
                         </div>
-                    </form>
-                </div>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 
-<!-- Terms Modal -->
-<div class="modal fade" id="termsModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Terms and Conditions</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <!-- Help Sidebar -->
+    <div class="col-lg-4">
+        <!-- Quick Tips Card -->
+        <div class="card sticky-top" style="top: 80px;">
+            <div class="card-header bg-primary bg-opacity-10">
+                <h6 class="card-title mb-0 text-primary">
+                    <i class="ri-lightbulb-line me-2"></i>Application Tips
+                </h6>
             </div>
-            <div class="modal-body">
-                <h6>Terms and Conditions of the Institution</h6>
-                <ol>
-                    <li>I/We agree to understand, accept and support the mission of the institution and be bound by the rules governing the institution, the authority of the Chairman and Board of Management of the institution.</li>
-                    <li>I/We agree to pay all fees as detailed on fee invoices and I/We understand that the non-payment or on or before the requested date excludes the student from attending classes. It is our obligation to ensure the fees are paid on time.</li>
-                    <li>I/We agree to accept and be bound by the rules governing health and medical requirements for the safety of all students and the institution.</li>
-                    <li>I/We agree that the institution has the authority to terminate the students in accordance with the guidelines set down in the institution's discipline policy.</li>
-                    <li>I/We agree the institution may at its discretion, suspend or terminate a student's enrollment for failure to comply with the conditions of this agreement, as well as for other serious breaches of the institution's rules and regulations.</li>
-                    <li>I/We agree that the institution is not liable for any loss or damage to the student's personal belongings.</li>
-                    <li>I/We agree to allow my/our children to involve themselves in all of the institution's activities, including excursions/field trips arranged by the institution.</li>
-                    <li>I/We agree that in case of an emergency, the institution is permitted to give appropriate medical attention and/or treatment.</li>
-                    <li>I/We agree to have our contact details published in the institution directory unless otherwise notified by us in writing to the institution.</li>
-                    <li>I/We agree that student photographs, images and recordings can be used for institution's marketing materials.</li>
-                    <li>I/We agree that the admission fee paid, in the enrollment is non-refundable.</li>
-                    <li>I/We understand that the semester fee will be increased accordingly with the decision of management.</li>
+            <div class="card-body">
+                <div class="d-flex mb-3">
+                    <div class="flex-shrink-0">
+                        <span class="avatar-xs avatar-title bg-success-subtle text-success rounded-circle">1</span>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-1">Accurate Information</h6>
+                        <p class="text-muted small mb-0">Ensure all details match official documents</p>
+                    </div>
+                </div>
+                <div class="d-flex mb-3">
+                    <div class="flex-shrink-0">
+                        <span class="avatar-xs avatar-title bg-success-subtle text-success rounded-circle">2</span>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-1">Contact Numbers</h6>
+                        <p class="text-muted small mb-0">Provide active WhatsApp number for quick updates</p>
+                    </div>
+                </div>
+                <div class="d-flex mb-3">
+                    <div class="flex-shrink-0">
+                        <span class="avatar-xs avatar-title bg-success-subtle text-success rounded-circle">3</span>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-1">Email Address</h6>
+                        <p class="text-muted small mb-0">Check email regularly for application updates</p>
+                    </div>
+                </div>
+                <div class="d-flex">
+                    <div class="flex-shrink-0">
+                        <span class="avatar-xs avatar-title bg-success-subtle text-success rounded-circle">4</span>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-1">Review Before Submit</h6>
+                        <p class="text-muted small mb-0">Double-check all information before submitting</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cambridge YLE Info Card -->
+        <div class="card mt-3">
+            <div class="card-header bg-info bg-opacity-10">
+                <h6 class="card-title mb-0 text-info">
+                    <i class="ri-graduation-cap-line me-2"></i>About Cambridge YLE
+                </h6>
+            </div>
+            <div class="card-body">
+                <p class="small text-muted mb-3">Cambridge Young Learners English tests are designed for children aged 6-12 learning English.</p>
+
+                <div class="d-flex align-items-center mb-2">
+                    <span class="badge bg-info-subtle text-info me-2">
+                        <i class="ri-seedling-line"></i>
+                    </span>
+                    <div>
+                        <strong class="small">Pre A1 Starters</strong>
+                        <p class="text-muted small mb-0">Ages 6-8, Beginner level</p>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center mb-2">
+                    <span class="badge bg-warning-subtle text-warning me-2">
+                        <i class="ri-run-line"></i>
+                    </span>
+                    <div>
+                        <strong class="small">A1 Movers</strong>
+                        <p class="text-muted small mb-0">Ages 8-10, Elementary level</p>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center">
+                    <span class="badge bg-success-subtle text-success me-2">
+                        <i class="ri-rocket-line"></i>
+                    </span>
+                    <div>
+                        <strong class="small">A2 Flyers</strong>
+                        <p class="text-muted small mb-0">Ages 10-12, Pre-Intermediate</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Process Info Card -->
+        <div class="card mt-3">
+            <div class="card-header bg-warning bg-opacity-10">
+                <h6 class="card-title mb-0 text-warning">
+                    <i class="ri-flow-chart me-2"></i>What Happens Next?
+                </h6>
+            </div>
+            <div class="card-body">
+                <ol class="small text-muted ps-3 mb-0">
+                    <li class="mb-2">Application submitted and confirmation sent</li>
+                    <li class="mb-2">Review by admissions team (2-3 days)</li>
+                    <li class="mb-2">Placement assessment scheduled</li>
+                    <li class="mb-2">Level recommendation provided</li>
+                    <li>Enrollment and class assignment</li>
                 </ol>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Terms Modal -->
+<div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="termsModalLabel">
+                    <i class="ri-file-list-3-line me-2"></i>Terms and Conditions
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6 class="text-primary">Terms and Conditions of the Institution</h6>
+                <ol class="text-muted">
+                    <li class="mb-2">I/We agree to understand, accept and support the mission of the institution and be bound by the rules governing the institution, the authority of the Chairman and Board of Management of the institution.</li>
+                    <li class="mb-2">I/We agree to pay all fees as detailed on fee invoices and I/We understand that the non-payment or on or before the requested date excludes the student from attending classes. It is our obligation to ensure the fees are paid on time.</li>
+                    <li class="mb-2">I/We agree to accept and be bound by the rules governing health and medical requirements for the safety of all students and the institution.</li>
+                    <li class="mb-2">I/We agree that the institution has the authority to terminate the students in accordance with the guidelines set down in the institution's discipline policy.</li>
+                    <li class="mb-2">I/We agree the institution may at its discretion, suspend or terminate a student's enrollment for failure to comply with the conditions of this agreement, as well as for other serious breaches of the institution's rules and regulations.</li>
+                    <li class="mb-2">I/We agree that the institution is not liable for any loss or damage to the student's personal belongings.</li>
+                    <li class="mb-2">I/We agree to allow my/our children to involve themselves in all of the institution's activities, including excursions/field trips arranged by the institution.</li>
+                    <li class="mb-2">I/We agree that in case of an emergency, the institution is permitted to give appropriate medical attention and/or treatment.</li>
+                    <li class="mb-2">I/We agree to have our contact details published in the institution directory unless otherwise notified by us in writing to the institution.</li>
+                    <li class="mb-2">I/We agree that student photographs, images and recordings can be used for institution's marketing materials.</li>
+                    <li class="mb-2">I/We agree that the admission fee paid, in the enrollment is non-refundable.</li>
+                    <li>I/We understand that the semester fee will be increased accordingly with the decision of management.</li>
+                </ol>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                    <i class="ri-check-line me-1"></i>I Understand
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Form validation
+    var form = document.getElementById('applicationForm');
+
+    form.addEventListener('submit', function(event) {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        } else {
+            // Show loading state
+            $('#submitBtn').prop('disabled', true);
+            $('#submitSpinner').removeClass('d-none');
+            $('#submitIcon').addClass('d-none');
+            $('#submitText').text('Submitting...');
+        }
+        form.classList.add('was-validated');
+    }, false);
+
+    // Update progress bar based on filled sections
+    function updateProgress() {
+        var progress = 0;
+        var sections = 4;
+
+        // Check Student Info
+        var studentFields = ['#id_name_with_initials', '#id_full_name', '#id_date_of_birth', '#id_gender'];
+        var studentFilled = studentFields.every(function(field) { return $(field).val(); });
+        if (studentFilled) {
+            progress += 1;
+            $('#step1Badge').removeClass('bg-primary-subtle text-primary bg-light text-muted').addClass('bg-success text-white');
+        } else {
+            $('#step1Badge').removeClass('bg-success text-white bg-light text-muted').addClass('bg-primary-subtle text-primary');
+        }
+
+        // Check Parents Info
+        var parentFields = ['#id_mother_name', '#id_mother_contact_number', '#id_father_name', '#id_father_contact_number'];
+        var parentFilled = parentFields.every(function(field) { return $(field).val(); });
+        if (parentFilled) {
+            progress += 1;
+            $('#step2Badge').removeClass('bg-light text-muted bg-primary-subtle text-primary').addClass('bg-success text-white');
+        } else if (studentFilled) {
+            $('#step2Badge').removeClass('bg-success text-white bg-light text-muted').addClass('bg-primary-subtle text-primary');
+        } else {
+            $('#step2Badge').removeClass('bg-success text-white bg-primary-subtle text-primary').addClass('bg-light text-muted');
+        }
+
+        // Check Contact Info
+        var contactFields = ['#id_home_address', '#id_whatsapp_number', '#id_primary_contact_email'];
+        var contactFilled = contactFields.every(function(field) { return $(field).val(); });
+        if (contactFilled) {
+            progress += 1;
+            $('#step3Badge').removeClass('bg-light text-muted bg-primary-subtle text-primary').addClass('bg-success text-white');
+        } else if (parentFilled) {
+            $('#step3Badge').removeClass('bg-success text-white bg-light text-muted').addClass('bg-primary-subtle text-primary');
+        } else {
+            $('#step3Badge').removeClass('bg-success text-white bg-primary-subtle text-primary').addClass('bg-light text-muted');
+        }
+
+        // Check Terms
+        var termsAccepted = $('#id_terms_accepted').is(':checked');
+        if (termsAccepted && contactFilled) {
+            progress += 1;
+            $('#step4Badge').removeClass('bg-light text-muted bg-primary-subtle text-primary').addClass('bg-success text-white');
+        } else if (contactFilled) {
+            $('#step4Badge').removeClass('bg-success text-white bg-light text-muted').addClass('bg-primary-subtle text-primary');
+        } else {
+            $('#step4Badge').removeClass('bg-success text-white bg-primary-subtle text-primary').addClass('bg-light text-muted');
+        }
+
+        var percentage = (progress / sections) * 100;
+        $('#formProgress').css('width', percentage + '%').attr('aria-valuenow', percentage);
+    }
+
+    // Bind progress update to input changes
+    $('input, select, textarea').on('input change', updateProgress);
+
+    // Initial progress check
+    updateProgress();
+
+    // Add form-control class to Django form widgets if missing
+    $('input:not([type="checkbox"]):not([type="radio"]), select, textarea').addClass('form-control');
+    $('select').addClass('form-select').removeClass('form-control');
+});
+</script>
+
+<style>
+fieldset {
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+legend {
+    border-bottom: 2px solid var(--bs-primary);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.avatar-xs {
+    width: 24px;
+    height: 24px;
+}
+
+.avatar-xs .avatar-title {
+    font-size: 12px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.form-check-input:checked {
+    background-color: var(--bs-success);
+    border-color: var(--bs-success);
+}
+</style>
 {% endblock %}

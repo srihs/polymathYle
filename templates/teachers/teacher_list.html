@@ -2,19 +2,93 @@
 {% load static %}
 
 {% block PageTitle %}Teachers - Polymath School of English{% endblock %}
-{% block pageTitle %}Teachers{% endblock %}
+{% block pageTitle %}Teacher Management{% endblock %}
 {% block Title %}Teachers{% endblock %}
-{% block functionTitle %}Teacher Management{% endblock %}
+{% block functionTitle %}All Teachers{% endblock %}
 
 {% block content %}
+<!-- Statistics Summary -->
+<div class="row">
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate bg-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="fw-medium text-white-75 mb-0">Total Teachers</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ total_count|default:0 }}</h2>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-team-line text-white"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate bg-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="fw-medium text-white-75 mb-0">Active Teachers</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ active_count|default:0 }}</h2>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-user-follow-line text-white"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate bg-info">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="fw-medium text-white-75 mb-0">Full-Time</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ fulltime_count|default:0 }}</h2>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-briefcase-line text-white"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate bg-warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="fw-medium text-white-75 mb-0">Part-Time/Contract</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ parttime_count|default:0 }}</h2>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-time-line text-white"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Search and Filter Section -->
 <div class="row">
     <div class="col-12">
         <div class="card">
-            <div class="card-header">
+            <div class="card-header border-bottom">
                 <div class="row align-items-center">
                     <div class="col">
-                        <h5 class="card-title mb-0">Teacher List ({{ total_count }} teachers)</h5>
+                        <h5 class="card-title mb-0">
+                            <i class="ri-filter-3-line me-2"></i>Search & Filter Teachers
+                        </h5>
                     </div>
                     <div class="col-auto">
                         {% if perms.students.add_teacher %}
@@ -26,43 +100,61 @@
                 </div>
             </div>
             <div class="card-body">
-                <form method="get" action="{% url 'teacher_list' %}" class="row g-3">
-                    <div class="col-md-3">
-                        <label class="form-label">Search</label>
-                        <input type="text" class="form-control" name="search" value="{{ search_query }}" placeholder="Name, Employee ID, Email...">
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">Status</label>
-                        <select class="form-select" name="status">
-                            <option value="">All Status</option>
-                            <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
-                            <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">Employment Type</label>
-                        <select class="form-select" name="employment_type">
-                            <option value="">All Types</option>
-                            <option value="FULL_TIME" {% if employment_filter == 'FULL_TIME' %}selected{% endif %}>Full Time</option>
-                            <option value="PART_TIME" {% if employment_filter == 'PART_TIME' %}selected{% endif %}>Part Time</option>
-                            <option value="CONTRACT" {% if employment_filter == 'CONTRACT' %}selected{% endif %}>Contract</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Specialization</label>
-                        <select class="form-select" name="specialization">
-                            <option value="">All Levels</option>
-                            <option value="STARTERS" {% if specialization == 'STARTERS' %}selected{% endif %}>Starters</option>
-                            <option value="MOVERS" {% if specialization == 'MOVERS' %}selected{% endif %}>Movers</option>
-                            <option value="FLYERS" {% if specialization == 'FLYERS' %}selected{% endif %}>Flyers</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">&nbsp;</label>
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="ri-search-line me-1"></i> Filter
-                            </button>
+                <form method="get" action="{% url 'teacher_list' %}" id="filterForm">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-lg-4 col-md-6">
+                            <label for="search" class="form-label">Search</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="ri-search-line"></i></span>
+                                <input type="text"
+                                       class="form-control"
+                                       id="search"
+                                       name="search"
+                                       value="{{ search_query }}"
+                                       placeholder="Search by name, employee ID, or email..."
+                                       aria-label="Search teachers">
+                                {% if search_query %}
+                                    <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('search').value=''; document.getElementById('filterForm').submit();" aria-label="Clear search">
+                                        <i class="ri-close-line"></i>
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select" id="status" name="status" aria-label="Filter by status">
+                                <option value="">All Status</option>
+                                <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                                <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <label for="employment_type" class="form-label">Employment Type</label>
+                            <select class="form-select" id="employment_type" name="employment_type" aria-label="Filter by employment type">
+                                <option value="">All Types</option>
+                                <option value="FULL_TIME" {% if employment_filter == 'FULL_TIME' %}selected{% endif %}>Full Time</option>
+                                <option value="PART_TIME" {% if employment_filter == 'PART_TIME' %}selected{% endif %}>Part Time</option>
+                                <option value="CONTRACT" {% if employment_filter == 'CONTRACT' %}selected{% endif %}>Contract</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <label for="specialization" class="form-label">YLE Level</label>
+                            <select class="form-select" id="specialization" name="specialization" aria-label="Filter by YLE level">
+                                <option value="">All Levels</option>
+                                <option value="STARTERS" {% if specialization == 'STARTERS' %}selected{% endif %}>Pre A1 Starters</option>
+                                <option value="MOVERS" {% if specialization == 'MOVERS' %}selected{% endif %}>A1 Movers</option>
+                                <option value="FLYERS" {% if specialization == 'FLYERS' %}selected{% endif %}>A2 Flyers</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary flex-grow-1">
+                                    <i class="ri-search-line me-1"></i> Apply
+                                </button>
+                                <a href="{% url 'teacher_list' %}" class="btn btn-outline-secondary" title="Reset filters">
+                                    <i class="ri-refresh-line"></i>
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -75,126 +167,306 @@
 <div class="row">
     <div class="col-12">
         <div class="card">
+            <div class="card-header border-bottom">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h5 class="card-title mb-0">
+                            <i class="ri-team-line me-2"></i>Teacher Directory
+                            <span class="badge bg-primary-subtle text-primary ms-2">
+                                {{ teachers|length }} of {{ total_count }} teachers
+                            </span>
+                        </h5>
+                    </div>
+                    <div class="col-auto">
+                        <div class="btn-group" role="group" aria-label="View options">
+                            <button type="button" class="btn btn-outline-primary btn-sm active" id="tableViewBtn" title="Table view">
+                                <i class="ri-list-check"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="cardViewBtn" title="Card view">
+                                <i class="ri-grid-fill"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="card-body">
                 {% if teachers %}
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>
-                                        <a href="?sort=employee_id&{{ request.GET.urlencode }}">
-                                            Employee ID <i class="ri-arrow-up-down-line"></i>
-                                        </a>
-                                    </th>
-                                    <th>
-                                        <a href="?sort=full_name&{{ request.GET.urlencode }}">
-                                            Full Name <i class="ri-arrow-up-down-line"></i>
-                                        </a>
-                                    </th>
-                                    <th>Specializations</th>
-                                    <th>Contact</th>
-                                    <th>
-                                        <a href="?sort=years_of_experience&{{ request.GET.urlencode }}">
-                                            Experience <i class="ri-arrow-up-down-line"></i>
-                                        </a>
-                                    </th>
-                                    <th>Employment</th>
-                                    <th>Current Rate</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for teacher in teachers %}
+                    <!-- Table View -->
+                    <div id="tableView">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle table-nowrap mb-0" id="teacherTable">
+                                <thead class="table-light">
                                     <tr>
-                                        <td>
-                                            <span class="badge bg-primary">{{ teacher.employee_id }}</span>
-                                        </td>
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                {% if teacher.profile_picture %}
-                                                    <img src="{{ teacher.profile_picture.url }}" alt="{{ teacher.full_name }}" class="rounded-circle me-2" width="32" height="32">
+                                        <th scope="col">
+                                            <a href="?sort={% if sort_by == 'employee_id' and sort_order == 'asc' %}-{% endif %}employee_id&{{ request.GET.urlencode }}" class="text-dark text-decoration-none">
+                                                Employee ID
+                                                {% if sort_by == 'employee_id' %}
+                                                    <i class="ri-arrow-{% if sort_order == 'asc' %}up{% else %}down{% endif %}-s-line"></i>
                                                 {% else %}
-                                                    <div class="avatar-xs me-2">
-                                                        <span class="avatar-title rounded-circle bg-soft-primary text-primary">
+                                                    <i class="ri-arrow-up-down-line text-muted"></i>
+                                                {% endif %}
+                                            </a>
+                                        </th>
+                                        <th scope="col">
+                                            <a href="?sort={% if sort_by == 'full_name' and sort_order == 'asc' %}-{% endif %}full_name&{{ request.GET.urlencode }}" class="text-dark text-decoration-none">
+                                                Teacher
+                                                {% if sort_by == 'full_name' %}
+                                                    <i class="ri-arrow-{% if sort_order == 'asc' %}up{% else %}down{% endif %}-s-line"></i>
+                                                {% else %}
+                                                    <i class="ri-arrow-up-down-line text-muted"></i>
+                                                {% endif %}
+                                            </a>
+                                        </th>
+                                        <th scope="col">YLE Levels</th>
+                                        <th scope="col">Contact</th>
+                                        <th scope="col">
+                                            <a href="?sort={% if sort_by == 'years_of_experience' and sort_order == 'asc' %}-{% endif %}years_of_experience&{{ request.GET.urlencode }}" class="text-dark text-decoration-none">
+                                                Experience
+                                                {% if sort_by == 'years_of_experience' %}
+                                                    <i class="ri-arrow-{% if sort_order == 'asc' %}up{% else %}down{% endif %}-s-line"></i>
+                                                {% else %}
+                                                    <i class="ri-arrow-up-down-line text-muted"></i>
+                                                {% endif %}
+                                            </a>
+                                        </th>
+                                        <th scope="col">Employment</th>
+                                        <th scope="col">Hourly Rate</th>
+                                        <th scope="col">Status</th>
+                                        <th scope="col" class="text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for teacher in teachers %}
+                                        <tr>
+                                            <td>
+                                                <span class="badge bg-primary-subtle text-primary fw-medium">
+                                                    {{ teacher.employee_id }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    {% if teacher.profile_picture %}
+                                                        <img src="{{ teacher.profile_picture.url }}"
+                                                             alt="{{ teacher.full_name }}"
+                                                             class="rounded-circle avatar-sm me-3"
+                                                             style="width: 40px; height: 40px; object-fit: cover;">
+                                                    {% else %}
+                                                        <div class="avatar-sm me-3">
+                                                            <span class="avatar-title rounded-circle bg-primary-subtle text-primary">
+                                                                {{ teacher.full_name|first|upper }}
+                                                            </span>
+                                                        </div>
+                                                    {% endif %}
+                                                    <div>
+                                                        <a href="{% url 'teacher_detail' teacher.id %}" class="text-dark fw-medium text-decoration-none">
+                                                            {{ teacher.full_name }}
+                                                        </a>
+                                                        <p class="text-muted mb-0 small">
+                                                            <i class="ri-mail-line me-1"></i>{{ teacher.email }}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex flex-wrap gap-1">
+                                                    {% if teacher.teaches_starters %}
+                                                        <span class="badge bg-info-subtle text-info" title="Pre A1 Starters">
+                                                            <i class="ri-seedling-line"></i> S
+                                                        </span>
+                                                    {% endif %}
+                                                    {% if teacher.teaches_movers %}
+                                                        <span class="badge bg-warning-subtle text-warning" title="A1 Movers">
+                                                            <i class="ri-run-line"></i> M
+                                                        </span>
+                                                    {% endif %}
+                                                    {% if teacher.teaches_flyers %}
+                                                        <span class="badge bg-success-subtle text-success" title="A2 Flyers">
+                                                            <i class="ri-rocket-line"></i> F
+                                                        </span>
+                                                    {% endif %}
+                                                    {% if not teacher.teaches_starters and not teacher.teaches_movers and not teacher.teaches_flyers %}
+                                                        <span class="text-muted small">Not set</span>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <a href="tel:{{ teacher.contact_number }}" class="text-muted text-decoration-none">
+                                                    <i class="ri-phone-line me-1"></i>{{ teacher.contact_number }}
+                                                </a>
+                                            </td>
+                                            <td>
+                                                <span class="fw-medium">{{ teacher.years_of_experience }}</span>
+                                                <span class="text-muted">years</span>
+                                            </td>
+                                            <td>
+                                                {% if teacher.employment_type == 'FULL_TIME' %}
+                                                    <span class="badge bg-success-subtle text-success">
+                                                        <i class="ri-time-line me-1"></i>Full Time
+                                                    </span>
+                                                {% elif teacher.employment_type == 'PART_TIME' %}
+                                                    <span class="badge bg-info-subtle text-info">
+                                                        <i class="ri-time-line me-1"></i>Part Time
+                                                    </span>
+                                                {% elif teacher.employment_type == 'CONTRACT' %}
+                                                    <span class="badge bg-warning-subtle text-warning">
+                                                        <i class="ri-file-text-line me-1"></i>Contract
+                                                    </span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if teacher.get_current_hourly_rate %}
+                                                    <span class="fw-medium text-success">
+                                                        LKR {{ teacher.get_current_hourly_rate }}
+                                                    </span>
+                                                    <small class="text-muted">/hr</small>
+                                                {% else %}
+                                                    <span class="text-muted small">Not set</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if teacher.is_active %}
+                                                    <span class="badge bg-success">
+                                                        <i class="ri-check-line me-1"></i>Active
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge bg-danger">
+                                                        <i class="ri-close-line me-1"></i>Inactive
+                                                    </span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="d-flex justify-content-end gap-1">
+                                                    <a href="{% url 'teacher_detail' teacher.id %}"
+                                                       class="btn btn-sm btn-soft-primary"
+                                                       title="View Profile"
+                                                       aria-label="View {{ teacher.full_name }}'s profile">
+                                                        <i class="ri-eye-line"></i>
+                                                    </a>
+                                                    {% if perms.students.change_teacher %}
+                                                        <a href="{% url 'teacher_edit' teacher.id %}"
+                                                           class="btn btn-sm btn-soft-warning"
+                                                           title="Edit Teacher"
+                                                           aria-label="Edit {{ teacher.full_name }}">
+                                                            <i class="ri-edit-line"></i>
+                                                        </a>
+                                                    {% endif %}
+                                                    <a href="{% url 'teacher_rate_add' teacher.id %}"
+                                                       class="btn btn-sm btn-soft-success"
+                                                       title="Add Rate"
+                                                       aria-label="Add rate for {{ teacher.full_name }}">
+                                                        <i class="ri-money-dollar-circle-line"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Card View (hidden by default) -->
+                    <div id="cardView" class="d-none">
+                        <div class="row g-3">
+                            {% for teacher in teachers %}
+                                <div class="col-xl-4 col-lg-6">
+                                    <div class="card border mb-0 h-100">
+                                        <div class="card-body">
+                                            <div class="d-flex align-items-start mb-3">
+                                                {% if teacher.profile_picture %}
+                                                    <img src="{{ teacher.profile_picture.url }}"
+                                                         alt="{{ teacher.full_name }}"
+                                                         class="rounded-circle me-3"
+                                                         style="width: 60px; height: 60px; object-fit: cover;">
+                                                {% else %}
+                                                    <div class="avatar-md me-3">
+                                                        <span class="avatar-title bg-primary-subtle text-primary rounded-circle fs-4">
                                                             {{ teacher.full_name|first|upper }}
                                                         </span>
                                                     </div>
                                                 {% endif %}
-                                                <div>
-                                                    <h6 class="mb-0">{{ teacher.full_name }}</h6>
-                                                    <small class="text-muted">{{ teacher.email }}</small>
+                                                <div class="flex-grow-1">
+                                                    <h5 class="mb-1">
+                                                        <a href="{% url 'teacher_detail' teacher.id %}" class="text-dark">
+                                                            {{ teacher.full_name }}
+                                                        </a>
+                                                    </h5>
+                                                    <p class="text-muted mb-2 small">{{ teacher.email }}</p>
+                                                    <div class="d-flex flex-wrap gap-1">
+                                                        <span class="badge bg-primary-subtle text-primary">{{ teacher.employee_id }}</span>
+                                                        {% if teacher.is_active %}
+                                                            <span class="badge bg-success">Active</span>
+                                                        {% else %}
+                                                            <span class="badge bg-danger">Inactive</span>
+                                                        {% endif %}
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </td>
-                                        <td>
-                                            {% if teacher.teaches_starters %}
-                                                <span class="badge bg-info me-1">Starters</span>
-                                            {% endif %}
-                                            {% if teacher.teaches_movers %}
-                                                <span class="badge bg-warning me-1">Movers</span>
-                                            {% endif %}
-                                            {% if teacher.teaches_flyers %}
-                                                <span class="badge bg-success me-1">Flyers</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            <small>
-                                                <i class="ri-phone-line"></i> {{ teacher.contact_number }}
-                                            </small>
-                                        </td>
-                                        <td>{{ teacher.years_of_experience }} years</td>
-                                        <td>
-                                            {% if teacher.employment_type == 'FULL_TIME' %}
-                                                <span class="badge bg-success">Full Time</span>
-                                            {% elif teacher.employment_type == 'PART_TIME' %}
-                                                <span class="badge bg-info">Part Time</span>
-                                            {% elif teacher.employment_type == 'CONTRACT' %}
-                                                <span class="badge bg-warning">Contract</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            {% if teacher.get_current_hourly_rate %}
-                                                LKR {{ teacher.get_current_hourly_rate }}/hr
-                                            {% else %}
-                                                <span class="text-muted">Not set</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            {% if teacher.is_active %}
-                                                <span class="badge bg-success">Active</span>
-                                            {% else %}
-                                                <span class="badge bg-danger">Inactive</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            <div class="btn-group btn-group-sm">
-                                                <a href="{% url 'teacher_detail' teacher.id %}" class="btn btn-primary" title="View Details">
-                                                    <i class="ri-eye-line"></i>
+
+                                            <div class="border-top pt-3">
+                                                <div class="row g-2 text-center">
+                                                    <div class="col-4">
+                                                        <p class="text-muted mb-1 small">Experience</p>
+                                                        <h6 class="mb-0">{{ teacher.years_of_experience }} yrs</h6>
+                                                    </div>
+                                                    <div class="col-4">
+                                                        <p class="text-muted mb-1 small">Type</p>
+                                                        <h6 class="mb-0">
+                                                            {% if teacher.employment_type == 'FULL_TIME' %}FT
+                                                            {% elif teacher.employment_type == 'PART_TIME' %}PT
+                                                            {% else %}C{% endif %}
+                                                        </h6>
+                                                    </div>
+                                                    <div class="col-4">
+                                                        <p class="text-muted mb-1 small">Levels</p>
+                                                        <h6 class="mb-0">
+                                                            {% if teacher.teaches_starters %}<span class="text-info">S</span>{% endif %}
+                                                            {% if teacher.teaches_movers %}<span class="text-warning">M</span>{% endif %}
+                                                            {% if teacher.teaches_flyers %}<span class="text-success">F</span>{% endif %}
+                                                            {% if not teacher.teaches_starters and not teacher.teaches_movers and not teacher.teaches_flyers %}-{% endif %}
+                                                        </h6>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="d-flex gap-2 mt-3">
+                                                <a href="{% url 'teacher_detail' teacher.id %}" class="btn btn-sm btn-primary flex-grow-1">
+                                                    <i class="ri-eye-line me-1"></i>View
                                                 </a>
                                                 {% if perms.students.change_teacher %}
-                                                    <a href="{% url 'teacher_edit' teacher.id %}" class="btn btn-warning" title="Edit">
+                                                    <a href="{% url 'teacher_edit' teacher.id %}" class="btn btn-sm btn-outline-warning">
                                                         <i class="ri-edit-line"></i>
                                                     </a>
                                                 {% endif %}
                                             </div>
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
                     </div>
 
                     <!-- Pagination -->
                     {% if page_obj.has_other_pages %}
-                        <nav class="mt-4">
-                            <ul class="pagination justify-content-center">
+                        <nav class="mt-4" aria-label="Teacher list pagination">
+                            <ul class="pagination justify-content-center mb-0">
                                 {% if page_obj.has_previous %}
                                     <li class="page-item">
-                                        <a class="page-link" href="?page=1&{{ request.GET.urlencode }}">First</a>
+                                        <a class="page-link" href="?page=1&{{ request.GET.urlencode }}" aria-label="First page">
+                                            <i class="ri-skip-back-mini-line"></i>
+                                        </a>
                                     </li>
                                     <li class="page-item">
-                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}">Previous</a>
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}" aria-label="Previous page">
+                                            <i class="ri-arrow-left-s-line"></i>
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link"><i class="ri-skip-back-mini-line"></i></span>
+                                    </li>
+                                    <li class="page-item disabled">
+                                        <span class="page-link"><i class="ri-arrow-left-s-line"></i></span>
                                     </li>
                                 {% endif %}
 
@@ -206,18 +478,55 @@
 
                                 {% if page_obj.has_next %}
                                     <li class="page-item">
-                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}">Next</a>
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}" aria-label="Next page">
+                                            <i class="ri-arrow-right-s-line"></i>
+                                        </a>
                                     </li>
                                     <li class="page-item">
-                                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&{{ request.GET.urlencode }}">Last</a>
+                                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&{{ request.GET.urlencode }}" aria-label="Last page">
+                                            <i class="ri-skip-forward-mini-line"></i>
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link"><i class="ri-arrow-right-s-line"></i></span>
+                                    </li>
+                                    <li class="page-item disabled">
+                                        <span class="page-link"><i class="ri-skip-forward-mini-line"></i></span>
                                     </li>
                                 {% endif %}
                             </ul>
                         </nav>
                     {% endif %}
+
                 {% else %}
-                    <div class="alert alert-info">
-                        <i class="ri-information-line me-2"></i> No teachers found matching your criteria.
+                    <!-- Empty State -->
+                    <div class="text-center py-5">
+                        <div class="avatar-lg mx-auto mb-4">
+                            <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                <i class="ri-user-search-line fs-1"></i>
+                            </span>
+                        </div>
+                        <h5>No Teachers Found</h5>
+                        <p class="text-muted mb-4">
+                            {% if search_query or status_filter or employment_filter or specialization %}
+                                No teachers match your current filter criteria.
+                            {% else %}
+                                Get started by adding your first teacher to the system.
+                            {% endif %}
+                        </p>
+                        <div class="d-flex justify-content-center gap-2">
+                            {% if search_query or status_filter or employment_filter or specialization %}
+                                <a href="{% url 'teacher_list' %}" class="btn btn-outline-primary">
+                                    <i class="ri-refresh-line me-1"></i>Clear Filters
+                                </a>
+                            {% endif %}
+                            {% if perms.students.add_teacher %}
+                                <a href="{% url 'teacher_add' %}" class="btn btn-success">
+                                    <i class="ri-user-add-line me-1"></i>Add New Teacher
+                                </a>
+                            {% endif %}
+                        </div>
                     </div>
                 {% endif %}
             </div>
@@ -225,4 +534,79 @@
     </div>
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // View toggle functionality
+    $('#tableViewBtn').on('click', function() {
+        $('#tableView').removeClass('d-none');
+        $('#cardView').addClass('d-none');
+        $(this).addClass('active');
+        $('#cardViewBtn').removeClass('active');
+        localStorage.setItem('teacherViewPreference', 'table');
+    });
+
+    $('#cardViewBtn').on('click', function() {
+        $('#cardView').removeClass('d-none');
+        $('#tableView').addClass('d-none');
+        $(this).addClass('active');
+        $('#tableViewBtn').removeClass('active');
+        localStorage.setItem('teacherViewPreference', 'card');
+    });
+
+    // Restore view preference
+    var viewPreference = localStorage.getItem('teacherViewPreference');
+    if (viewPreference === 'card') {
+        $('#cardViewBtn').click();
+    }
+
+    // Auto-submit form on filter change
+    $('#status, #employment_type, #specialization').on('change', function() {
+        $('#filterForm').submit();
+    });
+
+    // Search on Enter key
+    $('#search').on('keypress', function(e) {
+        if (e.which === 13) {
+            $('#filterForm').submit();
+        }
+    });
+});
+</script>
+
+<style>
+.card-animate {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card-animate:hover {
+    transform: translateY(-3px);
+}
+
+.avatar-md {
+    width: 60px;
+    height: 60px;
+}
+
+.avatar-md .avatar-title {
+    width: 60px;
+    height: 60px;
+}
+
+.table th a {
+    white-space: nowrap;
+}
+
+.table th a:hover {
+    color: var(--bs-primary) !important;
+}
+
+@media (max-width: 768px) {
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+}
+</style>
 {% endblock %}

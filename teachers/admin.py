@@ -44,9 +44,6 @@ class TeacherAdmin(admin.ModelAdmin):
         ('YLE Level Specializations', {
             'fields': ('teaches_starters', 'teaches_movers', 'teaches_flyers')
         }),
-        ('Skill Specializations', {
-            'fields': ('specializes_listening', 'specializes_reading', 'specializes_writing', 'specializes_speaking')
-        }),
         ('Employment', {
             'fields': ('employment_type', 'date_joined', 'is_active')
         }),

@@ -119,58 +119,75 @@ def teacher_add_view(request):
     """
     from .models import Teacher, TeacherDocument, TeacherHourlyRate
     from django.contrib.auth.models import User, Group
+    from django.db import transaction, IntegrityError
 
     if request.method == 'POST':
-        # Create user account
+        # Get form data
         username = request.POST.get('username')
         email = request.POST.get('email')
         password = request.POST.get('password', 'teacher123')
+        employee_id = request.POST.get('employee_id')
+        full_name = request.POST.get('full_name')
+
+        # Validate required fields
+        if not all([username, email, employee_id, full_name]):
+            messages.error(request, 'Please fill in all required fields.')
+            return render(request, 'teachers/teacher_add.html')
 
         # Check if username exists
         if User.objects.filter(username=username).exists():
             messages.error(request, 'Username already exists!')
             return render(request, 'teachers/teacher_add.html')
 
-        user = User.objects.create_user(
-            username=username,
-            email=email,
-            password=password,
-            first_name=request.POST.get('full_name', '').split()[0] if request.POST.get('full_name') else '',
-        )
+        # Check if employee_id exists
+        if Teacher.objects.filter(employee_id=employee_id).exists():
+            messages.error(request, 'Employee ID already exists!')
+            return render(request, 'teachers/teacher_add.html')
 
-        # Add to Teachers group
-        teacher_group = Group.objects.get(name='Teachers')
-        user.groups.add(teacher_group)
+        try:
+            with transaction.atomic():
+                # Create user account
+                user = User.objects.create_user(
+                    username=username,
+                    email=email,
+                    password=password,
+                    first_name=full_name.split()[0] if full_name else '',
+                )
 
-        # Create teacher profile
-        teacher = Teacher.objects.create(
-            user=user,
-            full_name=request.POST.get('full_name'),
-            employee_id=request.POST.get('employee_id'),
-            contact_number=request.POST.get('contact_number'),
-            email=email,
-            bio=request.POST.get('bio', ''),
-            qualifications=request.POST.get('qualifications', ''),
-            years_of_experience=int(request.POST.get('years_of_experience', 0)),
-            teaches_starters=request.POST.get('teaches_starters') == 'on',
-            teaches_movers=request.POST.get('teaches_movers') == 'on',
-            teaches_flyers=request.POST.get('teaches_flyers') == 'on',
-            specializes_listening=request.POST.get('specializes_listening') == 'on',
-            specializes_reading=request.POST.get('specializes_reading') == 'on',
-            specializes_writing=request.POST.get('specializes_writing') == 'on',
-            specializes_speaking=request.POST.get('specializes_speaking') == 'on',
-            date_joined=request.POST.get('date_joined'),
-            employment_type=request.POST.get('employment_type', 'FULL_TIME'),
-            is_active=True,
-        )
+                # Add to Teachers group (create if doesn't exist)
+                teacher_group, _ = Group.objects.get_or_create(name='Teachers')
+                user.groups.add(teacher_group)
 
-        # Handle profile picture
-        if 'profile_picture' in request.FILES:
-            teacher.profile_picture = request.FILES['profile_picture']
-            teacher.save()
+                # Create teacher profile
+                teacher = Teacher.objects.create(
+                    user=user,
+                    full_name=full_name,
+                    employee_id=employee_id,
+                    contact_number=request.POST.get('contact_number', ''),
+                    email=email,
+                    bio=request.POST.get('bio', ''),
+                    qualifications=request.POST.get('qualifications', ''),
+                    years_of_experience=int(request.POST.get('years_of_experience') or 0),
+                    teaches_starters=request.POST.get('teaches_starters') == 'on',
+                    teaches_movers=request.POST.get('teaches_movers') == 'on',
+                    teaches_flyers=request.POST.get('teaches_flyers') == 'on',
+                    date_joined=request.POST.get('date_joined'),
+                    employment_type=request.POST.get('employment_type', 'FULL_TIME'),
+                    is_active=True,
+                )
 
-        messages.success(request, f'Teacher {teacher.full_name} added successfully! Username: {username}')
-        return redirect('teacher_detail', teacher_id=teacher.id)
+                # Handle profile picture
+                if 'profile_picture' in request.FILES:
+                    teacher.profile_picture = request.FILES['profile_picture']
+                    teacher.save()
+
+                messages.success(request, f'Teacher {teacher.full_name} added successfully! Username: {username}')
+                return redirect('teacher_detail', teacher_id=teacher.id)
+
+        except IntegrityError as e:
+            messages.error(request, 'A record with this information already exists.')
+        except Exception as e:
+            messages.error(request, f'Error creating teacher: {str(e)}')
 
     return render(request, 'teachers/teacher_add.html')
 
@@ -194,14 +211,10 @@ def teacher_edit_view(request, teacher_id):
         teacher.qualifications = request.POST.get('qualifications', teacher.qualifications)
         teacher.years_of_experience = int(request.POST.get('years_of_experience', teacher.years_of_experience))
 
-        # Update specializations
+        # Update specializations (YLE levels only - teachers teach all skills)
         teacher.teaches_starters = request.POST.get('teaches_starters') == 'on'
         teacher.teaches_movers = request.POST.get('teaches_movers') == 'on'
         teacher.teaches_flyers = request.POST.get('teaches_flyers') == 'on'
-        teacher.specializes_listening = request.POST.get('specializes_listening') == 'on'
-        teacher.specializes_reading = request.POST.get('specializes_reading') == 'on'
-        teacher.specializes_writing = request.POST.get('specializes_writing') == 'on'
-        teacher.specializes_speaking = request.POST.get('specializes_speaking') == 'on'
 
         # Update employment details
         teacher.employment_type = request.POST.get('employment_type', teacher.employment_type)

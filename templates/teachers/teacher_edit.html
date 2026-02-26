@@ -1,189 +1,660 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block PageTitle %}Edit Teacher - Polymath School of English{% endblock %}
-{% block pageTitle %}Edit Teacher{% endblock %}
+{% block PageTitle %}Edit Teacher - {{ teacher.full_name }} - Polymath School of English{% endblock %}
+{% block pageTitle %}Edit Teacher Profile{% endblock %}
 {% block Title %}Teachers{% endblock %}
-{% block functionTitle %}Edit Teacher Profile{% endblock %}
+{% block functionTitle %}{{ teacher.full_name }}{% endblock %}
 
 {% block content %}
 <div class="row">
-    <div class="col-lg-12">
+    <div class="col-lg-8">
         <div class="card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">Teacher Information</h5>
-            </div>
-            <div class="card-body">
-                <form method="post" enctype="multipart/form-data" action="{% url 'teacher_edit' teacher.id %}">
-                    {% csrf_token %}
-
-                    <!-- Basic Information -->
-                    <h6 class="mb-3 text-uppercase fw-semibold">Basic Information</h6>
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <label for="full_name" class="form-label">Full Name <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="full_name" name="full_name" value="{{ teacher.full_name }}" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="employee_id" class="form-label">Employee ID <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="employee_id" name="employee_id" value="{{ teacher.employee_id }}" required>
-                        </div>
+            <div class="card-header border-bottom">
+                <div class="d-flex align-items-center">
+                    <div class="avatar-sm me-3">
+                        {% if teacher.profile_picture %}
+                            <img src="{{ teacher.profile_picture.url }}" alt="{{ teacher.full_name }}" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
+                        {% else %}
+                            <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                {{ teacher.full_name|first|upper }}
+                            </span>
+                        {% endif %}
                     </div>
-
-                    <!-- Contact Information -->
-                    <h6 class="mb-3 text-uppercase fw-semibold mt-4">Contact Information</h6>
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
-                            <input type="email" class="form-control" id="email" name="email" value="{{ teacher.email }}" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="contact_number" class="form-label">Contact Number <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="contact_number" name="contact_number" value="{{ teacher.contact_number }}" required>
-                        </div>
-                    </div>
-
-                    <!-- Account Information -->
-                    <h6 class="mb-3 text-uppercase fw-semibold mt-4">Login Account</h6>
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <label for="username" class="form-label">Username <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="username" name="username" value="{{ teacher.user.username }}" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="password" class="form-label">Password</label>
-                            <input type="text" class="form-control" id="password" name="password" placeholder="Leave blank to keep current password">
-                            <small class="form-text text-muted">Only fill if you want to change the password</small>
-                        </div>
-                    </div>
-
-                    <!-- Professional Details -->
-                    <h6 class="mb-3 text-uppercase fw-semibold mt-4">Professional Details</h6>
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <label for="years_of_experience" class="form-label">Years of Experience</label>
-                            <input type="number" class="form-control" id="years_of_experience" name="years_of_experience" value="{{ teacher.years_of_experience }}" min="0">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="date_joined" class="form-label">Date Joined <span class="text-danger">*</span></label>
-                            <input type="date" class="form-control" id="date_joined" name="date_joined" value="{{ teacher.date_joined|date:'Y-m-d' }}" required>
-                        </div>
-                    </div>
-
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <label for="employment_type" class="form-label">Employment Type</label>
-                            <select class="form-select" id="employment_type" name="employment_type">
-                                <option value="FULL_TIME" {% if teacher.employment_type == 'FULL_TIME' %}selected{% endif %}>Full Time</option>
-                                <option value="PART_TIME" {% if teacher.employment_type == 'PART_TIME' %}selected{% endif %}>Part Time</option>
-                                <option value="CONTRACT" {% if teacher.employment_type == 'CONTRACT' %}selected{% endif %}>Contract</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="profile_picture" class="form-label">Profile Picture</label>
-                            <input type="file" class="form-control" id="profile_picture" name="profile_picture" accept="image/*">
-                            {% if teacher.profile_picture %}
-                                <small class="form-text text-muted">Current: {{ teacher.profile_picture.name }}</small>
+                    <div class="flex-grow-1">
+                        <h5 class="card-title mb-0">Edit Teacher Profile</h5>
+                        <div class="d-flex align-items-center gap-2 mt-1">
+                            <span class="badge bg-primary-subtle text-primary">{{ teacher.employee_id }}</span>
+                            {% if teacher.is_active %}
+                                <span class="badge bg-success-subtle text-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-danger-subtle text-danger">Inactive</span>
                             {% endif %}
                         </div>
                     </div>
-
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <label for="qualifications" class="form-label">Qualifications</label>
-                            <textarea class="form-control" id="qualifications" name="qualifications" rows="2">{{ teacher.qualifications }}</textarea>
-                        </div>
-                    </div>
-
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <label for="bio" class="form-label">Biography</label>
-                            <textarea class="form-control" id="bio" name="bio" rows="3">{{ teacher.bio }}</textarea>
-                        </div>
-                    </div>
-
-                    <!-- YLE Level Specializations -->
-                    <h6 class="mb-3 text-uppercase fw-semibold mt-4">YLE Level Specializations</h6>
-                    <div class="row mb-4">
-                        <div class="col-md-4">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="teaches_starters" name="teaches_starters" {% if teacher.teaches_starters %}checked{% endif %}>
-                                <label class="form-check-label" for="teaches_starters">Pre A1 Starters</label>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="teaches_movers" name="teaches_movers" {% if teacher.teaches_movers %}checked{% endif %}>
-                                <label class="form-check-label" for="teaches_movers">A1 Movers</label>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="teaches_flyers" name="teaches_flyers" {% if teacher.teaches_flyers %}checked{% endif %}>
-                                <label class="form-check-label" for="teaches_flyers">A2 Flyers</label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Skill Specializations -->
-                    <h6 class="mb-3 text-uppercase fw-semibold mt-4">Skill Specializations</h6>
-                    <div class="row mb-4">
-                        <div class="col-md-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="specializes_listening" name="specializes_listening" {% if teacher.specializes_listening %}checked{% endif %}>
-                                <label class="form-check-label" for="specializes_listening">Listening</label>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="specializes_reading" name="specializes_reading" {% if teacher.specializes_reading %}checked{% endif %}>
-                                <label class="form-check-label" for="specializes_reading">Reading</label>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="specializes_writing" name="specializes_writing" {% if teacher.specializes_writing %}checked{% endif %}>
-                                <label class="form-check-label" for="specializes_writing">Writing</label>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="specializes_speaking" name="specializes_speaking" {% if teacher.specializes_speaking %}checked{% endif %}>
-                                <label class="form-check-label" for="specializes_speaking">Speaking</label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Status -->
-                    <h6 class="mb-3 text-uppercase fw-semibold mt-4">Account Status</h6>
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" id="is_active" name="is_active" {% if teacher.is_active %}checked{% endif %}>
-                                <label class="form-check-label" for="is_active">Active</label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Form Actions -->
-                    <div class="mt-4">
-                        <button type="submit" class="btn btn-success btn-lg me-2">
-                            <i class="ri-save-line me-1"></i> Save Changes
-                        </button>
-                        <button type="button" onclick="window.history.back()" class="btn btn-secondary btn-lg me-2">
-                            <i class="ri-arrow-left-line me-1"></i> Back
-                        </button>
-                        <a href="{% url 'teacher_detail' teacher.id %}" class="btn btn-info btn-lg me-2">
+                    <div class="flex-shrink-0">
+                        <a href="{% url 'teacher_detail' teacher.id %}" class="btn btn-outline-info btn-sm">
                             <i class="ri-eye-line me-1"></i> View Profile
                         </a>
-                        <a href="{% url 'teacher_list' %}" class="btn btn-primary btn-lg">
-                            <i class="ri-team-line me-1"></i> All Teachers
-                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data" action="{% url 'teacher_edit' teacher.id %}" id="teacherEditForm" novalidate>
+                    {% csrf_token %}
+
+                    <!-- Basic Information Section -->
+                    <fieldset class="mb-4">
+                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
+                            <i class="ri-user-line me-2"></i>Basic Information
+                        </legend>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="full_name" class="form-label">
+                                    Full Name <span class="text-danger" aria-label="required">*</span>
+                                </label>
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text"><i class="ri-user-line"></i></span>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="full_name"
+                                           name="full_name"
+                                           value="{{ teacher.full_name }}"
+                                           placeholder="e.g., John Michael Smith"
+                                           aria-describedby="full_name_help"
+                                           autocomplete="name"
+                                           required>
+                                    <div class="invalid-feedback">Please enter the teacher's full name.</div>
+                                </div>
+                                <div id="full_name_help" class="form-text">Enter first, middle (optional), and last name</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="employee_id" class="form-label">
+                                    Employee ID <span class="text-danger" aria-label="required">*</span>
+                                </label>
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text"><i class="ri-hashtag"></i></span>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="employee_id"
+                                           name="employee_id"
+                                           value="{{ teacher.employee_id }}"
+                                           placeholder="e.g., EMP001"
+                                           aria-describedby="employee_id_help"
+                                           pattern="[A-Za-z0-9]+"
+                                           required>
+                                    <div class="invalid-feedback">Please enter a unique employee ID.</div>
+                                </div>
+                                <div id="employee_id_help" class="form-text">Unique identifier for internal use</div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Contact Information Section -->
+                    <fieldset class="mb-4">
+                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
+                            <i class="ri-contacts-line me-2"></i>Contact Information
+                        </legend>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="email" class="form-label">
+                                    Email Address <span class="text-danger" aria-label="required">*</span>
+                                </label>
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text"><i class="ri-mail-line"></i></span>
+                                    <input type="email"
+                                           class="form-control"
+                                           id="email"
+                                           name="email"
+                                           value="{{ teacher.email }}"
+                                           placeholder="e.g., john.smith@example.com"
+                                           aria-describedby="email_help"
+                                           autocomplete="email"
+                                           required>
+                                    <div class="invalid-feedback">Please enter a valid email address.</div>
+                                </div>
+                                <div id="email_help" class="form-text">Used for official communications and notifications</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="contact_number" class="form-label">
+                                    Contact Number <span class="text-danger" aria-label="required">*</span>
+                                </label>
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text"><i class="ri-phone-line"></i></span>
+                                    <input type="tel"
+                                           class="form-control"
+                                           id="contact_number"
+                                           name="contact_number"
+                                           value="{{ teacher.contact_number }}"
+                                           placeholder="e.g., +94 77 123 4567"
+                                           aria-describedby="contact_number_help"
+                                           autocomplete="tel"
+                                           required>
+                                    <div class="invalid-feedback">Please enter a valid contact number.</div>
+                                </div>
+                                <div id="contact_number_help" class="form-text">Include country code if international</div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Account Information Section -->
+                    <fieldset class="mb-4">
+                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
+                            <i class="ri-lock-line me-2"></i>Login Credentials
+                        </legend>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="username" class="form-label">
+                                    Username <span class="text-danger" aria-label="required">*</span>
+                                </label>
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text"><i class="ri-at-line"></i></span>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="username"
+                                           name="username"
+                                           value="{{ teacher.user.username }}"
+                                           placeholder="e.g., john.smith"
+                                           aria-describedby="username_help"
+                                           autocomplete="username"
+                                           pattern="[a-zA-Z0-9._]+"
+                                           required>
+                                    <div class="invalid-feedback">Username can only contain letters, numbers, dots, and underscores.</div>
+                                </div>
+                                <div id="username_help" class="form-text">Letters, numbers, dots, and underscores only</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="password" class="form-label">New Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="ri-key-line"></i></span>
+                                    <input type="password"
+                                           class="form-control"
+                                           id="password"
+                                           name="password"
+                                           placeholder="Leave blank to keep current"
+                                           aria-describedby="password_help"
+                                           autocomplete="new-password">
+                                    <button class="btn btn-outline-secondary" type="button" id="togglePassword" aria-label="Toggle password visibility">
+                                        <i class="ri-eye-line" id="passwordIcon"></i>
+                                    </button>
+                                </div>
+                                <div id="password_help" class="form-text">
+                                    <i class="ri-information-line me-1"></i>
+                                    Only fill this if you want to change the current password
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Professional Details Section -->
+                    <fieldset class="mb-4">
+                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
+                            <i class="ri-briefcase-line me-2"></i>Professional Details
+                        </legend>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label for="years_of_experience" class="form-label">Years of Experience</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="ri-time-line"></i></span>
+                                    <input type="number"
+                                           class="form-control"
+                                           id="years_of_experience"
+                                           name="years_of_experience"
+                                           value="{{ teacher.years_of_experience }}"
+                                           min="0"
+                                           max="50"
+                                           aria-describedby="experience_help">
+                                    <span class="input-group-text">years</span>
+                                </div>
+                                <div id="experience_help" class="form-text">Total teaching experience</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="date_joined" class="form-label">
+                                    Date Joined <span class="text-danger" aria-label="required">*</span>
+                                </label>
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text"><i class="ri-calendar-line"></i></span>
+                                    <input type="date"
+                                           class="form-control"
+                                           id="date_joined"
+                                           name="date_joined"
+                                           value="{{ teacher.date_joined|date:'Y-m-d' }}"
+                                           aria-describedby="date_joined_help"
+                                           required>
+                                    <div class="invalid-feedback">Please select the joining date.</div>
+                                </div>
+                                <div id="date_joined_help" class="form-text">Employment start date</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="employment_type" class="form-label">Employment Type</label>
+                                <select class="form-select" id="employment_type" name="employment_type" aria-describedby="employment_type_help">
+                                    <option value="FULL_TIME" {% if teacher.employment_type == 'FULL_TIME' %}selected{% endif %}>Full Time</option>
+                                    <option value="PART_TIME" {% if teacher.employment_type == 'PART_TIME' %}selected{% endif %}>Part Time</option>
+                                    <option value="CONTRACT" {% if teacher.employment_type == 'CONTRACT' %}selected{% endif %}>Contract</option>
+                                </select>
+                                <div id="employment_type_help" class="form-text">Current employment status</div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mt-2">
+                            <div class="col-md-6">
+                                <label for="qualifications" class="form-label">Qualifications</label>
+                                <textarea class="form-control"
+                                          id="qualifications"
+                                          name="qualifications"
+                                          rows="3"
+                                          placeholder="e.g., CELTA, TESOL, B.Ed in English, MA in Applied Linguistics"
+                                          aria-describedby="qualifications_help">{{ teacher.qualifications }}</textarea>
+                                <div id="qualifications_help" class="form-text">List teaching certifications and degrees</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="bio" class="form-label">Biography</label>
+                                <textarea class="form-control"
+                                          id="bio"
+                                          name="bio"
+                                          rows="3"
+                                          placeholder="Brief introduction about the teacher's background and teaching style..."
+                                          aria-describedby="bio_help">{{ teacher.bio }}</textarea>
+                                <div id="bio_help" class="form-text">Short bio for student/parent view</div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mt-2">
+                            <div class="col-md-6">
+                                <label for="profile_picture" class="form-label">Profile Picture</label>
+                                <input type="file"
+                                       class="form-control"
+                                       id="profile_picture"
+                                       name="profile_picture"
+                                       accept="image/jpeg,image/png,image/webp"
+                                       aria-describedby="profile_picture_help">
+                                <div id="profile_picture_help" class="form-text">
+                                    {% if teacher.profile_picture %}
+                                        <span class="text-success"><i class="ri-check-line"></i> Current photo uploaded</span> - Upload new to replace
+                                    {% else %}
+                                        Recommended: Square image, min 200x200px (JPG, PNG, WebP)
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div id="imagePreview" class="{% if not teacher.profile_picture %}d-none{% endif %}">
+                                    <label class="form-label">Current Photo</label>
+                                    <div class="border rounded p-2 bg-light text-center">
+                                        {% if teacher.profile_picture %}
+                                            <img id="previewImg" src="{{ teacher.profile_picture.url }}" alt="{{ teacher.full_name }}" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
+                                        {% else %}
+                                            <img id="previewImg" src="" alt="Profile preview" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- YLE Level Specializations Section -->
+                    <fieldset class="mb-4">
+                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
+                            <i class="ri-graduation-cap-line me-2"></i>YLE Level Certifications
+                        </legend>
+                        <p class="text-muted mb-3">
+                            Select which Cambridge YLE levels this teacher is qualified to teach.
+                            <strong>Note:</strong> All teachers teach all four skills (Listening, Reading, Writing, Speaking).
+                        </p>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="form-check form-check-card h-100">
+                                    <input class="form-check-input" type="checkbox" id="teaches_starters" name="teaches_starters" {% if teacher.teaches_starters %}checked{% endif %}>
+                                    <label class="form-check-label d-block p-3 border rounded cursor-pointer {% if teacher.teaches_starters %}border-primary bg-primary-subtle{% endif %}" for="teaches_starters">
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm me-3 flex-shrink-0">
+                                                <span class="avatar-title bg-info-subtle text-info rounded">
+                                                    <i class="ri-seedling-line fs-4"></i>
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-1">Pre A1 Starters</h6>
+                                                <p class="text-muted mb-0 small">Beginner level (Ages 6-8)</p>
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check form-check-card h-100">
+                                    <input class="form-check-input" type="checkbox" id="teaches_movers" name="teaches_movers" {% if teacher.teaches_movers %}checked{% endif %}>
+                                    <label class="form-check-label d-block p-3 border rounded cursor-pointer {% if teacher.teaches_movers %}border-primary bg-primary-subtle{% endif %}" for="teaches_movers">
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm me-3 flex-shrink-0">
+                                                <span class="avatar-title bg-warning-subtle text-warning rounded">
+                                                    <i class="ri-run-line fs-4"></i>
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-1">A1 Movers</h6>
+                                                <p class="text-muted mb-0 small">Elementary level (Ages 8-10)</p>
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check form-check-card h-100">
+                                    <input class="form-check-input" type="checkbox" id="teaches_flyers" name="teaches_flyers" {% if teacher.teaches_flyers %}checked{% endif %}>
+                                    <label class="form-check-label d-block p-3 border rounded cursor-pointer {% if teacher.teaches_flyers %}border-primary bg-primary-subtle{% endif %}" for="teaches_flyers">
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm me-3 flex-shrink-0">
+                                                <span class="avatar-title bg-success-subtle text-success rounded">
+                                                    <i class="ri-rocket-line fs-4"></i>
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-1">A2 Flyers</h6>
+                                                <p class="text-muted mb-0 small">Pre-Intermediate (Ages 10-12)</p>
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Account Status Section -->
+                    <fieldset class="mb-4">
+                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
+                            <i class="ri-shield-user-line me-2"></i>Account Status
+                        </legend>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="card bg-light border-0">
+                                    <div class="card-body p-3">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" role="switch" id="is_active" name="is_active" {% if teacher.is_active %}checked{% endif %}>
+                                            <label class="form-check-label" for="is_active">
+                                                <strong>Account Active</strong>
+                                            </label>
+                                        </div>
+                                        <p class="text-muted small mb-0 mt-2">
+                                            <i class="ri-information-line me-1"></i>
+                                            Inactive accounts cannot log in to the system
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-light border-0">
+                                    <div class="card-body p-3">
+                                        <p class="mb-1"><strong>Account Created:</strong></p>
+                                        <p class="text-muted mb-0">
+                                            <i class="ri-calendar-line me-1"></i>
+                                            {{ teacher.user.date_joined|date:"F d, Y" }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Form Actions -->
+                    <div class="border-top pt-4 mt-4">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                            <div class="text-muted small">
+                                <span class="text-danger">*</span> indicates required fields
+                            </div>
+                            <div class="d-flex flex-wrap gap-2">
+                                <a href="{% url 'teacher_detail' teacher.id %}" class="btn btn-outline-secondary">
+                                    <i class="ri-close-line me-1"></i> Cancel
+                                </a>
+                                <button type="submit" class="btn btn-success" id="submitBtn">
+                                    <span class="spinner-border spinner-border-sm d-none me-1" role="status" aria-hidden="true" id="submitSpinner"></span>
+                                    <i class="ri-save-line me-1" id="submitIcon"></i>
+                                    <span id="submitText">Save Changes</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Quick Actions Card -->
+        <div class="card sticky-top" style="top: 80px;">
+            <div class="card-header bg-primary bg-opacity-10">
+                <h6 class="card-title mb-0 text-primary">
+                    <i class="ri-flashlight-line me-2"></i>Quick Actions
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'teacher_detail' teacher.id %}" class="btn btn-outline-info">
+                        <i class="ri-eye-line me-2"></i>View Public Profile
+                    </a>
+                    <a href="{% url 'teacher_rate_add' teacher.id %}" class="btn btn-outline-success">
+                        <i class="ri-money-dollar-circle-line me-2"></i>Add Hourly Rate
+                    </a>
+                    <a href="{% url 'teacher_list' %}" class="btn btn-outline-secondary">
+                        <i class="ri-team-line me-2"></i>Back to Teacher List
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Current Status Card -->
+        <div class="card mt-3">
+            <div class="card-header bg-info bg-opacity-10">
+                <h6 class="card-title mb-0 text-info">
+                    <i class="ri-information-line me-2"></i>Current Information
+                </h6>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm table-borderless mb-0">
+                    <tbody>
+                        <tr>
+                            <td class="text-muted"><i class="ri-calendar-line me-1"></i> Joined</td>
+                            <td class="text-end fw-medium">{{ teacher.date_joined|date:"M d, Y" }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted"><i class="ri-time-line me-1"></i> Experience</td>
+                            <td class="text-end fw-medium">{{ teacher.years_of_experience }} years</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted"><i class="ri-briefcase-line me-1"></i> Type</td>
+                            <td class="text-end fw-medium">{{ teacher.get_employment_type_display }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted"><i class="ri-graduation-cap-line me-1"></i> Levels</td>
+                            <td class="text-end">
+                                {% if teacher.teaches_starters %}<span class="badge bg-info-subtle text-info">Starters</span>{% endif %}
+                                {% if teacher.teaches_movers %}<span class="badge bg-warning-subtle text-warning">Movers</span>{% endif %}
+                                {% if teacher.teaches_flyers %}<span class="badge bg-success-subtle text-success">Flyers</span>{% endif %}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Danger Zone Card -->
+        <div class="card mt-3 border-danger">
+            <div class="card-header bg-danger bg-opacity-10">
+                <h6 class="card-title mb-0 text-danger">
+                    <i class="ri-alert-line me-2"></i>Danger Zone
+                </h6>
+            </div>
+            <div class="card-body">
+                <p class="small text-muted mb-3">
+                    Deactivating an account will prevent the teacher from logging in.
+                    All data will be preserved.
+                </p>
+                {% if teacher.is_active %}
+                    <button type="button" class="btn btn-outline-danger w-100" data-bs-toggle="modal" data-bs-target="#deactivateModal">
+                        <i class="ri-user-unfollow-line me-2"></i>Deactivate Account
+                    </button>
+                {% else %}
+                    <button type="button" class="btn btn-outline-success w-100" onclick="document.getElementById('is_active').checked = true; document.getElementById('teacherEditForm').submit();">
+                        <i class="ri-user-follow-line me-2"></i>Reactivate Account
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
 </div>
 
+<!-- Deactivate Confirmation Modal -->
+<div class="modal fade" id="deactivateModal" tabindex="-1" aria-labelledby="deactivateModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-danger" id="deactivateModalLabel">
+                    <i class="ri-alert-line me-2"></i>Confirm Deactivation
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div class="avatar-lg mx-auto mb-4">
+                    <span class="avatar-title bg-danger-subtle text-danger rounded-circle">
+                        <i class="ri-user-unfollow-line fs-1"></i>
+                    </span>
+                </div>
+                <h5>Deactivate {{ teacher.full_name }}?</h5>
+                <p class="text-muted">
+                    This teacher will no longer be able to log in to the system.
+                    You can reactivate the account at any time.
+                </p>
+            </div>
+            <div class="modal-footer border-0 justify-content-center">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" onclick="document.getElementById('is_active').checked = false; document.getElementById('teacherEditForm').submit();">
+                    <i class="ri-user-unfollow-line me-1"></i>Yes, Deactivate
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Password visibility toggle
+    $('#togglePassword').on('click', function() {
+        var passwordField = $('#password');
+        var icon = $('#passwordIcon');
+
+        if (passwordField.attr('type') === 'password') {
+            passwordField.attr('type', 'text');
+            icon.removeClass('ri-eye-line').addClass('ri-eye-off-line');
+        } else {
+            passwordField.attr('type', 'password');
+            icon.removeClass('ri-eye-off-line').addClass('ri-eye-line');
+        }
+    });
+
+    // Profile picture preview
+    $('#profile_picture').on('change', function(e) {
+        var file = e.target.files[0];
+        if (file) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                $('#previewImg').attr('src', e.target.result);
+                $('#imagePreview').removeClass('d-none');
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Form validation with Bootstrap
+    var form = document.getElementById('teacherEditForm');
+
+    form.addEventListener('submit', function(event) {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        } else {
+            // Show loading state
+            $('#submitBtn').prop('disabled', true);
+            $('#submitSpinner').removeClass('d-none');
+            $('#submitIcon').addClass('d-none');
+            $('#submitText').text('Saving...');
+        }
+
+        form.classList.add('was-validated');
+    }, false);
+
+    // Style checkbox cards on selection
+    $('input[type="checkbox"]').on('change', function() {
+        var label = $(this).siblings('label');
+        if ($(this).is(':checked')) {
+            label.addClass('border-primary bg-primary-subtle');
+        } else {
+            label.removeClass('border-primary bg-primary-subtle');
+        }
+    });
+
+    // Track form changes
+    var formChanged = false;
+    $('#teacherEditForm input, #teacherEditForm textarea, #teacherEditForm select').on('change input', function() {
+        formChanged = true;
+    });
+
+    // Warn before leaving with unsaved changes
+    $(window).on('beforeunload', function(e) {
+        if (formChanged) {
+            e.preventDefault();
+            e.returnValue = '';
+            return '';
+        }
+    });
+
+    // Remove warning when form is submitted
+    $('#teacherEditForm').on('submit', function() {
+        formChanged = false;
+    });
+});
+</script>
+
+<style>
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.form-check-card .form-check-input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.form-check-card .form-check-label {
+    transition: all 0.2s ease;
+}
+
+.form-check-card .form-check-label:hover {
+    border-color: var(--bs-primary) !important;
+    background-color: var(--bs-primary-bg-subtle);
+}
+
+.form-check-card .form-check-input:checked + .form-check-label {
+    border-color: var(--bs-primary) !important;
+    background-color: var(--bs-primary-bg-subtle);
+}
+
+.form-check-card .form-check-input:focus + .form-check-label {
+    box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
+}
+
+fieldset {
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+legend {
+    border-bottom: 2px solid var(--bs-primary);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+</style>
 {% endblock %}

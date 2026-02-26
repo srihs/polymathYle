@@ -2,155 +2,743 @@
 {% load static %}
 
 {% block PageTitle %}Edit {{ student.full_name }} - Polymath School of English{% endblock %}
-{% block pageTitle %}Edit Student{% endblock %}
+{% block pageTitle %}Edit Student Profile{% endblock %}
 {% block Title %}Students{% endblock %}
-{% block functionTitle %}Edit Profile{% endblock %}
+{% block functionTitle %}{{ student.full_name }}{% endblock %}
 
 {% block content %}
 <div class="row">
-    <div class="col-lg-12">
+    <div class="col-lg-8">
         <div class="card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">Edit Student Profile</h5>
-            </div>
-            <div class="card-body">
-                <form method="post" enctype="multipart/form-data" action="{% url 'student_edit' student.id %}">
-                    {% csrf_token %}
-
-                    <!-- Basic Information -->
-                    <h6 class="mb-3 text-uppercase fw-semibold">Basic Information</h6>
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <label for="full_name" class="form-label">Full Name <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="full_name" name="full_name" value="{{ student.full_name }}" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="name_with_initials" class="form-label">Name with Initials <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="name_with_initials" name="name_with_initials" value="{{ student.name_with_initials }}" required>
-                        </div>
+            <div class="card-header border-bottom">
+                <div class="d-flex align-items-center">
+                    <div class="avatar-sm me-3">
+                        {% if student.profile_picture %}
+                            <img src="{{ student.profile_picture.url }}" alt="{{ student.full_name }}" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
+                        {% else %}
+                            <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                {{ student.full_name|first|upper }}
+                            </span>
+                        {% endif %}
                     </div>
-
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <label for="student_email" class="form-label">Student Email</label>
-                            <input type="email" class="form-control" id="student_email" name="student_email" value="{{ student.student_email }}">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="current_school" class="form-label">Current School</label>
-                            <input type="text" class="form-control" id="current_school" name="current_school" value="{{ student.current_school }}">
-                        </div>
-                    </div>
-
-                    <!-- Contact Information -->
-                    <h6 class="mb-3 text-uppercase fw-semibold mt-4">Contact Information</h6>
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <label for="primary_contact_number" class="form-label">Primary Contact Number <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="primary_contact_number" name="primary_contact_number" value="{{ student.primary_contact_number }}" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="whatsapp_number" class="form-label">WhatsApp Number</label>
-                            <input type="text" class="form-control" id="whatsapp_number" name="whatsapp_number" value="{{ student.whatsapp_number }}">
-                        </div>
-                    </div>
-
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <label for="home_address" class="form-label">Home Address <span class="text-danger">*</span></label>
-                            <textarea class="form-control" id="home_address" name="home_address" rows="3" required>{{ student.home_address }}</textarea>
-                        </div>
-                    </div>
-
-                    <!-- Academic Information -->
-                    <h6 class="mb-3 text-uppercase fw-semibold mt-4">Academic Information</h6>
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <label for="current_level" class="form-label">Current Level <span class="text-danger">*</span></label>
-                            <select class="form-select" id="current_level" name="current_level" required>
-                                <option value="STARTERS" {% if student.current_level == 'STARTERS' %}selected{% endif %}>Pre A1 Starters</option>
-                                <option value="MOVERS" {% if student.current_level == 'MOVERS' %}selected{% endif %}>A1 Movers</option>
-                                <option value="FLYERS" {% if student.current_level == 'FLYERS' %}selected{% endif %}>A2 Flyers</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="assigned_class" class="form-label">Assigned Class</label>
-                            <select class="form-select" id="assigned_class" name="assigned_class">
-                                <option value="">Not Assigned</option>
-                                {% for class in classes %}
-                                    <option value="{{ class.id }}" {% if student.assigned_class and student.assigned_class.id == class.id %}selected{% endif %}>
-                                        {{ class.class_name }} - {{ class.get_level_display }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                            <div class="form-text">Select the class this student is enrolled in</div>
-                        </div>
-                    </div>
-
-                    <!-- Profile Picture -->
-                    <h6 class="mb-3 text-uppercase fw-semibold mt-4">Profile Picture</h6>
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <label for="profile_picture" class="form-label">Upload New Profile Picture</label>
-                            <input type="file" class="form-control" id="profile_picture" name="profile_picture" accept="image/*">
-                            <div class="form-text">Supported formats: JPG, PNG, GIF (Max 2MB)</div>
-                        </div>
-                        <div class="col-md-6">
-                            {% if student.profile_picture %}
-                                <label class="form-label">Current Picture</label>
-                                <div>
-                                    <img src="{{ student.profile_picture.url }}" alt="{{ student.full_name }}" class="img-thumbnail" style="max-width: 150px;">
-                                </div>
+                    <div class="flex-grow-1">
+                        <h5 class="card-title mb-0">Edit Student Profile</h5>
+                        <div class="d-flex align-items-center gap-2 mt-1">
+                            <span class="badge bg-primary-subtle text-primary">{{ student.admission_number }}</span>
+                            {% if student.current_level == 'STARTERS' %}
+                                <span class="badge bg-info-subtle text-info">Starters</span>
+                            {% elif student.current_level == 'MOVERS' %}
+                                <span class="badge bg-warning-subtle text-warning">Movers</span>
+                            {% elif student.current_level == 'FLYERS' %}
+                                <span class="badge bg-success-subtle text-success">Flyers</span>
+                            {% endif %}
+                            {% if student.is_active %}
+                                <span class="badge bg-success-subtle text-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-danger-subtle text-danger">Inactive</span>
                             {% endif %}
                         </div>
                     </div>
-
-                    <!-- Status -->
-                    <h6 class="mb-3 text-uppercase fw-semibold mt-4">Status</h6>
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" id="is_active" name="is_active" {% if student.is_active %}checked{% endif %}>
-                                <label class="form-check-label" for="is_active">
-                                    Active Student
-                                </label>
-                                <div class="form-text">Uncheck to mark student as inactive (graduated or withdrawn)</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Readonly Information -->
-                    <h6 class="mb-3 text-uppercase fw-semibold mt-4">System Information (Read-Only)</h6>
-                    <div class="row mb-4">
-                        <div class="col-md-4">
-                            <label class="form-label">Admission Number</label>
-                            <input type="text" class="form-control" value="{{ student.admission_number }}" readonly>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Date of Birth</label>
-                            <input type="text" class="form-control" value="{{ student.date_of_birth|date:'Y-m-d' }}" readonly>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Enrollment Date</label>
-                            <input type="text" class="form-control" value="{{ student.enrollment_date|date:'Y-m-d' }}" readonly>
-                        </div>
-                    </div>
-
-                    <!-- Form Actions -->
-                    <div class="mt-4">
-                        <button type="submit" class="btn btn-primary me-2">
-                            <i class="ri-save-line me-1"></i> Save Changes
-                        </button>
-                        <button type="button" onclick="window.history.back()" class="btn btn-secondary me-2">
-                            <i class="ri-arrow-left-line me-1"></i> Back
-                        </button>
-                        <a href="{% url 'student_detail' student.id %}" class="btn btn-info">
+                    <div class="flex-shrink-0">
+                        <a href="{% url 'student_detail' student.id %}" class="btn btn-outline-info btn-sm">
                             <i class="ri-eye-line me-1"></i> View Profile
                         </a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Form Progress Indicator -->
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="badge bg-primary-subtle text-primary">Step 1: Basic Info</span>
+                        <span class="badge bg-light text-muted">Step 2: Contact</span>
+                        <span class="badge bg-light text-muted">Step 3: Academic</span>
+                        <span class="badge bg-light text-muted">Step 4: Status</span>
+                    </div>
+                    <div class="progress" style="height: 4px;" role="progressbar" aria-label="Form progress" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
+                        <div class="progress-bar" style="width: 25%"></div>
+                    </div>
+                </div>
+
+                <form method="post" enctype="multipart/form-data" action="{% url 'student_edit' student.id %}" id="studentEditForm" novalidate>
+                    {% csrf_token %}
+
+                    <!-- Basic Information Section -->
+                    <fieldset class="mb-4">
+                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
+                            <i class="ri-user-line me-2"></i>Basic Information
+                        </legend>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="full_name" class="form-label">
+                                    Full Name <span class="text-danger" aria-label="required">*</span>
+                                </label>
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text"><i class="ri-user-line"></i></span>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="full_name"
+                                           name="full_name"
+                                           value="{{ student.full_name }}"
+                                           placeholder="e.g., John Michael Smith"
+                                           aria-describedby="full_name_help"
+                                           autocomplete="name"
+                                           required>
+                                    <div class="invalid-feedback">Please enter the student's full name.</div>
+                                </div>
+                                <div id="full_name_help" class="form-text">Enter first, middle (optional), and last name</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="name_with_initials" class="form-label">
+                                    Name with Initials <span class="text-danger" aria-label="required">*</span>
+                                </label>
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text"><i class="ri-text"></i></span>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="name_with_initials"
+                                           name="name_with_initials"
+                                           value="{{ student.name_with_initials }}"
+                                           placeholder="e.g., J.M. Smith"
+                                           aria-describedby="name_initials_help"
+                                           required>
+                                    <div class="invalid-feedback">Please enter name with initials.</div>
+                                </div>
+                                <div id="name_initials_help" class="form-text">Official name format with initials</div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mt-2">
+                            <div class="col-md-6">
+                                <label for="student_email" class="form-label">Student Email</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="ri-mail-line"></i></span>
+                                    <input type="email"
+                                           class="form-control"
+                                           id="student_email"
+                                           name="student_email"
+                                           value="{{ student.student_email }}"
+                                           placeholder="e.g., student@example.com"
+                                           aria-describedby="email_help"
+                                           autocomplete="email">
+                                </div>
+                                <div id="email_help" class="form-text">Optional email for student communications</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="current_school" class="form-label">Current School</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="ri-school-line"></i></span>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="current_school"
+                                           name="current_school"
+                                           value="{{ student.current_school }}"
+                                           placeholder="e.g., Royal College, Colombo"
+                                           aria-describedby="school_help">
+                                </div>
+                                <div id="school_help" class="form-text">Student's regular day school</div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Contact Information Section -->
+                    <fieldset class="mb-4">
+                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
+                            <i class="ri-contacts-line me-2"></i>Contact Information
+                        </legend>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="primary_contact_number" class="form-label">
+                                    Primary Contact Number <span class="text-danger" aria-label="required">*</span>
+                                </label>
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text"><i class="ri-phone-line"></i></span>
+                                    <input type="tel"
+                                           class="form-control"
+                                           id="primary_contact_number"
+                                           name="primary_contact_number"
+                                           value="{{ student.primary_contact_number }}"
+                                           placeholder="e.g., +94 77 123 4567"
+                                           aria-describedby="phone_help"
+                                           autocomplete="tel"
+                                           required>
+                                    <div class="invalid-feedback">Please enter a valid contact number.</div>
+                                </div>
+                                <div id="phone_help" class="form-text">Primary guardian's phone number</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="whatsapp_number" class="form-label">WhatsApp Number</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="ri-whatsapp-line"></i></span>
+                                    <input type="tel"
+                                           class="form-control"
+                                           id="whatsapp_number"
+                                           name="whatsapp_number"
+                                           value="{{ student.whatsapp_number }}"
+                                           placeholder="e.g., +94 77 123 4567"
+                                           aria-describedby="whatsapp_help">
+                                </div>
+                                <div id="whatsapp_help" class="form-text">For class updates and quick communications</div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mt-2">
+                            <div class="col-12">
+                                <label for="home_address" class="form-label">
+                                    Home Address <span class="text-danger" aria-label="required">*</span>
+                                </label>
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text"><i class="ri-home-line"></i></span>
+                                    <textarea class="form-control"
+                                              id="home_address"
+                                              name="home_address"
+                                              rows="2"
+                                              placeholder="e.g., 123 Main Street, Colombo 07"
+                                              aria-describedby="address_help"
+                                              required>{{ student.home_address }}</textarea>
+                                    <div class="invalid-feedback">Please enter the home address.</div>
+                                </div>
+                                <div id="address_help" class="form-text">Complete home address for records</div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Academic Information Section -->
+                    <fieldset class="mb-4">
+                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
+                            <i class="ri-graduation-cap-line me-2"></i>Academic Information
+                        </legend>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="current_level" class="form-label">
+                                    Current YLE Level <span class="text-danger" aria-label="required">*</span>
+                                </label>
+                                <select class="form-select" id="current_level" name="current_level" aria-describedby="level_help" required>
+                                    <option value="STARTERS" {% if student.current_level == 'STARTERS' %}selected{% endif %}>Pre A1 Starters</option>
+                                    <option value="MOVERS" {% if student.current_level == 'MOVERS' %}selected{% endif %}>A1 Movers</option>
+                                    <option value="FLYERS" {% if student.current_level == 'FLYERS' %}selected{% endif %}>A2 Flyers</option>
+                                </select>
+                                <div id="level_help" class="form-text">Student's current Cambridge YLE level</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="assigned_class" class="form-label">Assigned Class</label>
+                                <select class="form-select" id="assigned_class" name="assigned_class" aria-describedby="class_help">
+                                    <option value="">Not Assigned</option>
+                                    {% for class in classes %}
+                                        <option value="{{ class.id }}" {% if student.assigned_class and student.assigned_class.id == class.id %}selected{% endif %}>
+                                            {{ class.class_name }} - {{ class.get_level_display }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <div id="class_help" class="form-text">Select the class this student is enrolled in</div>
+                            </div>
+                        </div>
+
+                        <!-- YLE Level Visual Cards -->
+                        <div class="row g-3 mt-3">
+                            <div class="col-md-4">
+                                <div class="form-check form-check-card h-100">
+                                    <input class="form-check-input yle-level-radio" type="radio" name="yle_level_display" id="level_starters" value="STARTERS" {% if student.current_level == 'STARTERS' %}checked{% endif %}>
+                                    <label class="form-check-label d-block p-3 border rounded cursor-pointer {% if student.current_level == 'STARTERS' %}border-info bg-info-subtle{% endif %}" for="level_starters">
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm me-3 flex-shrink-0">
+                                                <span class="avatar-title bg-info-subtle text-info rounded">
+                                                    <i class="ri-seedling-line fs-4"></i>
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-1">Pre A1 Starters</h6>
+                                                <p class="text-muted mb-0 small">Beginner (Ages 6-8)</p>
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check form-check-card h-100">
+                                    <input class="form-check-input yle-level-radio" type="radio" name="yle_level_display" id="level_movers" value="MOVERS" {% if student.current_level == 'MOVERS' %}checked{% endif %}>
+                                    <label class="form-check-label d-block p-3 border rounded cursor-pointer {% if student.current_level == 'MOVERS' %}border-warning bg-warning-subtle{% endif %}" for="level_movers">
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm me-3 flex-shrink-0">
+                                                <span class="avatar-title bg-warning-subtle text-warning rounded">
+                                                    <i class="ri-run-line fs-4"></i>
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-1">A1 Movers</h6>
+                                                <p class="text-muted mb-0 small">Elementary (Ages 8-10)</p>
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check form-check-card h-100">
+                                    <input class="form-check-input yle-level-radio" type="radio" name="yle_level_display" id="level_flyers" value="FLYERS" {% if student.current_level == 'FLYERS' %}checked{% endif %}>
+                                    <label class="form-check-label d-block p-3 border rounded cursor-pointer {% if student.current_level == 'FLYERS' %}border-success bg-success-subtle{% endif %}" for="level_flyers">
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm me-3 flex-shrink-0">
+                                                <span class="avatar-title bg-success-subtle text-success rounded">
+                                                    <i class="ri-rocket-line fs-4"></i>
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-1">A2 Flyers</h6>
+                                                <p class="text-muted mb-0 small">Pre-Intermediate (Ages 10-12)</p>
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Profile Picture Section -->
+                    <fieldset class="mb-4">
+                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
+                            <i class="ri-image-line me-2"></i>Profile Picture
+                        </legend>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="profile_picture" class="form-label">Upload New Profile Picture</label>
+                                <input type="file"
+                                       class="form-control"
+                                       id="profile_picture"
+                                       name="profile_picture"
+                                       accept="image/jpeg,image/png,image/webp"
+                                       aria-describedby="picture_help">
+                                <div id="picture_help" class="form-text">
+                                    {% if student.profile_picture %}
+                                        <span class="text-success"><i class="ri-check-line"></i> Current photo uploaded</span> - Upload new to replace
+                                    {% else %}
+                                        Recommended: Square image, min 200x200px (JPG, PNG, WebP)
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div id="imagePreview" class="{% if not student.profile_picture %}d-none{% endif %}">
+                                    <label class="form-label">Current Photo</label>
+                                    <div class="border rounded p-2 bg-light text-center">
+                                        {% if student.profile_picture %}
+                                            <img id="previewImg" src="{{ student.profile_picture.url }}" alt="{{ student.full_name }}" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
+                                        {% else %}
+                                            <img id="previewImg" src="" alt="Profile preview" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Account Status Section -->
+                    <fieldset class="mb-4">
+                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
+                            <i class="ri-shield-user-line me-2"></i>Account Status
+                        </legend>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="card bg-light border-0">
+                                    <div class="card-body p-3">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" role="switch" id="is_active" name="is_active" {% if student.is_active %}checked{% endif %}>
+                                            <label class="form-check-label" for="is_active">
+                                                <strong>Account Active</strong>
+                                            </label>
+                                        </div>
+                                        <p class="text-muted small mb-0 mt-2">
+                                            <i class="ri-information-line me-1"></i>
+                                            Inactive accounts cannot log in to the system
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Read-Only System Information Section -->
+                    <fieldset class="mb-4">
+                        <legend class="h6 text-uppercase fw-semibold text-muted mb-3">
+                            <i class="ri-lock-line me-2"></i>System Information (Read-Only)
+                        </legend>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="p-3 border rounded bg-light">
+                                    <label class="form-label text-muted mb-1 small">Admission Number</label>
+                                    <div class="fw-medium">
+                                        <i class="ri-hashtag me-1 text-primary"></i>{{ student.admission_number }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="p-3 border rounded bg-light">
+                                    <label class="form-label text-muted mb-1 small">Date of Birth</label>
+                                    <div class="fw-medium">
+                                        <i class="ri-cake-2-line me-1 text-primary"></i>{{ student.date_of_birth|date:"M d, Y" }}
+                                        <span class="badge bg-primary-subtle text-primary ms-1">{{ student.age }} yrs</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="p-3 border rounded bg-light">
+                                    <label class="form-label text-muted mb-1 small">Enrollment Date</label>
+                                    <div class="fw-medium">
+                                        <i class="ri-calendar-line me-1 text-primary"></i>{{ student.enrollment_date|date:"M d, Y" }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Form Actions -->
+                    <div class="border-top pt-4 mt-4">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                            <div class="text-muted small">
+                                <span class="text-danger">*</span> indicates required fields
+                            </div>
+                            <div class="d-flex flex-wrap gap-2">
+                                <a href="{% url 'student_detail' student.id %}" class="btn btn-outline-secondary">
+                                    <i class="ri-close-line me-1"></i> Cancel
+                                </a>
+                                <button type="submit" class="btn btn-success" id="submitBtn">
+                                    <span class="spinner-border spinner-border-sm d-none me-1" role="status" aria-hidden="true" id="submitSpinner"></span>
+                                    <i class="ri-save-line me-1" id="submitIcon"></i>
+                                    <span id="submitText">Save Changes</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Quick Actions Card -->
+        <div class="card sticky-top" style="top: 80px;">
+            <div class="card-header bg-primary bg-opacity-10">
+                <h6 class="card-title mb-0 text-primary">
+                    <i class="ri-flashlight-line me-2"></i>Quick Actions
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'student_detail' student.id %}" class="btn btn-outline-info">
+                        <i class="ri-eye-line me-2"></i>View Public Profile
+                    </a>
+                    <a href="{% url 'attendance_report' %}?student_id={{ student.id }}" class="btn btn-outline-success">
+                        <i class="ri-calendar-check-line me-2"></i>View Attendance
+                    </a>
+                    <a href="{% url 'student_list' %}" class="btn btn-outline-secondary">
+                        <i class="ri-team-line me-2"></i>Back to Student List
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Current Information Card -->
+        <div class="card mt-3">
+            <div class="card-header bg-info bg-opacity-10">
+                <h6 class="card-title mb-0 text-info">
+                    <i class="ri-information-line me-2"></i>Current Information
+                </h6>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm table-borderless mb-0">
+                    <tbody>
+                        <tr>
+                            <td class="text-muted"><i class="ri-calendar-line me-1"></i> Enrolled</td>
+                            <td class="text-end fw-medium">{{ student.enrollment_date|date:"M d, Y" }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted"><i class="ri-graduation-cap-line me-1"></i> Level</td>
+                            <td class="text-end">
+                                {% if student.current_level == 'STARTERS' %}
+                                    <span class="badge bg-info-subtle text-info">Starters</span>
+                                {% elif student.current_level == 'MOVERS' %}
+                                    <span class="badge bg-warning-subtle text-warning">Movers</span>
+                                {% elif student.current_level == 'FLYERS' %}
+                                    <span class="badge bg-success-subtle text-success">Flyers</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted"><i class="ri-star-line me-1"></i> Points</td>
+                            <td class="text-end fw-medium">{{ student.total_points|default:0 }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted"><i class="ri-fire-line me-1"></i> Streak</td>
+                            <td class="text-end fw-medium">{{ student.streak_days|default:0 }} days</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Quick Tips Card -->
+        <div class="card mt-3">
+            <div class="card-header bg-success bg-opacity-10">
+                <h6 class="card-title mb-0 text-success">
+                    <i class="ri-lightbulb-line me-2"></i>Quick Tips
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-flex mb-3">
+                    <div class="flex-shrink-0">
+                        <span class="avatar-xs avatar-title bg-success-subtle text-success rounded-circle">1</span>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-1">YLE Levels</h6>
+                        <p class="text-muted small mb-0">Change level when student progresses through Cambridge assessments</p>
+                    </div>
+                </div>
+                <div class="d-flex mb-3">
+                    <div class="flex-shrink-0">
+                        <span class="avatar-xs avatar-title bg-success-subtle text-success rounded-circle">2</span>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-1">Class Assignment</h6>
+                        <p class="text-muted small mb-0">Match student level with appropriate class for scheduling</p>
+                    </div>
+                </div>
+                <div class="d-flex">
+                    <div class="flex-shrink-0">
+                        <span class="avatar-xs avatar-title bg-success-subtle text-success rounded-circle">3</span>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-1">Contact Info</h6>
+                        <p class="text-muted small mb-0">Keep WhatsApp updated for class notifications</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Danger Zone Card -->
+        <div class="card mt-3 border-danger">
+            <div class="card-header bg-danger bg-opacity-10">
+                <h6 class="card-title mb-0 text-danger">
+                    <i class="ri-alert-line me-2"></i>Danger Zone
+                </h6>
+            </div>
+            <div class="card-body">
+                <p class="small text-muted mb-3">
+                    Deactivating an account will prevent the student from logging in.
+                    All data will be preserved.
+                </p>
+                {% if student.is_active %}
+                    <button type="button" class="btn btn-outline-danger w-100" data-bs-toggle="modal" data-bs-target="#deactivateModal">
+                        <i class="ri-user-unfollow-line me-2"></i>Deactivate Account
+                    </button>
+                {% else %}
+                    <button type="button" class="btn btn-outline-success w-100" onclick="document.getElementById('is_active').checked = true; document.getElementById('studentEditForm').submit();">
+                        <i class="ri-user-follow-line me-2"></i>Reactivate Account
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
 </div>
 
+<!-- Deactivate Confirmation Modal -->
+<div class="modal fade" id="deactivateModal" tabindex="-1" aria-labelledby="deactivateModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-danger" id="deactivateModalLabel">
+                    <i class="ri-alert-line me-2"></i>Confirm Deactivation
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div class="avatar-lg mx-auto mb-4">
+                    <span class="avatar-title bg-danger-subtle text-danger rounded-circle">
+                        <i class="ri-user-unfollow-line fs-1"></i>
+                    </span>
+                </div>
+                <h5>Deactivate {{ student.full_name }}?</h5>
+                <p class="text-muted">
+                    This student will no longer be able to log in to the system.
+                    You can reactivate the account at any time.
+                </p>
+            </div>
+            <div class="modal-footer border-0 justify-content-center">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" onclick="document.getElementById('is_active').checked = false; document.getElementById('studentEditForm').submit();">
+                    <i class="ri-user-unfollow-line me-1"></i>Yes, Deactivate
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Profile picture preview
+    $('#profile_picture').on('change', function(e) {
+        var file = e.target.files[0];
+        if (file) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                $('#previewImg').attr('src', e.target.result);
+                $('#imagePreview').removeClass('d-none');
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Form validation with Bootstrap
+    var form = document.getElementById('studentEditForm');
+
+    form.addEventListener('submit', function(event) {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        } else {
+            // Show loading state
+            $('#submitBtn').prop('disabled', true);
+            $('#submitSpinner').removeClass('d-none');
+            $('#submitIcon').addClass('d-none');
+            $('#submitText').text('Saving...');
+        }
+
+        form.classList.add('was-validated');
+    }, false);
+
+    // Sync YLE level cards with select dropdown
+    $('.yle-level-radio').on('change', function() {
+        var level = $(this).val();
+        $('#current_level').val(level);
+
+        // Update card styles
+        $('.form-check-card label').removeClass('border-info bg-info-subtle border-warning bg-warning-subtle border-success bg-success-subtle');
+
+        if (level === 'STARTERS') {
+            $(this).siblings('label').addClass('border-info bg-info-subtle');
+        } else if (level === 'MOVERS') {
+            $(this).siblings('label').addClass('border-warning bg-warning-subtle');
+        } else if (level === 'FLYERS') {
+            $(this).siblings('label').addClass('border-success bg-success-subtle');
+        }
+    });
+
+    // Sync select dropdown with YLE level cards
+    $('#current_level').on('change', function() {
+        var level = $(this).val();
+        $('input[name="yle_level_display"][value="' + level + '"]').prop('checked', true).trigger('change');
+    });
+
+    // Track form changes
+    var formChanged = false;
+    $('#studentEditForm input, #studentEditForm textarea, #studentEditForm select').on('change input', function() {
+        formChanged = true;
+    });
+
+    // Warn before leaving with unsaved changes
+    $(window).on('beforeunload', function(e) {
+        if (formChanged) {
+            e.preventDefault();
+            e.returnValue = '';
+            return '';
+        }
+    });
+
+    // Remove warning when form is submitted
+    $('#studentEditForm').on('submit', function() {
+        formChanged = false;
+    });
+
+    // Update progress bar based on filled sections
+    function updateProgress() {
+        var progress = 0;
+        var sections = 4;
+
+        // Check Basic Info (full_name and name_with_initials)
+        if ($('#full_name').val() && $('#name_with_initials').val()) {
+            progress += 1;
+            $('.badge').eq(0).removeClass('bg-primary-subtle text-primary').addClass('bg-success text-white');
+        } else {
+            $('.badge').eq(0).removeClass('bg-success text-white').addClass('bg-primary-subtle text-primary');
+        }
+
+        // Check Contact Info (primary_contact_number and home_address)
+        if ($('#primary_contact_number').val() && $('#home_address').val()) {
+            progress += 1;
+            $('.badge').eq(1).removeClass('bg-light text-muted').addClass('bg-success text-white');
+        } else {
+            $('.badge').eq(1).removeClass('bg-success text-white').addClass('bg-light text-muted');
+        }
+
+        // Check Academic Info (current_level)
+        if ($('#current_level').val()) {
+            progress += 1;
+            $('.badge').eq(2).removeClass('bg-light text-muted').addClass('bg-success text-white');
+        } else {
+            $('.badge').eq(2).removeClass('bg-success text-white').addClass('bg-light text-muted');
+        }
+
+        // Check Status (is_active is always set)
+        progress += 1;
+        $('.badge').eq(3).removeClass('bg-light text-muted').addClass('bg-success text-white');
+
+        var percentage = (progress / sections) * 100;
+        $('.progress-bar').css('width', percentage + '%').attr('aria-valuenow', percentage);
+    }
+
+    // Bind progress update to input changes
+    $('#full_name, #name_with_initials, #primary_contact_number, #home_address, #current_level').on('input change', updateProgress);
+
+    // Initial progress check
+    updateProgress();
+});
+</script>
+
+<style>
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.form-check-card .form-check-input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.form-check-card .form-check-label {
+    transition: all 0.2s ease;
+}
+
+.form-check-card .form-check-label:hover {
+    border-color: var(--bs-primary) !important;
+    background-color: var(--bs-primary-bg-subtle);
+}
+
+fieldset {
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+legend {
+    border-bottom: 2px solid var(--bs-primary);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.avatar-xs {
+    width: 24px;
+    height: 24px;
+}
+
+.avatar-xs .avatar-title {
+    font-size: 12px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+</style>
 {% endblock %}

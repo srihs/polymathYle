@@ -2,19 +2,93 @@
 {% load static %}
 
 {% block PageTitle %}Students - Polymath School of English{% endblock %}
-{% block pageTitle %}Students{% endblock %}
+{% block pageTitle %}Student Management{% endblock %}
 {% block Title %}Students{% endblock %}
-{% block functionTitle %}Student Management{% endblock %}
+{% block functionTitle %}All Students{% endblock %}
 
 {% block content %}
+<!-- Statistics Summary -->
+<div class="row">
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate bg-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="fw-medium text-white-75 mb-0">Total Students</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ total_count|default:0 }}</h2>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-team-line text-white"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate bg-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="fw-medium text-white-75 mb-0">Active Students</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ active_count|default:0 }}</h2>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-user-follow-line text-white"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate bg-info">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="fw-medium text-white-75 mb-0">Starters Level</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ starters_count|default:0 }}</h2>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-seedling-line text-white"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate bg-warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="fw-medium text-white-75 mb-0">Movers & Flyers</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ movers_flyers_count|default:0 }}</h2>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-rocket-line text-white"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Search and Filter Section -->
 <div class="row">
     <div class="col-12">
         <div class="card">
-            <div class="card-header">
+            <div class="card-header border-bottom">
                 <div class="row align-items-center">
                     <div class="col">
-                        <h5 class="card-title mb-0">Student List ({{ total_count }} students)</h5>
+                        <h5 class="card-title mb-0">
+                            <i class="ri-filter-3-line me-2"></i>Search & Filter Students
+                        </h5>
                     </div>
                     <div class="col-auto">
                         <a href="{% url 'application_list' %}" class="btn btn-info me-2">
@@ -27,45 +101,63 @@
                 </div>
             </div>
             <div class="card-body">
-                <form method="get" action="{% url 'student_list' %}" class="row g-3">
-                    <div class="col-md-3">
-                        <label class="form-label">Search</label>
-                        <input type="text" class="form-control" name="search" value="{{ search_query }}" placeholder="Name, Admission No., Email...">
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">Level</label>
-                        <select class="form-select" name="level">
-                            <option value="">All Levels</option>
-                            <option value="STARTERS" {% if level_filter == 'STARTERS' %}selected{% endif %}>Starters</option>
-                            <option value="MOVERS" {% if level_filter == 'MOVERS' %}selected{% endif %}>Movers</option>
-                            <option value="FLYERS" {% if level_filter == 'FLYERS' %}selected{% endif %}>Flyers</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">Status</label>
-                        <select class="form-select" name="status">
-                            <option value="">All Status</option>
-                            <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
-                            <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Class</label>
-                        <select class="form-select" name="class_id">
-                            <option value="">All Classes</option>
-                            {% for class in classes %}
-                                <option value="{{ class.id }}" {% if class_filter == class.id|stringformat:"s" %}selected{% endif %}>
-                                    {{ class.class_name }}
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">&nbsp;</label>
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="ri-search-line me-1"></i> Filter
-                            </button>
+                <form method="get" action="{% url 'student_list' %}" id="filterForm">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-lg-3 col-md-6">
+                            <label for="search" class="form-label">Search</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="ri-search-line"></i></span>
+                                <input type="text"
+                                       class="form-control"
+                                       id="search"
+                                       name="search"
+                                       value="{{ search_query }}"
+                                       placeholder="Name, Admission No., Email..."
+                                       aria-label="Search students">
+                                {% if search_query %}
+                                    <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('search').value=''; document.getElementById('filterForm').submit();" aria-label="Clear search">
+                                        <i class="ri-close-line"></i>
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <label for="level" class="form-label">YLE Level</label>
+                            <select class="form-select" id="level" name="level" aria-label="Filter by YLE level">
+                                <option value="">All Levels</option>
+                                <option value="STARTERS" {% if level_filter == 'STARTERS' %}selected{% endif %}>Pre A1 Starters</option>
+                                <option value="MOVERS" {% if level_filter == 'MOVERS' %}selected{% endif %}>A1 Movers</option>
+                                <option value="FLYERS" {% if level_filter == 'FLYERS' %}selected{% endif %}>A2 Flyers</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select" id="status" name="status" aria-label="Filter by status">
+                                <option value="">All Status</option>
+                                <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                                <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <label for="class_id" class="form-label">Class</label>
+                            <select class="form-select" id="class_id" name="class_id" aria-label="Filter by class">
+                                <option value="">All Classes</option>
+                                {% for class in classes %}
+                                    <option value="{{ class.id }}" {% if class_filter == class.id|stringformat:"s" %}selected{% endif %}>
+                                        {{ class.class_name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary flex-grow-1">
+                                    <i class="ri-search-line me-1"></i> Apply
+                                </button>
+                                <a href="{% url 'student_list' %}" class="btn btn-outline-secondary" title="Reset filters">
+                                    <i class="ri-refresh-line"></i>
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -78,121 +170,293 @@
 <div class="row">
     <div class="col-12">
         <div class="card">
+            <div class="card-header border-bottom">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h5 class="card-title mb-0">
+                            <i class="ri-team-line me-2"></i>Student Directory
+                            <span class="badge bg-primary-subtle text-primary ms-2">
+                                {{ students|length }} of {{ total_count }} students
+                            </span>
+                        </h5>
+                    </div>
+                    <div class="col-auto">
+                        <div class="btn-group" role="group" aria-label="View options">
+                            <button type="button" class="btn btn-outline-primary btn-sm active" id="tableViewBtn" title="Table view">
+                                <i class="ri-list-check"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="cardViewBtn" title="Card view">
+                                <i class="ri-grid-fill"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="card-body">
                 {% if students %}
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>
-                                        <a href="?sort=admission_number&{{ request.GET.urlencode }}">
-                                            Admission No. <i class="ri-arrow-up-down-line"></i>
-                                        </a>
-                                    </th>
-                                    <th>
-                                        <a href="?sort=full_name&{{ request.GET.urlencode }}">
-                                            Full Name <i class="ri-arrow-up-down-line"></i>
-                                        </a>
-                                    </th>
-                                    <th>
-                                        <a href="?sort=current_level&{{ request.GET.urlencode }}">
-                                            Level <i class="ri-arrow-up-down-line"></i>
-                                        </a>
-                                    </th>
-                                    <th>Class</th>
-                                    <th>Contact</th>
-                                    <th>
-                                        <a href="?sort=enrollment_date&{{ request.GET.urlencode }}">
-                                            Enrollment Date <i class="ri-arrow-up-down-line"></i>
-                                        </a>
-                                    </th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for student in students %}
+                    <!-- Table View -->
+                    <div id="tableView">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle table-nowrap mb-0" id="studentTable">
+                                <thead class="table-light">
                                     <tr>
-                                        <td>
-                                            <span class="badge bg-primary">{{ student.admission_number }}</span>
-                                        </td>
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                {% if student.profile_picture %}
-                                                    <img src="{{ student.profile_picture.url }}" alt="{{ student.full_name }}" class="rounded-circle me-2" width="32" height="32">
+                                        <th scope="col">
+                                            <a href="?sort={% if sort_by == 'admission_number' and sort_order == 'asc' %}-{% endif %}admission_number&{{ request.GET.urlencode }}" class="text-dark text-decoration-none">
+                                                Admission No.
+                                                {% if sort_by == 'admission_number' %}
+                                                    <i class="ri-arrow-{% if sort_order == 'asc' %}up{% else %}down{% endif %}-s-line"></i>
                                                 {% else %}
-                                                    <div class="avatar-xs me-2">
-                                                        <span class="avatar-title rounded-circle bg-soft-primary text-primary">
+                                                    <i class="ri-arrow-up-down-line text-muted"></i>
+                                                {% endif %}
+                                            </a>
+                                        </th>
+                                        <th scope="col">
+                                            <a href="?sort={% if sort_by == 'full_name' and sort_order == 'asc' %}-{% endif %}full_name&{{ request.GET.urlencode }}" class="text-dark text-decoration-none">
+                                                Student
+                                                {% if sort_by == 'full_name' %}
+                                                    <i class="ri-arrow-{% if sort_order == 'asc' %}up{% else %}down{% endif %}-s-line"></i>
+                                                {% else %}
+                                                    <i class="ri-arrow-up-down-line text-muted"></i>
+                                                {% endif %}
+                                            </a>
+                                        </th>
+                                        <th scope="col">
+                                            <a href="?sort={% if sort_by == 'current_level' and sort_order == 'asc' %}-{% endif %}current_level&{{ request.GET.urlencode }}" class="text-dark text-decoration-none">
+                                                YLE Level
+                                                {% if sort_by == 'current_level' %}
+                                                    <i class="ri-arrow-{% if sort_order == 'asc' %}up{% else %}down{% endif %}-s-line"></i>
+                                                {% else %}
+                                                    <i class="ri-arrow-up-down-line text-muted"></i>
+                                                {% endif %}
+                                            </a>
+                                        </th>
+                                        <th scope="col">Class</th>
+                                        <th scope="col">Contact</th>
+                                        <th scope="col">
+                                            <a href="?sort={% if sort_by == 'enrollment_date' and sort_order == 'asc' %}-{% endif %}enrollment_date&{{ request.GET.urlencode }}" class="text-dark text-decoration-none">
+                                                Enrolled
+                                                {% if sort_by == 'enrollment_date' %}
+                                                    <i class="ri-arrow-{% if sort_order == 'asc' %}up{% else %}down{% endif %}-s-line"></i>
+                                                {% else %}
+                                                    <i class="ri-arrow-up-down-line text-muted"></i>
+                                                {% endif %}
+                                            </a>
+                                        </th>
+                                        <th scope="col">Status</th>
+                                        <th scope="col" class="text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for student in students %}
+                                        <tr>
+                                            <td>
+                                                <span class="badge bg-primary-subtle text-primary fw-medium">
+                                                    {{ student.admission_number }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    {% if student.profile_picture %}
+                                                        <img src="{{ student.profile_picture.url }}"
+                                                             alt="{{ student.full_name }}"
+                                                             class="rounded-circle avatar-sm me-3"
+                                                             style="width: 40px; height: 40px; object-fit: cover;">
+                                                    {% else %}
+                                                        <div class="avatar-sm me-3">
+                                                            <span class="avatar-title rounded-circle bg-primary-subtle text-primary">
+                                                                {{ student.full_name|first|upper }}
+                                                            </span>
+                                                        </div>
+                                                    {% endif %}
+                                                    <div>
+                                                        <a href="{% url 'student_detail' student.id %}" class="text-dark fw-medium text-decoration-none">
+                                                            {{ student.full_name }}
+                                                        </a>
+                                                        <p class="text-muted mb-0 small">
+                                                            {{ student.name_with_initials }}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                {% if student.current_level == 'STARTERS' %}
+                                                    <span class="badge bg-info-subtle text-info" title="Pre A1 Starters">
+                                                        <i class="ri-seedling-line me-1"></i>Starters
+                                                    </span>
+                                                {% elif student.current_level == 'MOVERS' %}
+                                                    <span class="badge bg-warning-subtle text-warning" title="A1 Movers">
+                                                        <i class="ri-run-line me-1"></i>Movers
+                                                    </span>
+                                                {% elif student.current_level == 'FLYERS' %}
+                                                    <span class="badge bg-success-subtle text-success" title="A2 Flyers">
+                                                        <i class="ri-rocket-line me-1"></i>Flyers
+                                                    </span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if student.assigned_class %}
+                                                    <span class="fw-medium">{{ student.assigned_class.class_name }}</span>
+                                                {% else %}
+                                                    <span class="text-muted small">Not Assigned</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <a href="tel:{{ student.primary_contact_number }}" class="text-muted text-decoration-none">
+                                                    <i class="ri-phone-line me-1"></i>{{ student.primary_contact_number }}
+                                                </a>
+                                                {% if student.student_email %}
+                                                    <br>
+                                                    <small class="text-muted">
+                                                        <i class="ri-mail-line me-1"></i>{{ student.student_email|truncatechars:20 }}
+                                                    </small>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <small class="text-muted">{{ student.enrollment_date|date:"M d, Y" }}</small>
+                                            </td>
+                                            <td>
+                                                {% if student.is_active %}
+                                                    <span class="badge bg-success">
+                                                        <i class="ri-check-line me-1"></i>Active
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge bg-danger">
+                                                        <i class="ri-close-line me-1"></i>Inactive
+                                                    </span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="d-flex justify-content-end gap-1">
+                                                    <a href="{% url 'student_detail' student.id %}"
+                                                       class="btn btn-sm btn-soft-primary"
+                                                       title="View Profile"
+                                                       aria-label="View {{ student.full_name }}'s profile">
+                                                        <i class="ri-eye-line"></i>
+                                                    </a>
+                                                    {% if perms.students.change_student %}
+                                                        <a href="{% url 'student_edit' student.id %}"
+                                                           class="btn btn-sm btn-soft-warning"
+                                                           title="Edit Student"
+                                                           aria-label="Edit {{ student.full_name }}">
+                                                            <i class="ri-edit-line"></i>
+                                                        </a>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Card View (hidden by default) -->
+                    <div id="cardView" class="d-none">
+                        <div class="row g-3">
+                            {% for student in students %}
+                                <div class="col-xl-4 col-lg-6">
+                                    <div class="card border mb-0 h-100">
+                                        <div class="card-body">
+                                            <div class="d-flex align-items-start mb-3">
+                                                {% if student.profile_picture %}
+                                                    <img src="{{ student.profile_picture.url }}"
+                                                         alt="{{ student.full_name }}"
+                                                         class="rounded-circle me-3"
+                                                         style="width: 60px; height: 60px; object-fit: cover;">
+                                                {% else %}
+                                                    <div class="avatar-md me-3">
+                                                        <span class="avatar-title bg-primary-subtle text-primary rounded-circle fs-4">
                                                             {{ student.full_name|first|upper }}
                                                         </span>
                                                     </div>
                                                 {% endif %}
-                                                <div>
-                                                    <h6 class="mb-0">{{ student.full_name }}</h6>
-                                                    <small class="text-muted">{{ student.name_with_initials }}</small>
+                                                <div class="flex-grow-1">
+                                                    <h5 class="mb-1">
+                                                        <a href="{% url 'student_detail' student.id %}" class="text-dark">
+                                                            {{ student.full_name }}
+                                                        </a>
+                                                    </h5>
+                                                    <p class="text-muted mb-2 small">{{ student.name_with_initials }}</p>
+                                                    <div class="d-flex flex-wrap gap-1">
+                                                        <span class="badge bg-primary-subtle text-primary">{{ student.admission_number }}</span>
+                                                        {% if student.is_active %}
+                                                            <span class="badge bg-success">Active</span>
+                                                        {% else %}
+                                                            <span class="badge bg-danger">Inactive</span>
+                                                        {% endif %}
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </td>
-                                        <td>
-                                            {% if student.current_level == 'STARTERS' %}
-                                                <span class="badge bg-info">Pre A1 Starters</span>
-                                            {% elif student.current_level == 'MOVERS' %}
-                                                <span class="badge bg-warning">A1 Movers</span>
-                                            {% elif student.current_level == 'FLYERS' %}
-                                                <span class="badge bg-success">A2 Flyers</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            {% if student.assigned_class %}
-                                                {{ student.assigned_class.class_name }}
-                                            {% else %}
-                                                <span class="text-muted">Not Assigned</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            <small>
-                                                <i class="ri-phone-line"></i> {{ student.primary_contact_number }}<br>
-                                                {% if student.student_email %}
-                                                    <i class="ri-mail-line"></i> {{ student.student_email }}
-                                                {% endif %}
-                                            </small>
-                                        </td>
-                                        <td>{{ student.enrollment_date|date:"Y-m-d" }}</td>
-                                        <td>
-                                            {% if student.is_active %}
-                                                <span class="badge bg-success">Active</span>
-                                            {% else %}
-                                                <span class="badge bg-danger">Inactive</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            <div class="btn-group btn-group-sm">
-                                                <a href="{% url 'student_detail' student.id %}" class="btn btn-primary" title="View Details">
-                                                    <i class="ri-eye-line"></i>
+
+                                            <div class="border-top pt-3">
+                                                <div class="row g-2 text-center">
+                                                    <div class="col-4">
+                                                        <p class="text-muted mb-1 small">Level</p>
+                                                        <h6 class="mb-0">
+                                                            {% if student.current_level == 'STARTERS' %}
+                                                                <span class="text-info">Starters</span>
+                                                            {% elif student.current_level == 'MOVERS' %}
+                                                                <span class="text-warning">Movers</span>
+                                                            {% else %}
+                                                                <span class="text-success">Flyers</span>
+                                                            {% endif %}
+                                                        </h6>
+                                                    </div>
+                                                    <div class="col-4">
+                                                        <p class="text-muted mb-1 small">Class</p>
+                                                        <h6 class="mb-0">
+                                                            {% if student.assigned_class %}
+                                                                {{ student.assigned_class.class_name|truncatechars:8 }}
+                                                            {% else %}
+                                                                <span class="text-muted">-</span>
+                                                            {% endif %}
+                                                        </h6>
+                                                    </div>
+                                                    <div class="col-4">
+                                                        <p class="text-muted mb-1 small">Age</p>
+                                                        <h6 class="mb-0">{{ student.age }} yrs</h6>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="d-flex gap-2 mt-3">
+                                                <a href="{% url 'student_detail' student.id %}" class="btn btn-sm btn-primary flex-grow-1">
+                                                    <i class="ri-eye-line me-1"></i>View
                                                 </a>
                                                 {% if perms.students.change_student %}
-                                                    <a href="{% url 'student_edit' student.id %}" class="btn btn-warning" title="Edit">
+                                                    <a href="{% url 'student_edit' student.id %}" class="btn btn-sm btn-outline-warning">
                                                         <i class="ri-edit-line"></i>
                                                     </a>
                                                 {% endif %}
                                             </div>
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
                     </div>
 
                     <!-- Pagination -->
                     {% if page_obj.has_other_pages %}
-                        <nav class="mt-4">
-                            <ul class="pagination justify-content-center">
+                        <nav class="mt-4" aria-label="Student list pagination">
+                            <ul class="pagination justify-content-center mb-0">
                                 {% if page_obj.has_previous %}
                                     <li class="page-item">
-                                        <a class="page-link" href="?page=1&{{ request.GET.urlencode }}">First</a>
+                                        <a class="page-link" href="?page=1&{{ request.GET.urlencode }}" aria-label="First page">
+                                            <i class="ri-skip-back-mini-line"></i>
+                                        </a>
                                     </li>
                                     <li class="page-item">
-                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}">Previous</a>
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}" aria-label="Previous page">
+                                            <i class="ri-arrow-left-s-line"></i>
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link"><i class="ri-skip-back-mini-line"></i></span>
+                                    </li>
+                                    <li class="page-item disabled">
+                                        <span class="page-link"><i class="ri-arrow-left-s-line"></i></span>
                                     </li>
                                 {% endif %}
 
@@ -204,18 +468,56 @@
 
                                 {% if page_obj.has_next %}
                                     <li class="page-item">
-                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}">Next</a>
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}" aria-label="Next page">
+                                            <i class="ri-arrow-right-s-line"></i>
+                                        </a>
                                     </li>
                                     <li class="page-item">
-                                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&{{ request.GET.urlencode }}">Last</a>
+                                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&{{ request.GET.urlencode }}" aria-label="Last page">
+                                            <i class="ri-skip-forward-mini-line"></i>
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link"><i class="ri-arrow-right-s-line"></i></span>
+                                    </li>
+                                    <li class="page-item disabled">
+                                        <span class="page-link"><i class="ri-skip-forward-mini-line"></i></span>
                                     </li>
                                 {% endif %}
                             </ul>
                         </nav>
                     {% endif %}
+
                 {% else %}
-                    <div class="alert alert-info">
-                        <i class="ri-information-line me-2"></i> No students found matching your criteria.
+                    <!-- Empty State -->
+                    <div class="text-center py-5">
+                        <div class="avatar-lg mx-auto mb-4">
+                            <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                <i class="ri-user-search-line fs-1"></i>
+                            </span>
+                        </div>
+                        <h5>No Students Found</h5>
+                        <p class="text-muted mb-4">
+                            {% if search_query or status_filter or level_filter or class_filter %}
+                                No students match your current filter criteria.
+                            {% else %}
+                                Get started by processing student applications.
+                            {% endif %}
+                        </p>
+                        <div class="d-flex justify-content-center gap-2">
+                            {% if search_query or status_filter or level_filter or class_filter %}
+                                <a href="{% url 'student_list' %}" class="btn btn-outline-primary">
+                                    <i class="ri-refresh-line me-1"></i>Clear Filters
+                                </a>
+                            {% endif %}
+                            <a href="{% url 'application_list' %}" class="btn btn-info">
+                                <i class="ri-file-list-line me-1"></i>View Applications
+                            </a>
+                            <a href="{% url 'apply' %}" class="btn btn-success" target="_blank">
+                                <i class="ri-user-add-line me-1"></i>New Application
+                            </a>
+                        </div>
                     </div>
                 {% endif %}
             </div>
@@ -223,4 +525,79 @@
     </div>
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // View toggle functionality
+    $('#tableViewBtn').on('click', function() {
+        $('#tableView').removeClass('d-none');
+        $('#cardView').addClass('d-none');
+        $(this).addClass('active');
+        $('#cardViewBtn').removeClass('active');
+        localStorage.setItem('studentViewPreference', 'table');
+    });
+
+    $('#cardViewBtn').on('click', function() {
+        $('#cardView').removeClass('d-none');
+        $('#tableView').addClass('d-none');
+        $(this).addClass('active');
+        $('#tableViewBtn').removeClass('active');
+        localStorage.setItem('studentViewPreference', 'card');
+    });
+
+    // Restore view preference
+    var viewPreference = localStorage.getItem('studentViewPreference');
+    if (viewPreference === 'card') {
+        $('#cardViewBtn').click();
+    }
+
+    // Auto-submit form on filter change
+    $('#level, #status, #class_id').on('change', function() {
+        $('#filterForm').submit();
+    });
+
+    // Search on Enter key
+    $('#search').on('keypress', function(e) {
+        if (e.which === 13) {
+            $('#filterForm').submit();
+        }
+    });
+});
+</script>
+
+<style>
+.card-animate {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card-animate:hover {
+    transform: translateY(-3px);
+}
+
+.avatar-md {
+    width: 60px;
+    height: 60px;
+}
+
+.avatar-md .avatar-title {
+    width: 60px;
+    height: 60px;
+}
+
+.table th a {
+    white-space: nowrap;
+}
+
+.table th a:hover {
+    color: var(--bs-primary) !important;
+}
+
+@media (max-width: 768px) {
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+}
+</style>
 {% endblock %}

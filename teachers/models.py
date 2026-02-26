@@ -34,12 +34,6 @@ class Teacher(models.Model):
     teaches_movers = models.BooleanField(default=False)
     teaches_flyers = models.BooleanField(default=False)
 
-    # SPECIALIZATIONS - Skills
-    specializes_listening = models.BooleanField(default=False)
-    specializes_reading = models.BooleanField(default=False)
-    specializes_writing = models.BooleanField(default=False)
-    specializes_speaking = models.BooleanField(default=False)
-
     # EMPLOYMENT
     date_joined = models.DateField()
     is_active = models.BooleanField(default=True)

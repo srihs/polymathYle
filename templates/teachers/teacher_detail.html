@@ -1,60 +1,86 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block PageTitle %}{{ teacher.full_name }} - Polymath School of English{% endblock %}
+{% block PageTitle %}{{ teacher.full_name }} - Teacher Profile - Polymath School of English{% endblock %}
 {% block pageTitle %}Teacher Profile{% endblock %}
 {% block Title %}Teachers{% endblock %}
-{% block functionTitle %}Profile Details{% endblock %}
+{% block functionTitle %}{{ teacher.full_name }}{% endblock %}
 
 {% block content %}
-<!-- Teacher Header -->
+<!-- Teacher Profile Header -->
 <div class="row">
     <div class="col-12">
-        <div class="card">
-            <div class="card-body">
-                <div class="row align-items-center">
-                    <div class="col-auto">
+        <div class="card overflow-hidden">
+            <div class="card-body bg-primary bg-opacity-10 position-relative" style="min-height: 120px;">
+                <!-- Background pattern -->
+                <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(135deg, var(--bs-primary) 0%, transparent 50%); opacity: 0.1;"></div>
+            </div>
+            <div class="card-body pt-0">
+                <div class="row align-items-end">
+                    <div class="col-auto" style="margin-top: -50px;">
                         {% if teacher.profile_picture %}
-                            <img src="{{ teacher.profile_picture.url }}" alt="{{ teacher.full_name }}" class="rounded-circle" width="100" height="100">
+                            <img src="{{ teacher.profile_picture.url }}"
+                                 alt="{{ teacher.full_name }}"
+                                 class="rounded-circle border border-4 border-white shadow"
+                                 style="width: 120px; height: 120px; object-fit: cover;">
                         {% else %}
-                            <div class="avatar-xl">
-                                <span class="avatar-title rounded-circle bg-soft-primary text-primary fs-1">
+                            <div class="avatar-xxl border border-4 border-white shadow rounded-circle">
+                                <span class="avatar-title bg-primary text-white rounded-circle" style="font-size: 2.5rem;">
                                     {{ teacher.full_name|first|upper }}
                                 </span>
                             </div>
                         {% endif %}
                     </div>
                     <div class="col">
-                        <h3 class="mb-1">{{ teacher.full_name }}</h3>
-                        <p class="text-muted mb-2">{{ teacher.qualifications|truncatewords:10 }}</p>
-                        <div class="d-flex flex-wrap gap-2">
-                            <span class="badge bg-primary">{{ teacher.employee_id }}</span>
-                            {% if teacher.employment_type == 'FULL_TIME' %}
-                                <span class="badge bg-success">Full Time</span>
-                            {% elif teacher.employment_type == 'PART_TIME' %}
-                                <span class="badge bg-info">Part Time</span>
-                            {% elif teacher.employment_type == 'CONTRACT' %}
-                                <span class="badge bg-warning">Contract</span>
-                            {% endif %}
-                            {% if teacher.is_active %}
-                                <span class="badge bg-success">Active</span>
-                            {% else %}
-                                <span class="badge bg-danger">Inactive</span>
-                            {% endif %}
+                        <div class="d-flex flex-wrap justify-content-between align-items-start">
+                            <div>
+                                <h3 class="mb-1">{{ teacher.full_name }}</h3>
+                                <p class="text-muted mb-2">
+                                    {% if teacher.qualifications %}
+                                        {{ teacher.qualifications|truncatewords:8 }}
+                                    {% else %}
+                                        English Language Teacher
+                                    {% endif %}
+                                </p>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <span class="badge bg-primary-subtle text-primary">
+                                        <i class="ri-hashtag me-1"></i>{{ teacher.employee_id }}
+                                    </span>
+                                    {% if teacher.employment_type == 'FULL_TIME' %}
+                                        <span class="badge bg-success-subtle text-success">
+                                            <i class="ri-time-line me-1"></i>Full Time
+                                        </span>
+                                    {% elif teacher.employment_type == 'PART_TIME' %}
+                                        <span class="badge bg-info-subtle text-info">
+                                            <i class="ri-time-line me-1"></i>Part Time
+                                        </span>
+                                    {% elif teacher.employment_type == 'CONTRACT' %}
+                                        <span class="badge bg-warning-subtle text-warning">
+                                            <i class="ri-file-text-line me-1"></i>Contract
+                                        </span>
+                                    {% endif %}
+                                    {% if teacher.is_active %}
+                                        <span class="badge bg-success-subtle text-success">
+                                            <i class="ri-check-line me-1"></i>Active
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-danger-subtle text-danger">
+                                            <i class="ri-close-line me-1"></i>Inactive
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2 mt-3 mt-md-0">
+                                {% if perms.students.change_teacher %}
+                                    <a href="{% url 'teacher_edit' teacher.id %}" class="btn btn-warning">
+                                        <i class="ri-edit-line me-1"></i> Edit Profile
+                                    </a>
+                                {% endif %}
+                                <a href="{% url 'teacher_list' %}" class="btn btn-outline-secondary">
+                                    <i class="ri-team-line me-1"></i> All Teachers
+                                </a>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-auto">
-                        {% if perms.students.change_teacher %}
-                            <a href="{% url 'teacher_edit' teacher.id %}" class="btn btn-warning me-2">
-                                <i class="ri-edit-line me-1"></i> Edit Profile
-                            </a>
-                        {% endif %}
-                        <button onclick="window.history.back()" class="btn btn-secondary me-2">
-                            <i class="ri-arrow-left-line me-1"></i> Back
-                        </button>
-                        <a href="{% url 'teacher_list' %}" class="btn btn-info">
-                            <i class="ri-team-line me-1"></i> All Teachers
-                        </a>
                     </div>
                 </div>
             </div>
@@ -67,19 +93,17 @@
     <div class="col-xl-3 col-md-6">
         <div class="card card-animate">
             <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-grow-1 overflow-hidden">
-                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Experience</p>
-                    </div>
-                </div>
-                <div class="d-flex align-items-end justify-content-between mt-4">
+                <div class="d-flex justify-content-between">
                     <div>
-                        <h4 class="fs-22 fw-semibold ff-secondary mb-2">{{ teacher.years_of_experience }}</h4>
-                        <p class="text-muted mb-0">Years</p>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-3">Experience</p>
+                        <h4 class="fs-22 fw-semibold mb-1">
+                            <span class="counter-value" data-target="{{ teacher.years_of_experience }}">{{ teacher.years_of_experience }}</span>
+                        </h4>
+                        <p class="text-muted mb-0">Years of Teaching</p>
                     </div>
                     <div class="avatar-sm flex-shrink-0">
-                        <span class="avatar-title bg-info-subtle rounded fs-3">
-                            <i class="bx bx-briefcase text-info"></i>
+                        <span class="avatar-title bg-info-subtle rounded-circle fs-3">
+                            <i class="ri-briefcase-line text-info"></i>
                         </span>
                     </div>
                 </div>
@@ -90,19 +114,17 @@
     <div class="col-xl-3 col-md-6">
         <div class="card card-animate">
             <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-grow-1 overflow-hidden">
-                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Classes Taught</p>
-                    </div>
-                </div>
-                <div class="d-flex align-items-end justify-content-between mt-4">
+                <div class="d-flex justify-content-between">
                     <div>
-                        <h4 class="fs-22 fw-semibold ff-secondary mb-2">{{ teacher.total_classes_taught }}</h4>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-3">Classes Taught</p>
+                        <h4 class="fs-22 fw-semibold mb-1">
+                            <span class="counter-value" data-target="{{ teacher.total_classes_taught|default:0 }}">{{ teacher.total_classes_taught|default:0 }}</span>
+                        </h4>
                         <p class="text-muted mb-0">Total Classes</p>
                     </div>
                     <div class="avatar-sm flex-shrink-0">
-                        <span class="avatar-title bg-success-subtle rounded fs-3">
-                            <i class="bx bx-chalkboard text-success"></i>
+                        <span class="avatar-title bg-success-subtle rounded-circle fs-3">
+                            <i class="ri-book-open-line text-success"></i>
                         </span>
                     </div>
                 </div>
@@ -113,19 +135,24 @@
     <div class="col-xl-3 col-md-6">
         <div class="card card-animate">
             <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-grow-1 overflow-hidden">
-                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Average Rating</p>
-                    </div>
-                </div>
-                <div class="d-flex align-items-end justify-content-between mt-4">
+                <div class="d-flex justify-content-between">
                     <div>
-                        <h4 class="fs-22 fw-semibold ff-secondary mb-2">{{ teacher.average_rating }}</h4>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-3">Average Rating</p>
+                        <h4 class="fs-22 fw-semibold mb-1">
+                            {% if teacher.average_rating %}
+                                <span class="counter-value">{{ teacher.average_rating }}</span>
+                                <span class="fs-6 text-warning">
+                                    <i class="ri-star-fill"></i>
+                                </span>
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </h4>
                         <p class="text-muted mb-0">Out of 5.0</p>
                     </div>
                     <div class="avatar-sm flex-shrink-0">
-                        <span class="avatar-title bg-warning-subtle rounded fs-3">
-                            <i class="bx bx-star text-warning"></i>
+                        <span class="avatar-title bg-warning-subtle rounded-circle fs-3">
+                            <i class="ri-star-line text-warning"></i>
                         </span>
                     </div>
                 </div>
@@ -136,24 +163,23 @@
     <div class="col-xl-3 col-md-6">
         <div class="card card-animate">
             <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-grow-1 overflow-hidden">
-                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Current Rate</p>
-                    </div>
-                </div>
-                <div class="d-flex align-items-end justify-content-between mt-4">
+                <div class="d-flex justify-content-between">
                     <div>
-                        {% if current_rate %}
-                            <h4 class="fs-22 fw-semibold ff-secondary mb-2">{{ current_rate }}</h4>
-                            <p class="text-muted mb-0">LKR per hour</p>
-                        {% else %}
-                            <h4 class="fs-22 fw-semibold ff-secondary mb-2">-</h4>
-                            <p class="text-muted mb-0">Not set</p>
-                        {% endif %}
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-3">Current Rate</p>
+                        <h4 class="fs-22 fw-semibold mb-1">
+                            {% if current_rate %}
+                                <span class="counter-value">{{ current_rate }}</span>
+                            {% else %}
+                                <span class="text-muted">Not Set</span>
+                            {% endif %}
+                        </h4>
+                        <p class="text-muted mb-0">
+                            {% if current_rate %}LKR per hour{% else %}Add hourly rate{% endif %}
+                        </p>
                     </div>
                     <div class="avatar-sm flex-shrink-0">
-                        <span class="avatar-title bg-primary-subtle rounded fs-3">
-                            <i class="bx bx-money text-primary"></i>
+                        <span class="avatar-title bg-primary-subtle rounded-circle fs-3">
+                            <i class="ri-money-dollar-circle-line text-primary"></i>
                         </span>
                     </div>
                 </div>
@@ -163,39 +189,70 @@
 </div>
 
 <div class="row">
-    <!-- Personal Information -->
-    <div class="col-xl-6">
+    <!-- Left Column -->
+    <div class="col-xl-4">
+        <!-- Personal Information Card -->
         <div class="card">
             <div class="card-header">
-                <h5 class="card-title mb-0">Personal Information</h5>
+                <h5 class="card-title mb-0">
+                    <i class="ri-user-line me-2 text-primary"></i>Personal Information
+                </h5>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
                     <table class="table table-borderless mb-0">
                         <tbody>
                             <tr>
-                                <th class="ps-0" scope="row">Employee ID</th>
-                                <td class="text-muted">{{ teacher.employee_id }}</td>
+                                <th class="ps-0 text-muted" style="width: 40%;">
+                                    <i class="ri-hashtag me-2"></i>Employee ID
+                                </th>
+                                <td class="fw-medium">{{ teacher.employee_id }}</td>
                             </tr>
                             <tr>
-                                <th class="ps-0" scope="row">Full Name</th>
-                                <td class="text-muted">{{ teacher.full_name }}</td>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-user-line me-2"></i>Full Name
+                                </th>
+                                <td class="fw-medium">{{ teacher.full_name }}</td>
                             </tr>
                             <tr>
-                                <th class="ps-0" scope="row">Email</th>
-                                <td class="text-muted">{{ teacher.email }}</td>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-mail-line me-2"></i>Email
+                                </th>
+                                <td>
+                                    <a href="mailto:{{ teacher.email }}" class="text-decoration-none">
+                                        {{ teacher.email }}
+                                    </a>
+                                </td>
                             </tr>
                             <tr>
-                                <th class="ps-0" scope="row">Contact Number</th>
-                                <td class="text-muted">{{ teacher.contact_number }}</td>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-phone-line me-2"></i>Phone
+                                </th>
+                                <td>
+                                    <a href="tel:{{ teacher.contact_number }}" class="text-decoration-none">
+                                        {{ teacher.contact_number }}
+                                    </a>
+                                </td>
                             </tr>
                             <tr>
-                                <th class="ps-0" scope="row">Date Joined</th>
-                                <td class="text-muted">{{ teacher.date_joined|date:"M d, Y" }}</td>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-calendar-line me-2"></i>Joined
+                                </th>
+                                <td class="fw-medium">{{ teacher.date_joined|date:"F d, Y" }}</td>
                             </tr>
                             <tr>
-                                <th class="ps-0" scope="row">Employment Type</th>
-                                <td class="text-muted">{{ teacher.get_employment_type_display }}</td>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-briefcase-line me-2"></i>Employment
+                                </th>
+                                <td>
+                                    {% if teacher.employment_type == 'FULL_TIME' %}
+                                        <span class="badge bg-success">Full Time</span>
+                                    {% elif teacher.employment_type == 'PART_TIME' %}
+                                        <span class="badge bg-info">Part Time</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">Contract</span>
+                                    {% endif %}
+                                </td>
                             </tr>
                         </tbody>
                     </table>
@@ -203,163 +260,290 @@
             </div>
         </div>
 
-        <!-- Specializations -->
+        <!-- YLE Level Specializations Card -->
         <div class="card">
             <div class="card-header">
-                <h5 class="card-title mb-0">Specializations</h5>
+                <h5 class="card-title mb-0">
+                    <i class="ri-graduation-cap-line me-2 text-primary"></i>Teaching Specializations
+                </h5>
             </div>
             <div class="card-body">
-                <h6 class="text-uppercase fw-semibold mb-3 small">YLE Levels</h6>
-                <div class="d-flex flex-wrap gap-2 mb-3">
+                <h6 class="text-uppercase fw-semibold text-muted mb-3 small">Cambridge YLE Levels</h6>
+                <div class="d-flex flex-wrap gap-2 mb-4">
                     {% if teacher.teaches_starters %}
-                        <span class="badge bg-info">Pre A1 Starters</span>
+                        <div class="d-flex align-items-center p-2 border rounded bg-info-subtle">
+                            <i class="ri-seedling-line fs-4 text-info me-2"></i>
+                            <div>
+                                <strong class="d-block">Pre A1 Starters</strong>
+                                <small class="text-muted">Ages 6-8</small>
+                            </div>
+                        </div>
                     {% endif %}
                     {% if teacher.teaches_movers %}
-                        <span class="badge bg-warning">A1 Movers</span>
+                        <div class="d-flex align-items-center p-2 border rounded bg-warning-subtle">
+                            <i class="ri-run-line fs-4 text-warning me-2"></i>
+                            <div>
+                                <strong class="d-block">A1 Movers</strong>
+                                <small class="text-muted">Ages 8-10</small>
+                            </div>
+                        </div>
                     {% endif %}
                     {% if teacher.teaches_flyers %}
-                        <span class="badge bg-success">A2 Flyers</span>
+                        <div class="d-flex align-items-center p-2 border rounded bg-success-subtle">
+                            <i class="ri-rocket-line fs-4 text-success me-2"></i>
+                            <div>
+                                <strong class="d-block">A2 Flyers</strong>
+                                <small class="text-muted">Ages 10-12</small>
+                            </div>
+                        </div>
                     {% endif %}
                     {% if not teacher.teaches_starters and not teacher.teaches_movers and not teacher.teaches_flyers %}
-                        <span class="text-muted">No level specializations set</span>
+                        <div class="text-center w-100 py-3">
+                            <i class="ri-information-line fs-3 text-muted"></i>
+                            <p class="text-muted mb-0">No YLE level specializations set</p>
+                            {% if perms.students.change_teacher %}
+                                <a href="{% url 'teacher_edit' teacher.id %}" class="btn btn-sm btn-outline-primary mt-2">
+                                    <i class="ri-add-line me-1"></i>Add Levels
+                                </a>
+                            {% endif %}
+                        </div>
                     {% endif %}
                 </div>
 
-                <h6 class="text-uppercase fw-semibold mb-3 small">Skills</h6>
+                <h6 class="text-uppercase fw-semibold text-muted mb-3 small">Language Skills</h6>
                 <div class="d-flex flex-wrap gap-2">
-                    {% if teacher.specializes_listening %}
-                        <span class="badge bg-primary">Listening</span>
-                    {% endif %}
-                    {% if teacher.specializes_reading %}
-                        <span class="badge bg-primary">Reading</span>
-                    {% endif %}
-                    {% if teacher.specializes_writing %}
-                        <span class="badge bg-primary">Writing</span>
-                    {% endif %}
-                    {% if teacher.specializes_speaking %}
-                        <span class="badge bg-primary">Speaking</span>
-                    {% endif %}
-                    {% if not teacher.specializes_listening and not teacher.specializes_reading and not teacher.specializes_writing and not teacher.specializes_speaking %}
-                        <span class="text-muted">No skill specializations set</span>
-                    {% endif %}
+                    <span class="badge bg-primary fs-6">
+                        <i class="ri-headphone-line me-1"></i>Listening
+                    </span>
+                    <span class="badge bg-primary fs-6">
+                        <i class="ri-book-read-line me-1"></i>Reading
+                    </span>
+                    <span class="badge bg-primary fs-6">
+                        <i class="ri-edit-line me-1"></i>Writing
+                    </span>
+                    <span class="badge bg-primary fs-6">
+                        <i class="ri-speak-line me-1"></i>Speaking
+                    </span>
                 </div>
+                <p class="text-muted small mt-2 mb-0">
+                    <i class="ri-information-line me-1"></i>All teachers teach all four Cambridge YLE skills
+                </p>
             </div>
         </div>
 
-        <!-- Bio & Qualifications -->
+        <!-- Biography & Qualifications Card -->
         <div class="card">
             <div class="card-header">
-                <h5 class="card-title mb-0">Bio & Qualifications</h5>
+                <h5 class="card-title mb-0">
+                    <i class="ri-file-text-line me-2 text-primary"></i>Biography & Qualifications
+                </h5>
             </div>
             <div class="card-body">
                 {% if teacher.bio %}
-                    <h6 class="text-uppercase fw-semibold mb-2 small">Biography</h6>
-                    <p class="text-muted">{{ teacher.bio }}</p>
+                    <h6 class="text-uppercase fw-semibold text-muted mb-2 small">About</h6>
+                    <p class="text-muted mb-4">{{ teacher.bio }}</p>
                 {% endif %}
 
                 {% if teacher.qualifications %}
-                    <h6 class="text-uppercase fw-semibold mb-2 small mt-3">Qualifications</h6>
-                    <p class="text-muted">{{ teacher.qualifications }}</p>
+                    <h6 class="text-uppercase fw-semibold text-muted mb-2 small">Qualifications</h6>
+                    <p class="text-muted mb-0">{{ teacher.qualifications }}</p>
                 {% endif %}
 
                 {% if not teacher.bio and not teacher.qualifications %}
-                    <p class="text-muted mb-0">No bio or qualifications provided.</p>
+                    <div class="text-center py-4">
+                        <i class="ri-file-text-line fs-1 text-muted opacity-50"></i>
+                        <p class="text-muted mb-2">No biography or qualifications provided</p>
+                        {% if perms.students.change_teacher %}
+                            <a href="{% url 'teacher_edit' teacher.id %}" class="btn btn-sm btn-outline-primary">
+                                <i class="ri-add-line me-1"></i>Add Information
+                            </a>
+                        {% endif %}
+                    </div>
                 {% endif %}
             </div>
         </div>
     </div>
 
-    <div class="col-xl-6">
-        <!-- Current Classes -->
+    <!-- Right Column -->
+    <div class="col-xl-8">
+        <!-- Current Classes Card -->
         <div class="card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">Current Classes ({{ classes_taught.count }})</h5>
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="ri-book-open-line me-2 text-primary"></i>Current Classes
+                    <span class="badge bg-primary-subtle text-primary ms-2">{{ classes_taught.count }}</span>
+                </h5>
             </div>
             <div class="card-body">
                 {% if classes_taught %}
                     <div class="table-responsive">
-                        <table class="table table-sm mb-0">
+                        <table class="table table-hover align-middle mb-0">
                             <thead class="table-light">
                                 <tr>
                                     <th>Class Name</th>
                                     <th>Level</th>
-                                    <th>Students</th>
+                                    <th class="text-center">Students</th>
                                     <th>Schedule</th>
+                                    <th>Status</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for class in classes_taught %}
                                     <tr>
-                                        <td>{{ class.class_name }}</td>
-                                        <td>{{ class.get_level_display }}</td>
-                                        <td>{{ class.enrolled_students.count }}</td>
-                                        <td><small>{{ class.schedule|default:"TBA" }}</small></td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-xs me-2">
+                                                    <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                                        {{ class.class_name|first|upper }}
+                                                    </span>
+                                                </div>
+                                                <strong>{{ class.class_name }}</strong>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if class.level == 'STARTERS' %}
+                                                <span class="badge bg-info-subtle text-info">Starters</span>
+                                            {% elif class.level == 'MOVERS' %}
+                                                <span class="badge bg-warning-subtle text-warning">Movers</span>
+                                            {% else %}
+                                                <span class="badge bg-success-subtle text-success">Flyers</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-primary">{{ class.enrolled_students.count }}</span>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">
+                                                <i class="ri-time-line me-1"></i>
+                                                {{ class.schedule|default:"Schedule TBA" }}
+                                            </small>
+                                        </td>
+                                        <td>
+                                            {% if class.is_active %}
+                                                <span class="badge bg-success">Active</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Inactive</span>
+                                            {% endif %}
+                                        </td>
                                     </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
                     </div>
                 {% else %}
-                    <p class="text-muted mb-0">No classes assigned currently.</p>
+                    <div class="text-center py-5">
+                        <i class="ri-book-open-line fs-1 text-muted opacity-50"></i>
+                        <h6 class="mt-3">No Classes Assigned</h6>
+                        <p class="text-muted mb-0">This teacher is not currently assigned to any classes.</p>
+                    </div>
                 {% endif %}
             </div>
         </div>
 
-        <!-- Documents -->
+        <!-- Documents Card -->
         <div class="card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">Documents ({{ documents.count }})</h5>
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="ri-file-list-line me-2 text-primary"></i>Documents
+                    <span class="badge bg-primary-subtle text-primary ms-2">{{ documents.count }}</span>
+                </h5>
+                <a href="{% url 'teacher_documents' %}?teacher={{ teacher.id }}" class="btn btn-sm btn-outline-primary">
+                    <i class="ri-external-link-line me-1"></i>View All
+                </a>
             </div>
             <div class="card-body">
                 {% if documents %}
                     <div class="table-responsive">
-                        <table class="table table-sm table-hover mb-0">
+                        <table class="table table-hover align-middle mb-0">
                             <thead class="table-light">
                                 <tr>
-                                    <th>Type</th>
+                                    <th>Document Type</th>
                                     <th>Title</th>
                                     <th>Status</th>
-                                    <th>Date</th>
+                                    <th>Uploaded</th>
+                                    <th class="text-end">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for doc in documents %}
                                     <tr>
-                                        <td><small>{{ doc.get_document_type_display }}</small></td>
+                                        <td>
+                                            {% if doc.document_type == 'CV' %}
+                                                <span class="badge bg-primary-subtle text-primary">
+                                                    <i class="ri-file-user-line me-1"></i>CV/Resume
+                                                </span>
+                                            {% elif doc.document_type == 'CERT' %}
+                                                <span class="badge bg-success-subtle text-success">
+                                                    <i class="ri-award-line me-1"></i>Certificate
+                                                </span>
+                                            {% elif doc.document_type == 'ID' %}
+                                                <span class="badge bg-warning-subtle text-warning">
+                                                    <i class="ri-id-card-line me-1"></i>ID Document
+                                                </span>
+                                            {% elif doc.document_type == 'CONTRACT' %}
+                                                <span class="badge bg-danger-subtle text-danger">
+                                                    <i class="ri-file-text-line me-1"></i>Contract
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-secondary-subtle text-secondary">
+                                                    <i class="ri-file-line me-1"></i>{{ doc.get_document_type_display }}
+                                                </span>
+                                            {% endif %}
+                                        </td>
                                         <td>{{ doc.title }}</td>
                                         <td>
                                             {% if doc.is_verified %}
-                                                <span class="badge bg-success">Verified</span>
+                                                <span class="badge bg-success">
+                                                    <i class="ri-check-line me-1"></i>Verified
+                                                </span>
                                             {% else %}
-                                                <span class="badge bg-warning">Pending</span>
+                                                <span class="badge bg-warning">
+                                                    <i class="ri-time-line me-1"></i>Pending
+                                                </span>
                                             {% endif %}
                                         </td>
-                                        <td><small>{{ doc.uploaded_at|date:"M d, Y" }}</small></td>
+                                        <td>
+                                            <small class="text-muted">{{ doc.uploaded_at|date:"M d, Y" }}</small>
+                                        </td>
+                                        <td class="text-end">
+                                            <a href="{{ doc.document.url }}" target="_blank" class="btn btn-sm btn-soft-primary" title="View">
+                                                <i class="ri-eye-line"></i>
+                                            </a>
+                                            <a href="{{ doc.document.url }}" download class="btn btn-sm btn-soft-success" title="Download">
+                                                <i class="ri-download-line"></i>
+                                            </a>
+                                        </td>
                                     </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
                     </div>
                 {% else %}
-                    <p class="text-muted mb-0">No documents uploaded.</p>
+                    <div class="text-center py-5">
+                        <i class="ri-file-list-line fs-1 text-muted opacity-50"></i>
+                        <h6 class="mt-3">No Documents</h6>
+                        <p class="text-muted mb-0">No documents have been uploaded for this teacher.</p>
+                    </div>
                 {% endif %}
             </div>
         </div>
 
-        <!-- Rate History -->
+        <!-- Hourly Rate History Card -->
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">Hourly Rate History</h5>
+                <h5 class="card-title mb-0">
+                    <i class="ri-money-dollar-circle-line me-2 text-primary"></i>Hourly Rate History
+                </h5>
                 {% if perms.teachers.add_teacherhourlyrate %}
-                    <a href="{% url 'teacher_rate_add' teacher.id %}" class="btn btn-success btn-sm">
-                        <i class="ri-add-line me-1"></i> Add New Rate
+                    <a href="{% url 'teacher_rate_add' teacher.id %}" class="btn btn-sm btn-success">
+                        <i class="ri-add-line me-1"></i>Add New Rate
                     </a>
                 {% endif %}
             </div>
             <div class="card-body">
                 {% if rate_history %}
                     <div class="table-responsive">
-                        <table class="table table-sm mb-0">
+                        <table class="table table-hover align-middle mb-0">
                             <thead class="table-light">
                                 <tr>
                                     <th>Rate</th>
@@ -367,16 +551,25 @@
                                     <th>Effective Until</th>
                                     <th>Status</th>
                                     <th>Reason</th>
-                                    <th>Actions</th>
+                                    <th class="text-end">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for rate in rate_history %}
                                     <tr>
-                                        <td><strong>{{ rate.currency }} {{ rate.hourly_rate }}/hr</strong></td>
-                                        <td>{{ rate.effective_from|date:"M d, Y" }}</td>
+                                        <td>
+                                            <strong class="fs-5 {% if rate.is_current %}text-success{% endif %}">
+                                                {{ rate.currency }} {{ rate.hourly_rate }}
+                                            </strong>
+                                            <small class="text-muted d-block">per hour</small>
+                                        </td>
+                                        <td>
+                                            <i class="ri-calendar-line me-1 text-muted"></i>
+                                            {{ rate.effective_from|date:"M d, Y" }}
+                                        </td>
                                         <td>
                                             {% if rate.effective_until %}
+                                                <i class="ri-calendar-line me-1 text-muted"></i>
                                                 {{ rate.effective_until|date:"M d, Y" }}
                                             {% else %}
                                                 <span class="text-muted">Present</span>
@@ -384,15 +577,19 @@
                                         </td>
                                         <td>
                                             {% if rate.is_current %}
-                                                <span class="badge bg-success">Current</span>
+                                                <span class="badge bg-success">
+                                                    <i class="ri-check-line me-1"></i>Current
+                                                </span>
                                             {% else %}
-                                                <span class="badge bg-secondary">Historical</span>
+                                                <span class="badge bg-secondary">
+                                                    <i class="ri-history-line me-1"></i>Historical
+                                                </span>
                                             {% endif %}
                                         </td>
                                         <td>
-                                            <small class="text-muted">{{ rate.reason|default:"—" }}</small>
+                                            <small class="text-muted">{{ rate.reason|default:"No reason provided"|truncatewords:5 }}</small>
                                         </td>
-                                        <td>
+                                        <td class="text-end">
                                             {% if perms.teachers.change_teacherhourlyrate %}
                                                 <a href="{% url 'teacher_rate_edit' rate.id %}" class="btn btn-sm btn-soft-warning" title="Edit Rate">
                                                     <i class="ri-edit-line"></i>
@@ -405,16 +602,49 @@
                         </table>
                     </div>
                 {% else %}
-                    <p class="text-muted mb-3">No rate history available.</p>
-                    {% if perms.teachers.add_teacherhourlyrate %}
-                        <a href="{% url 'teacher_rate_add' teacher.id %}" class="btn btn-primary">
-                            <i class="ri-add-line me-1"></i> Add First Rate
-                        </a>
-                    {% endif %}
+                    <div class="text-center py-5">
+                        <i class="ri-money-dollar-circle-line fs-1 text-muted opacity-50"></i>
+                        <h6 class="mt-3">No Rate History</h6>
+                        <p class="text-muted mb-3">No hourly rates have been set for this teacher.</p>
+                        {% if perms.teachers.add_teacherhourlyrate %}
+                            <a href="{% url 'teacher_rate_add' teacher.id %}" class="btn btn-primary">
+                                <i class="ri-add-line me-1"></i>Add First Rate
+                            </a>
+                        {% endif %}
+                    </div>
                 {% endif %}
             </div>
         </div>
     </div>
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+<style>
+.avatar-xxl {
+    width: 120px;
+    height: 120px;
+}
+
+.avatar-xxl .avatar-title {
+    width: 120px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-animate {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card-animate:hover {
+    transform: translateY(-5px);
+}
+
+.counter-value {
+    font-variant-numeric: tabular-nums;
+}
+</style>
 {% endblock %}

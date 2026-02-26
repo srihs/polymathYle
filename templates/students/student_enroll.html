@@ -8,144 +8,643 @@
 
 {% block content %}
 <div class="row">
-    <div class="col-lg-12">
-        <!-- Application Summary -->
+    <div class="col-lg-8">
+        <!-- Application Summary Card -->
         <div class="card">
-            <div class="card-header bg-soft-primary">
-                <h5 class="card-title mb-0">Application Summary</h5>
+            <div class="card-header border-bottom bg-success bg-opacity-10">
+                <div class="d-flex align-items-center">
+                    <div class="avatar-sm me-3 flex-shrink-0">
+                        <span class="avatar-title bg-success rounded-circle">
+                            <i class="ri-file-list-check-line text-white"></i>
+                        </span>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h5 class="card-title mb-0 text-success">
+                            <i class="ri-check-double-line me-2"></i>Application Approved
+                        </h5>
+                        <small class="text-muted">Ready to create student profile</small>
+                    </div>
+                    <span class="badge bg-success">{{ application.get_status_display }}</span>
+                </div>
             </div>
             <div class="card-body">
-                <div class="row">
-                    <div class="col-md-3">
-                        <p class="mb-2"><strong>Admission Number:</strong></p>
-                        <p class="text-muted">{{ application.admission_number }}</p>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="p-3 border rounded bg-light">
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-sm me-3 flex-shrink-0">
+                                    <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                        <i class="ri-hashtag"></i>
+                                    </span>
+                                </div>
+                                <div>
+                                    <p class="text-muted mb-1 small">Admission Number</p>
+                                    <h6 class="mb-0 fw-medium">{{ application.admission_number }}</h6>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-md-3">
-                        <p class="mb-2"><strong>Full Name:</strong></p>
-                        <p class="text-muted">{{ application.full_name }}</p>
-                    </div>
-                    <div class="col-md-3">
-                        <p class="mb-2"><strong>Date of Birth:</strong></p>
-                        <p class="text-muted">{{ application.date_of_birth|date:"Y-m-d" }} ({{ application.age }} years)</p>
-                    </div>
-                    <div class="col-md-3">
-                        <p class="mb-2"><strong>Status:</strong></p>
-                        <span class="badge bg-success">{{ application.get_status_display }}</span>
+                    <div class="col-md-6">
+                        <div class="p-3 border rounded bg-light">
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-sm me-3 flex-shrink-0">
+                                    <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                        <i class="ri-user-line"></i>
+                                    </span>
+                                </div>
+                                <div>
+                                    <p class="text-muted mb-1 small">Full Name</p>
+                                    <h6 class="mb-0 fw-medium">{{ application.full_name }}</h6>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="row mt-3">
-                    <div class="col-md-6">
-                        <p class="mb-2"><strong>Mother:</strong></p>
-                        <p class="text-muted">{{ application.mother_name }} - {{ application.mother_contact_number }}</p>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded bg-light">
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-sm me-3 flex-shrink-0">
+                                    <span class="avatar-title bg-info-subtle text-info rounded-circle">
+                                        <i class="ri-cake-2-line"></i>
+                                    </span>
+                                </div>
+                                <div>
+                                    <p class="text-muted mb-1 small">Date of Birth</p>
+                                    <h6 class="mb-0 fw-medium">
+                                        {{ application.date_of_birth|date:"M d, Y" }}
+                                        <span class="badge bg-info-subtle text-info ms-1">{{ application.age }} yrs</span>
+                                    </h6>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-md-6">
-                        <p class="mb-2"><strong>Father:</strong></p>
-                        <p class="text-muted">{{ application.father_name }} - {{ application.father_contact_number }}</p>
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded bg-light">
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-sm me-3 flex-shrink-0">
+                                    <span class="avatar-title bg-warning-subtle text-warning rounded-circle">
+                                        <i class="ri-school-line"></i>
+                                    </span>
+                                </div>
+                                <div>
+                                    <p class="text-muted mb-1 small">Current School</p>
+                                    <h6 class="mb-0 fw-medium text-truncate" style="max-width: 180px;">
+                                        {{ application.current_school|default:"Not specified" }}
+                                    </h6>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded bg-light">
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-sm me-3 flex-shrink-0">
+                                    <span class="avatar-title bg-success-subtle text-success rounded-circle">
+                                        <i class="ri-calendar-line"></i>
+                                    </span>
+                                </div>
+                                <div>
+                                    <p class="text-muted mb-1 small">Applied On</p>
+                                    <h6 class="mb-0 fw-medium">{{ application.created_at|date:"M d, Y" }}</h6>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Guardian Information -->
+                <h6 class="text-uppercase fw-semibold text-muted mb-3 small">
+                    <i class="ri-parent-line me-2"></i>Guardian Information
+                </h6>
+                <div class="row g-3 mb-4">
+                    {% if application.mother_name %}
+                        <div class="col-md-6">
+                            <div class="card border mb-0">
+                                <div class="card-body p-3">
+                                    <div class="d-flex">
+                                        <div class="avatar-sm me-3 flex-shrink-0">
+                                            <span class="avatar-title bg-danger-subtle text-danger rounded-circle">
+                                                <i class="ri-women-line"></i>
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-1">{{ application.mother_name }}</h6>
+                                            <span class="badge bg-secondary-subtle text-secondary mb-2">Mother</span>
+                                            <p class="text-muted small mb-1">
+                                                <i class="ri-phone-line me-1"></i>{{ application.mother_contact_number }}
+                                            </p>
+                                            {% if application.mother_occupation %}
+                                                <p class="text-muted small mb-0">
+                                                    <i class="ri-briefcase-line me-1"></i>{{ application.mother_occupation }}
+                                                </p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                    {% if application.father_name %}
+                        <div class="col-md-6">
+                            <div class="card border mb-0">
+                                <div class="card-body p-3">
+                                    <div class="d-flex">
+                                        <div class="avatar-sm me-3 flex-shrink-0">
+                                            <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                                <i class="ri-men-line"></i>
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-1">{{ application.father_name }}</h6>
+                                            <span class="badge bg-secondary-subtle text-secondary mb-2">Father</span>
+                                            <p class="text-muted small mb-1">
+                                                <i class="ri-phone-line me-1"></i>{{ application.father_contact_number }}
+                                            </p>
+                                            {% if application.father_occupation %}
+                                                <p class="text-muted small mb-0">
+                                                    <i class="ri-briefcase-line me-1"></i>{{ application.father_occupation }}
+                                                </p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
 
-        <!-- Enrollment Form -->
+        <!-- Enrollment Form Card -->
         <div class="card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">Create Student Profile</h5>
+            <div class="card-header border-bottom">
+                <h5 class="card-title mb-0">
+                    <i class="ri-user-add-line me-2 text-primary"></i>Enrollment Details
+                </h5>
             </div>
             <div class="card-body">
-                <div class="alert alert-info">
-                    <i class="ri-information-line me-2"></i>
-                    This will create a student profile and user account based on the approved application.
-                </div>
-
-                <form method="post" action="{% url 'student_enroll' application.id %}">
+                <form method="post" action="{% url 'student_enroll' application.id %}" id="enrollForm" novalidate>
                     {% csrf_token %}
 
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <label for="current_level" class="form-label">Assign Initial Level <span class="text-danger">*</span></label>
-                            <select class="form-select" id="current_level" name="current_level" required>
-                                <option value="STARTERS">Pre A1 Starters</option>
-                                <option value="MOVERS">A1 Movers</option>
-                                <option value="FLYERS">A2 Flyers</option>
-                            </select>
-                            <div class="form-text">Select the YLE level based on placement test or assessment</div>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="password" class="form-label">Initial Password <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="password" name="password" value="student123" required>
-                            <div class="form-text">Default password for student login (student can change later)</div>
-                        </div>
-                    </div>
+                    <!-- YLE Level Selection -->
+                    <fieldset class="mb-4">
+                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
+                            <i class="ri-graduation-cap-line me-2"></i>Cambridge YLE Level
+                        </legend>
 
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <div class="alert alert-warning">
-                                <h6 class="alert-heading">Account Details</h6>
-                                <p class="mb-0">
-                                    <strong>Username:</strong> student_{{ application.admission_number|lower|cut:"-" }}<br>
-                                    <strong>Email:</strong> {{ application.student_email|default:application.primary_contact_email }}<br>
-                                    <strong>User Group:</strong> Students
-                                </p>
+                        <div class="alert alert-info border-0 mb-4">
+                            <div class="d-flex">
+                                <i class="ri-information-line fs-4 me-3"></i>
+                                <div>
+                                    <strong>Level Selection</strong>
+                                    <p class="mb-0 small">Select the initial YLE level based on placement test or age-appropriate assessment. Level can be changed later from the student profile.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <label for="current_level" class="form-label mb-3">
+                            Assign Initial Level <span class="text-danger" aria-label="required">*</span>
+                        </label>
+
+                        <!-- YLE Level Cards -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <div class="form-check form-check-card h-100">
+                                    <input class="form-check-input yle-level-radio" type="radio" name="current_level" id="level_starters" value="STARTERS" checked>
+                                    <label class="form-check-label d-block p-3 border rounded cursor-pointer border-info bg-info-subtle" for="level_starters">
+                                        <div class="text-center">
+                                            <div class="avatar-md mx-auto mb-3">
+                                                <span class="avatar-title bg-info text-white rounded-circle fs-2">
+                                                    <i class="ri-seedling-line"></i>
+                                                </span>
+                                            </div>
+                                            <h5 class="mb-1 text-info">Pre A1 Starters</h5>
+                                            <p class="text-muted mb-2 small">Beginner Level</p>
+                                            <span class="badge bg-info-subtle text-info">Ages 6-8</span>
+                                        </div>
+                                        <hr class="my-3">
+                                        <ul class="list-unstyled text-muted small mb-0">
+                                            <li class="mb-1"><i class="ri-check-line text-success me-2"></i>Basic vocabulary</li>
+                                            <li class="mb-1"><i class="ri-check-line text-success me-2"></i>Simple sentences</li>
+                                            <li><i class="ri-check-line text-success me-2"></i>Listening & speaking focus</li>
+                                        </ul>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check form-check-card h-100">
+                                    <input class="form-check-input yle-level-radio" type="radio" name="current_level" id="level_movers" value="MOVERS">
+                                    <label class="form-check-label d-block p-3 border rounded cursor-pointer" for="level_movers">
+                                        <div class="text-center">
+                                            <div class="avatar-md mx-auto mb-3">
+                                                <span class="avatar-title bg-warning text-white rounded-circle fs-2">
+                                                    <i class="ri-run-line"></i>
+                                                </span>
+                                            </div>
+                                            <h5 class="mb-1 text-warning">A1 Movers</h5>
+                                            <p class="text-muted mb-2 small">Elementary Level</p>
+                                            <span class="badge bg-warning-subtle text-warning">Ages 8-10</span>
+                                        </div>
+                                        <hr class="my-3">
+                                        <ul class="list-unstyled text-muted small mb-0">
+                                            <li class="mb-1"><i class="ri-check-line text-success me-2"></i>Expanded vocabulary</li>
+                                            <li class="mb-1"><i class="ri-check-line text-success me-2"></i>Short conversations</li>
+                                            <li><i class="ri-check-line text-success me-2"></i>Reading & writing intro</li>
+                                        </ul>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check form-check-card h-100">
+                                    <input class="form-check-input yle-level-radio" type="radio" name="current_level" id="level_flyers" value="FLYERS">
+                                    <label class="form-check-label d-block p-3 border rounded cursor-pointer" for="level_flyers">
+                                        <div class="text-center">
+                                            <div class="avatar-md mx-auto mb-3">
+                                                <span class="avatar-title bg-success text-white rounded-circle fs-2">
+                                                    <i class="ri-rocket-line"></i>
+                                                </span>
+                                            </div>
+                                            <h5 class="mb-1 text-success">A2 Flyers</h5>
+                                            <p class="text-muted mb-2 small">Pre-Intermediate Level</p>
+                                            <span class="badge bg-success-subtle text-success">Ages 10-12</span>
+                                        </div>
+                                        <hr class="my-3">
+                                        <ul class="list-unstyled text-muted small mb-0">
+                                            <li class="mb-1"><i class="ri-check-line text-success me-2"></i>Advanced vocabulary</li>
+                                            <li class="mb-1"><i class="ri-check-line text-success me-2"></i>Complex sentences</li>
+                                            <li><i class="ri-check-line text-success me-2"></i>All four skills</li>
+                                        </ul>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Account Setup -->
+                    <fieldset class="mb-4">
+                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
+                            <i class="ri-shield-user-line me-2"></i>Account Setup
+                        </legend>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="password" class="form-label">
+                                    Initial Password <span class="text-danger" aria-label="required">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="ri-lock-password-line"></i></span>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="password"
+                                           name="password"
+                                           value="student123"
+                                           aria-describedby="password_help"
+                                           required>
+                                    <button class="btn btn-outline-secondary" type="button" onclick="generatePassword()">
+                                        <i class="ri-refresh-line"></i>
+                                    </button>
+                                </div>
+                                <div id="password_help" class="form-text">
+                                    <i class="ri-information-line me-1"></i>Student can change this after first login
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Account Details Preview -->
+                    <div class="alert alert-warning border-0 mb-4">
+                        <div class="d-flex">
+                            <i class="ri-information-2-line fs-4 me-3"></i>
+                            <div>
+                                <h6 class="alert-heading mb-2">Account Details Preview</h6>
+                                <table class="table table-sm table-borderless mb-0" style="width: auto;">
+                                    <tbody>
+                                        <tr>
+                                            <td class="text-muted pe-3">Username:</td>
+                                            <td><code>student_{{ application.admission_number|lower|cut:"-" }}</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-muted pe-3">Email:</td>
+                                            <td><code>{{ application.student_email|default:application.primary_contact_email }}</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-muted pe-3">User Group:</td>
+                                            <td><span class="badge bg-primary">Students</span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
 
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <h6 class="text-uppercase fw-semibold mb-3">Guardian Profiles to be Created:</h6>
-                            <ul class="list-unstyled">
-                                {% if application.mother_name %}
+                    <!-- What Happens Section -->
+                    <div class="alert alert-success border-0 mb-4">
+                        <div class="d-flex">
+                            <i class="ri-checkbox-circle-line fs-4 me-3"></i>
+                            <div>
+                                <h6 class="alert-heading mb-2">What happens when you enroll:</h6>
+                                <ul class="mb-0 ps-3">
                                     <li class="mb-2">
-                                        <i class="ri-user-line text-primary me-2"></i>
-                                        <strong>Mother:</strong> {{ application.mother_name }}
-                                        ({{ application.mother_contact_number }}, {{ application.primary_contact_email }})
-                                        {% if application.mother_occupation %}
-                                            - {{ application.mother_occupation }}
-                                        {% endif %}
+                                        <i class="ri-user-add-line text-primary me-2"></i>
+                                        Student user account created with username: <code>student_{{ application.admission_number|lower|cut:"-" }}</code>
                                     </li>
-                                {% endif %}
-                                {% if application.father_name %}
+                                    <li class="mb-2">
+                                        <i class="ri-file-user-line text-primary me-2"></i>
+                                        Student profile created with admission number: <strong>{{ application.admission_number }}</strong>
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="ri-parent-line text-primary me-2"></i>
+                                        Guardian profiles created for mother and father
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="ri-shield-check-line text-primary me-2"></i>
+                                        Student added to "Students" user group with appropriate permissions
+                                    </li>
                                     <li>
-                                        <i class="ri-user-line text-primary me-2"></i>
-                                        <strong>Father:</strong> {{ application.father_name }}
-                                        ({{ application.father_contact_number }}, {{ application.primary_contact_email }})
-                                        {% if application.father_occupation %}
-                                            - {{ application.father_occupation }}
-                                        {% endif %}
+                                        <i class="ri-book-open-line text-primary me-2"></i>
+                                        Class assignment can be done later from student profile
                                     </li>
-                                {% endif %}
-                            </ul>
+                                </ul>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="alert alert-success">
-                        <i class="ri-checkbox-circle-line me-2"></i>
-                        <strong>What happens when you click "Enroll Student":</strong>
-                        <ul class="mb-0 mt-2">
-                            <li>Student user account will be created with username: <code>student_{{ application.admission_number|lower|cut:"-" }}</code></li>
-                            <li>Student profile will be created with admission number: <strong>{{ application.admission_number }}</strong></li>
-                            <li>Guardian profiles will be created for mother and father</li>
-                            <li>Student will be added to "Students" user group with appropriate permissions</li>
-                            <li>You can assign class later from the student profile page</li>
-                        </ul>
-                    </div>
-
                     <!-- Form Actions -->
-                    <div class="mt-4">
-                        <button type="submit" class="btn btn-success btn-lg me-2">
-                            <i class="ri-user-add-line me-1"></i> Enroll Student
-                        </button>
-                        <button type="button" onclick="window.history.back()" class="btn btn-secondary btn-lg me-2">
-                            <i class="ri-arrow-left-line me-1"></i> Back
-                        </button>
-                        <a href="{% url 'application_review' application.id %}" class="btn btn-info btn-lg">
-                            <i class="ri-eye-line me-1"></i> View Application
-                        </a>
+                    <div class="border-top pt-4 mt-4">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                            <a href="{% url 'application_review' application.id %}" class="btn btn-outline-secondary">
+                                <i class="ri-arrow-left-line me-1"></i> Back to Application
+                            </a>
+                            <div class="d-flex flex-wrap gap-2">
+                                <a href="{% url 'application_list' %}" class="btn btn-outline-secondary">
+                                    <i class="ri-close-line me-1"></i> Cancel
+                                </a>
+                                <button type="submit" class="btn btn-success btn-lg" id="submitBtn">
+                                    <span class="spinner-border spinner-border-sm d-none me-1" role="status" aria-hidden="true" id="submitSpinner"></span>
+                                    <i class="ri-user-add-line me-1" id="submitIcon"></i>
+                                    <span id="submitText">Enroll Student</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Progress Card -->
+        <div class="card sticky-top" style="top: 80px;">
+            <div class="card-header bg-primary bg-opacity-10">
+                <h6 class="card-title mb-0 text-primary">
+                    <i class="ri-list-check-2 me-2"></i>Enrollment Progress
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-flex mb-3">
+                    <div class="flex-shrink-0">
+                        <span class="avatar-xs avatar-title bg-success text-white rounded-circle">
+                            <i class="ri-check-line"></i>
+                        </span>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-1">Application Submitted</h6>
+                        <p class="text-muted small mb-0">Completed on {{ application.created_at|date:"M d, Y" }}</p>
+                    </div>
+                </div>
+                <div class="d-flex mb-3">
+                    <div class="flex-shrink-0">
+                        <span class="avatar-xs avatar-title bg-success text-white rounded-circle">
+                            <i class="ri-check-line"></i>
+                        </span>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-1">Application Reviewed</h6>
+                        <p class="text-muted small mb-0">Approved and verified</p>
+                    </div>
+                </div>
+                <div class="d-flex">
+                    <div class="flex-shrink-0">
+                        <span class="avatar-xs avatar-title bg-primary text-white rounded-circle">
+                            <i class="ri-arrow-right-line"></i>
+                        </span>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-1 text-primary">Complete Enrollment</h6>
+                        <p class="text-muted small mb-0">Assign level and create account</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Tips Card -->
+        <div class="card mt-3">
+            <div class="card-header bg-success bg-opacity-10">
+                <h6 class="card-title mb-0 text-success">
+                    <i class="ri-lightbulb-line me-2"></i>Quick Tips
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-flex mb-3">
+                    <div class="flex-shrink-0">
+                        <span class="avatar-xs avatar-title bg-success-subtle text-success rounded-circle">1</span>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-1">Age-Based Level</h6>
+                        <p class="text-muted small mb-0">
+                            Starters: 6-8 yrs, Movers: 8-10 yrs, Flyers: 10-12 yrs
+                        </p>
+                    </div>
+                </div>
+                <div class="d-flex mb-3">
+                    <div class="flex-shrink-0">
+                        <span class="avatar-xs avatar-title bg-success-subtle text-success rounded-circle">2</span>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-1">Placement Test</h6>
+                        <p class="text-muted small mb-0">Use assessment results to place students at appropriate level</p>
+                    </div>
+                </div>
+                <div class="d-flex">
+                    <div class="flex-shrink-0">
+                        <span class="avatar-xs avatar-title bg-success-subtle text-success rounded-circle">3</span>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-1">Level Changes</h6>
+                        <p class="text-muted small mb-0">Students can be promoted to higher levels as they progress</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cambridge YLE Info Card -->
+        <div class="card mt-3">
+            <div class="card-header bg-info bg-opacity-10">
+                <h6 class="card-title mb-0 text-info">
+                    <i class="ri-book-2-line me-2"></i>About Cambridge YLE
+                </h6>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">
+                    Cambridge Young Learners English (YLE) tests are designed for children aged 6-12. They test all four language skills:
+                </p>
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <span class="badge bg-primary fs-6">
+                        <i class="ri-headphone-line me-1"></i>Listening
+                    </span>
+                    <span class="badge bg-primary fs-6">
+                        <i class="ri-book-read-line me-1"></i>Reading
+                    </span>
+                    <span class="badge bg-primary fs-6">
+                        <i class="ri-edit-line me-1"></i>Writing
+                    </span>
+                    <span class="badge bg-primary fs-6">
+                        <i class="ri-speak-line me-1"></i>Speaking
+                    </span>
+                </div>
+                <p class="text-muted small mb-0">
+                    <a href="https://www.cambridgeenglish.org/exams-and-tests/young-learners/" target="_blank" class="text-info text-decoration-none">
+                        Learn more about Cambridge YLE <i class="ri-external-link-line ms-1"></i>
+                    </a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Need Help Card -->
+        <div class="card mt-3 border-warning">
+            <div class="card-header bg-warning bg-opacity-10">
+                <h6 class="card-title mb-0 text-warning">
+                    <i class="ri-question-line me-2"></i>Need Help?
+                </h6>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">
+                    If you're unsure about the appropriate level, consider conducting a placement test first.
+                </p>
+                <div class="d-grid gap-2">
+                    <a href="#" class="btn btn-outline-warning btn-sm">
+                        <i class="ri-file-text-line me-2"></i>View Placement Test Guide
+                    </a>
+                    <a href="{% url 'application_review' application.id %}" class="btn btn-outline-info btn-sm">
+                        <i class="ri-eye-line me-2"></i>Review Application Details
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // YLE Level card selection
+    $('.yle-level-radio').on('change', function() {
+        // Remove all selection styling
+        $('.form-check-card label').removeClass('border-info bg-info-subtle border-warning bg-warning-subtle border-success bg-success-subtle');
+
+        // Add styling based on selection
+        var level = $(this).val();
+        var label = $(this).siblings('label');
+
+        if (level === 'STARTERS') {
+            label.addClass('border-info bg-info-subtle');
+        } else if (level === 'MOVERS') {
+            label.addClass('border-warning bg-warning-subtle');
+        } else if (level === 'FLYERS') {
+            label.addClass('border-success bg-success-subtle');
+        }
+    });
+
+    // Form submission with loading state
+    var form = document.getElementById('enrollForm');
+
+    form.addEventListener('submit', function(event) {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        } else {
+            // Show loading state
+            $('#submitBtn').prop('disabled', true);
+            $('#submitSpinner').removeClass('d-none');
+            $('#submitIcon').addClass('d-none');
+            $('#submitText').text('Enrolling...');
+        }
+
+        form.classList.add('was-validated');
+    }, false);
+});
+
+// Generate random password
+function generatePassword() {
+    var length = 10;
+    var charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$";
+    var password = "";
+    for (var i = 0; i < length; i++) {
+        password += charset.charAt(Math.floor(Math.random() * charset.length));
+    }
+    $('#password').val(password);
+}
+</script>
+
+<style>
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.form-check-card .form-check-input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.form-check-card .form-check-label {
+    transition: all 0.2s ease;
+}
+
+.form-check-card .form-check-label:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+fieldset {
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+legend {
+    border-bottom: 2px solid var(--bs-primary);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.avatar-xs {
+    width: 24px;
+    height: 24px;
+}
+
+.avatar-xs .avatar-title {
+    font-size: 12px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.avatar-md {
+    width: 60px;
+    height: 60px;
+}
+
+.avatar-md .avatar-title {
+    width: 60px;
+    height: 60px;
+}
+</style>
 {% endblock %}
