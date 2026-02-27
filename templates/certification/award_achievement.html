@@ -51,8 +51,7 @@
                                 <label for="student" class="form-label">
                                     Student <span class="text-danger">*</span>
                                 </label>
-                                <select class="form-select select2-student" id="student" name="student" required
-                                        aria-describedby="student-help">
+                                <select class="form-select select2-student" id="student" name="student" required>
                                     <option value="">Search for a student...</option>
                                     {% for student in students %}
                                     <option value="{{ student.id }}"
@@ -63,9 +62,6 @@
                                     </option>
                                     {% endfor %}
                                 </select>
-                                <div id="student-help" class="form-text">
-                                    Select the student who will receive this achievement
-                                </div>
                             </div>
                         </div>
 
@@ -183,7 +179,6 @@
                                            placeholder="0">
                                     <span class="input-group-text">points</span>
                                 </div>
-                                <div class="form-text">Add extra points for exceptional performance</div>
                             </div>
                             <div class="col-md-6">
                                 <label for="awarded_date" class="form-label">Award Date</label>

@@ -319,16 +319,25 @@ def class_add_view(request):
         # Parse schedule from form
         schedule = []
         schedule_days = request.POST.getlist('schedule_day')
-        schedule_times = request.POST.getlist('schedule_time')
-        schedule_durations = request.POST.getlist('schedule_duration')
+        schedule_from_times = request.POST.getlist('schedule_from_time')
+        schedule_to_times = request.POST.getlist('schedule_to_time')
 
         for i in range(len(schedule_days)):
-            if schedule_days[i] and schedule_times[i]:
-                schedule.append({
-                    'day': schedule_days[i],
-                    'time': schedule_times[i],
-                    'duration_minutes': int(schedule_durations[i]) if i < len(schedule_durations) and schedule_durations[i] else 90
-                })
+            if schedule_days[i] and i < len(schedule_from_times) and i < len(schedule_to_times):
+                from_time = schedule_from_times[i]
+                to_time = schedule_to_times[i]
+
+                # Validate time range
+                if from_time and to_time:
+                    if from_time >= to_time:
+                        messages.error(request, f'Invalid time range for {schedule_days[i]}: End time must be after start time.')
+                        return redirect('class_add')
+
+                    schedule.append({
+                        'day': schedule_days[i],
+                        'from_time': from_time,
+                        'to_time': to_time
+                    })
 
         # Create class
         new_class = Class.objects.create(
@@ -407,16 +416,25 @@ def class_edit_view(request, class_id):
         # Parse schedule from form
         schedule = []
         schedule_days = request.POST.getlist('schedule_day')
-        schedule_times = request.POST.getlist('schedule_time')
-        schedule_durations = request.POST.getlist('schedule_duration')
+        schedule_from_times = request.POST.getlist('schedule_from_time')
+        schedule_to_times = request.POST.getlist('schedule_to_time')
 
         for i in range(len(schedule_days)):
-            if schedule_days[i] and schedule_times[i]:
-                schedule.append({
-                    'day': schedule_days[i],
-                    'time': schedule_times[i],
-                    'duration_minutes': int(schedule_durations[i]) if i < len(schedule_durations) and schedule_durations[i] else 90
-                })
+            if schedule_days[i] and i < len(schedule_from_times) and i < len(schedule_to_times):
+                from_time = schedule_from_times[i]
+                to_time = schedule_to_times[i]
+
+                # Validate time range
+                if from_time and to_time:
+                    if from_time >= to_time:
+                        messages.error(request, f'Invalid time range for {schedule_days[i]}: End time must be after start time.')
+                        return redirect('class_edit', class_id=class_id)
+
+                    schedule.append({
+                        'day': schedule_days[i],
+                        'from_time': from_time,
+                        'to_time': to_time
+                    })
 
         class_obj.schedule = schedule
 
@@ -623,6 +641,120 @@ def lesson_detail_view(request, lesson_id):
 
 
 # ============== ASSESSMENT VIEWS ==============
+
+@login_required
+@permission_required('courses.add_assessment', raise_exception=True)
+def assessment_add_view(request):
+    """
+    Add a new assessment (admin/staff only).
+    """
+    if request.method == 'POST':
+        # Get form data
+        title = request.POST.get('title', '').strip()
+        description = request.POST.get('description', '').strip()
+        assessment_type = request.POST.get('assessment_type', '')
+
+        # Get unit or level
+        unit_id = request.POST.get('unit')
+        level_id = request.POST.get('level')
+
+        # Get time limit and scoring
+        time_limit_minutes = request.POST.get('time_limit_minutes')
+        passing_percentage = request.POST.get('passing_percentage')
+        max_score = request.POST.get('max_score', '100')
+
+        # Get skills tested
+        tests_listening = request.POST.get('tests_listening') == 'on'
+        tests_reading = request.POST.get('tests_reading') == 'on'
+        tests_writing = request.POST.get('tests_writing') == 'on'
+        tests_speaking = request.POST.get('tests_speaking') == 'on'
+
+        # Validate required fields
+        if not all([title, description, assessment_type, time_limit_minutes, passing_percentage]):
+            messages.error(request, 'Please fill in all required fields.')
+            return redirect('assessment_add')
+
+        # Validate that either unit or level is selected
+        if not unit_id and not level_id:
+            messages.error(request, 'Please select either a Unit or a Level for this assessment.')
+            return redirect('assessment_add')
+
+        # Validate that at least one skill is tested
+        if not any([tests_listening, tests_reading, tests_writing, tests_speaking]):
+            messages.error(request, 'Please select at least one skill to test.')
+            return redirect('assessment_add')
+
+        try:
+            # Get related objects
+            unit = None
+            level = None
+
+            if unit_id:
+                unit = get_object_or_404(Unit, id=unit_id)
+            if level_id:
+                level = get_object_or_404(YLELevel, id=level_id)
+
+            # Convert numeric fields
+            time_limit = int(time_limit_minutes)
+            passing_pct = float(passing_percentage)
+            max_score_val = int(max_score)
+
+            # Validate ranges
+            if time_limit < 5 or time_limit > 300:
+                messages.error(request, 'Time limit must be between 5 and 300 minutes.')
+                return redirect('assessment_add')
+
+            if passing_pct < 0 or passing_pct > 100:
+                messages.error(request, 'Passing percentage must be between 0 and 100.')
+                return redirect('assessment_add')
+
+            if max_score_val < 1:
+                messages.error(request, 'Maximum score must be at least 1.')
+                return redirect('assessment_add')
+
+            # Initialize empty questions data (will be populated later via edit)
+            questions_data = []
+
+            # Create Assessment
+            new_assessment = Assessment.objects.create(
+                unit=unit,
+                level=level,
+                title=title,
+                description=description,
+                assessment_type=assessment_type,
+                time_limit_minutes=time_limit,
+                tests_listening=tests_listening,
+                tests_reading=tests_reading,
+                tests_writing=tests_writing,
+                tests_speaking=tests_speaking,
+                passing_percentage=passing_pct,
+                questions_data=questions_data,
+                max_score=max_score_val,
+                is_active=True,
+            )
+
+            messages.success(request, f'Assessment "{new_assessment.title}" created successfully! You can now add questions via the admin interface.')
+            return redirect('assessment_detail', assessment_id=new_assessment.id)
+
+        except ValueError as e:
+            messages.error(request, f'Invalid data provided: {str(e)}')
+            return redirect('assessment_add')
+        except Exception as e:
+            messages.error(request, f'An error occurred while creating the assessment: {str(e)}')
+            return redirect('assessment_add')
+
+    # GET request - show form
+    levels = YLELevel.objects.filter(is_active=True).order_by('order')
+    units = Unit.objects.filter(is_active=True).select_related('level').order_by('level__order', 'order')
+
+    context = {
+        'levels': levels,
+        'units': units,
+        'assessment_types': Assessment.ASSESSMENT_TYPE_CHOICES,
+    }
+
+    return render(request, 'courses/assessment_add.html', context)
+
 
 @login_required
 def assessment_list_view(request):

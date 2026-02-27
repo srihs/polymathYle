@@ -28,6 +28,7 @@ urlpatterns = [
 
     # ============== ASSESSMENT URLs ==============
     path('assessments/', views.assessment_list_view, name='assessment_list'),
+    path('assessments/add/', views.assessment_add_view, name='assessment_add'),
     path('assessments/<int:assessment_id>/', views.assessment_detail_view, name='assessment_detail'),
     path('assessments/<int:assessment_id>/take/', views.assessment_take_view, name='assessment_take'),
     path('assessments/results/<int:result_id>/', views.assessment_result_view, name='assessment_result'),

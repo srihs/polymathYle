@@ -318,9 +318,14 @@
                         <div class="flex-grow-1">
                             <h6 class="mb-0">{{ session.day }}</h6>
                             <small class="text-muted">
-                                <i class="ri-time-line me-1"></i>{{ session.time }}
+                                <i class="ri-time-line me-1"></i>
+                                {% if session.from_time and session.to_time %}
+                                {{ session.from_time }} - {{ session.to_time }}
+                                {% elif session.time %}
+                                {{ session.time }}
                                 {% if session.duration_minutes %}
                                 <span class="ms-2">| {{ session.duration_minutes }} mins</span>
+                                {% endif %}
                                 {% endif %}
                             </small>
                         </div>

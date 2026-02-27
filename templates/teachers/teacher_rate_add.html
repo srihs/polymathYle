@@ -69,23 +69,21 @@
                                            id="hourly_rate"
                                            name="hourly_rate"
                                            placeholder="e.g., 1500.00"
-                                           aria-describedby="hourly_rate_help"
+                                           
                                            required>
                                     <span class="input-group-text">/hour</span>
                                     <div class="invalid-feedback">Please enter a valid hourly rate.</div>
                                 </div>
-                                <div id="hourly_rate_help" class="form-text">Enter the amount without currency symbol</div>
                             </div>
                             <div class="col-md-6">
                                 <label for="currency" class="form-label">
                                     Currency <span class="text-danger" aria-label="required">*</span>
                                 </label>
-                                <select class="form-select" id="currency" name="currency" aria-describedby="currency_help" required>
+                                <select class="form-select" id="currency" name="currency"  required>
                                     {% for code, name in currencies %}
                                         <option value="{{ code }}" {% if code == 'LKR' %}selected{% endif %}>{{ name }} ({{ code }})</option>
                                     {% endfor %}
                                 </select>
-                                <div id="currency_help" class="form-text">Select the payment currency</div>
                             </div>
                         </div>
                     </fieldset>
@@ -106,11 +104,10 @@
                                            class="form-control"
                                            id="effective_from"
                                            name="effective_from"
-                                           aria-describedby="effective_from_help"
+                                           
                                            required>
                                     <div class="invalid-feedback">Please select when this rate becomes active.</div>
                                 </div>
-                                <div id="effective_from_help" class="form-text">Date when this rate becomes active</div>
                             </div>
                             <div class="col-md-6">
                                 <label for="effective_until" class="form-label">Effective Until</label>
@@ -120,9 +117,8 @@
                                            class="form-control"
                                            id="effective_until"
                                            name="effective_until"
-                                           aria-describedby="effective_until_help">
+                                           >
                                 </div>
-                                <div id="effective_until_help" class="form-text">Leave blank if this is the current/ongoing rate</div>
                             </div>
                         </div>
                     </fieldset>
@@ -170,9 +166,7 @@
                                           name="reason"
                                           rows="3"
                                           placeholder="e.g., Annual increment, Performance bonus, Initial rate, Promotion, Contract renewal..."
-                                          aria-describedby="reason_help"></textarea>
-                                <div id="reason_help" class="form-text">Document the reason for this rate (recommended for audit purposes)</div>
-                            </div>
+                                          ></textarea>
                         </div>
                     </fieldset>
 

@@ -92,7 +92,7 @@
                     </div>
                     <div class="col-auto">
                         {% if perms.courses.add_assessment %}
-                        <a href="{% url 'admin:courses_assessment_add' %}" class="btn btn-success">
+                        <a href="{% url 'assessment_add' %}" class="btn btn-success">
                             <i class="ri-add-line me-1"></i> Add New Assessment
                         </a>
                         {% endif %}
@@ -360,7 +360,7 @@
                         </a>
                         {% endif %}
                         {% if perms.courses.add_assessment %}
-                        <a href="{% url 'admin:courses_assessment_add' %}" class="btn btn-success">
+                        <a href="{% url 'assessment_add' %}" class="btn btn-success">
                             <i class="ri-add-line me-1"></i>Add New Assessment
                         </a>
                         {% endif %}

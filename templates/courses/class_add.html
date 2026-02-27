@@ -1,0 +1,561 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block PageTitle %}Add Class - Polymath School of English{% endblock %}
+{% block pageTitle %}Add New Class{% endblock %}
+{% block Title %}Courses{% endblock %}
+{% block functionTitle %}Add Class{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header border-bottom">
+                <div class="d-flex align-items-center">
+                    <div class="avatar-sm me-3">
+                        <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                            <i class="ri-group-add-line fs-4"></i>
+                        </span>
+                    </div>
+                    <div>
+                        <h5 class="card-title mb-0">Add New Class</h5>
+                        <p class="text-muted mb-0 small">Create a new class section for a YLE level</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Form Progress Indicator -->
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="badge bg-primary-subtle text-primary">Step 1: Basic Info</span>
+                        <span class="badge bg-light text-muted">Step 2: Schedule</span>
+                        <span class="badge bg-light text-muted">Step 3: Configuration</span>
+                    </div>
+                    <div class="progress" style="height: 4px;" role="progressbar" aria-label="Form progress" aria-valuenow="33" aria-valuemin="0" aria-valuemax="100">
+                        <div class="progress-bar" style="width: 33%"></div>
+                    </div>
+                </div>
+
+                <form method="post" action="{% url 'class_add' %}" id="classForm" novalidate>
+                    {% csrf_token %}
+
+                    <!-- Basic Information Section -->
+                    <fieldset class="mb-4">
+                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
+                            <i class="ri-information-line me-2"></i>Basic Information
+                        </legend>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text"><i class="ri-group-line"></i></span>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="class_name"
+                                           name="class_name"
+                                           placeholder="Class Name (e.g., Class A, Morning Batch) *"
+                                           
+                                           autocomplete="off"
+                                           required>
+                                    <div class="invalid-feedback">Please enter the class name.</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text"><i class="ri-code-line"></i></span>
+                                    <input type="text"
+                                           class="form-control text-uppercase"
+                                           id="class_code"
+                                           name="class_code"
+                                           placeholder="Class Code (e.g., START-A, MOV-B) *"
+                                           
+                                           pattern="[A-Z0-9\-]+"
+                                           autocomplete="off"
+                                           required>
+                                    <div class="invalid-feedback">Please enter a unique class code (uppercase letters/numbers).</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text"><i class="ri-stack-line"></i></span>
+                                    <select class="form-select" id="level" name="level" required>
+                                        <option value="" disabled selected>Select YLE Level *</option>
+                                        {% for level in levels %}
+                                        <option value="{{ level.id }}">{{ level.name }} ({{ level.cefr_level }})</option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="invalid-feedback">Please select a YLE level.</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="ri-user-star-line"></i></span>
+                                    <select class="form-select" id="teacher" name="teacher">
+                                        <option value="" selected>Select Teacher (Optional)</option>
+                                        {% for teacher in teachers %}
+                                        <option value="{{ teacher.id }}">{{ teacher.full_name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Schedule Section -->
+                    <fieldset class="mb-4">
+                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
+                            <i class="ri-calendar-line me-2"></i>Class Schedule
+                        </legend>
+                        <div class="alert alert-info alert-dismissible fade show" role="alert">
+                            <i class="ri-information-line me-2"></i>
+                            <strong>Add class sessions:</strong> Click "Add Session" to add multiple class times per week.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+
+                        <div id="scheduleContainer">
+                            <!-- Schedule items will be dynamically added here -->
+                        </div>
+
+                        <button type="button" class="btn btn-outline-primary btn-sm mt-2" id="addScheduleBtn">
+                            <i class="ri-add-line me-1"></i> Add Session
+                        </button>
+                    </fieldset>
+
+                    <!-- Class Configuration Section -->
+                    <fieldset class="mb-4">
+                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
+                            <i class="ri-settings-3-line me-2"></i>Class Configuration
+                        </legend>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text"><i class="ri-user-line"></i></span>
+                                    <input type="number"
+                                           class="form-control"
+                                           id="max_students"
+                                           name="max_students"
+                                           placeholder="Max Students"
+                                           value="25"
+                                           min="1"
+                                           max="50"
+                                           
+                                           required>
+                                    <span class="input-group-text">students</span>
+                                    <div class="invalid-feedback">Please enter max students (1-50).</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="ri-map-pin-line"></i></span>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="room_number"
+                                           name="room_number"
+                                           placeholder="Room Number (Optional)"
+
+                                           autocomplete="off">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text"><i class="ri-calendar-check-line"></i></span>
+                                    <input type="date"
+                                           class="form-control"
+                                           id="start_date"
+                                           name="start_date"
+                                           
+                                           required>
+                                    <div class="invalid-feedback">Please select a start date.</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text"><i class="ri-calendar-close-line"></i></span>
+                                    <input type="date"
+                                           class="form-control"
+                                           id="end_date"
+                                           name="end_date"
+                                           
+                                           required>
+                                    <div class="invalid-feedback">Please select an end date.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Preview Section -->
+                    <fieldset class="mb-4">
+                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
+                            <i class="ri-eye-line me-2"></i>Preview
+                        </legend>
+                        <div class="border rounded p-3" id="classPreview" style="background: linear-gradient(135deg, #660066 0%, #66006699 100%); min-height: 100px;">
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-lg me-3">
+                                    <span class="avatar-title bg-white bg-opacity-25 rounded-circle" style="width: 70px; height: 70px;">
+                                        <i id="previewIcon" class="ri-group-line text-white" style="font-size: 2rem;"></i>
+                                    </span>
+                                </div>
+                                <div class="text-white">
+                                    <h4 class="mb-1 text-white" id="previewName">Class Name</h4>
+                                    <div class="d-flex flex-wrap gap-2 mb-2">
+                                        <span class="badge bg-white bg-opacity-25 text-white" id="previewCode">CODE</span>
+                                        <span class="badge bg-white bg-opacity-25 text-white" id="previewLevel">Level</span>
+                                    </div>
+                                    <div class="text-white small opacity-75">
+                                        <i class="ri-calendar-line me-1"></i><span id="previewDates">Select dates</span>
+                                        <span class="mx-2">|</span>
+                                        <i class="ri-user-line me-1"></i><span id="previewCapacity">0</span> students max
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Form Actions -->
+                    <div class="border-top pt-4 mt-4">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                            <div class="text-muted small">
+                                <span class="text-danger">*</span> indicates required fields
+                            </div>
+                            <div class="d-flex flex-wrap gap-2">
+                                <a href="{% url 'class_list' %}" class="btn btn-outline-secondary">
+                                    <i class="ri-close-line me-1"></i> Cancel
+                                </a>
+                                <button type="reset" class="btn btn-light" id="resetBtn">
+                                    <i class="ri-refresh-line me-1"></i> Reset Form
+                                </button>
+                                <button type="submit" class="btn btn-success" id="submitBtn">
+                                    <span class="spinner-border spinner-border-sm d-none me-1" role="status" aria-hidden="true" id="submitSpinner"></span>
+                                    <i class="ri-add-line me-1" id="submitIcon"></i>
+                                    <span id="submitText">Create Class</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    let scheduleCount = 0;
+
+    // Schedule item template
+    function createScheduleItem(index) {
+        return `
+            <div class="schedule-item mb-3" data-index="${index}">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <select class="form-select schedule-day" name="schedule_day[]" required>
+                            <option value="">Select Day *</option>
+                            <option value="Monday">Monday</option>
+                            <option value="Tuesday">Tuesday</option>
+                            <option value="Wednesday">Wednesday</option>
+                            <option value="Thursday">Thursday</option>
+                            <option value="Friday">Friday</option>
+                            <option value="Saturday">Saturday</option>
+                            <option value="Sunday">Sunday</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="position-relative">
+                            <input type="time" class="form-control schedule-from-time" name="schedule_from_time[]" required>
+                            <small class="text-muted position-absolute" style="font-size: 0.75rem; left: 0; bottom: -18px;">From Time</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="position-relative">
+                            <input type="time" class="form-control schedule-to-time" name="schedule_to_time[]" required>
+                            <small class="text-muted position-absolute" style="font-size: 0.75rem; left: 0; bottom: -18px;">To Time</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="button" class="btn btn-danger btn-sm remove-schedule w-100" data-index="${index}">
+                            <i class="ri-delete-bin-line"></i> Remove
+                        </button>
+                    </div>
+                </div>
+                <div class="error-message text-danger mt-2 schedule-time-error" style="display: none;"></div>
+            </div>
+        `;
+    }
+
+    // Add schedule item
+    $('#addScheduleBtn').on('click', function() {
+        const scheduleItem = createScheduleItem(scheduleCount);
+        $('#scheduleContainer').append(scheduleItem);
+        scheduleCount++;
+        updateProgress();
+    });
+
+    // Remove schedule item
+    $(document).on('click', '.remove-schedule', function() {
+        $(this).closest('.schedule-item').remove();
+        updateProgress();
+    });
+
+    // Validate time range (to time must be after from time)
+    $(document).on('change', '.schedule-from-time, .schedule-to-time', function() {
+        const scheduleItem = $(this).closest('.schedule-item');
+        const fromTime = scheduleItem.find('.schedule-from-time').val();
+        const toTime = scheduleItem.find('.schedule-to-time').val();
+        const errorDiv = scheduleItem.find('.schedule-time-error');
+
+        if (fromTime && toTime) {
+            if (fromTime >= toTime) {
+                scheduleItem.find('.schedule-to-time').addClass('is-invalid');
+                errorDiv.text('End time must be after start time').css('display', 'block');
+            } else {
+                scheduleItem.find('.schedule-to-time').removeClass('is-invalid');
+                errorDiv.css('display', 'none');
+            }
+        }
+        updateProgress();
+    });
+
+    // Add initial schedule item
+    $('#addScheduleBtn').trigger('click');
+
+    // Live preview updates
+    function updatePreview() {
+        const className = $('#class_name').val() || 'Class Name';
+        const classCode = $('#class_code').val() || 'CODE';
+        const levelText = $('#level option:selected').text() || 'Level';
+        const startDate = $('#start_date').val();
+        const endDate = $('#end_date').val();
+        const maxStudents = $('#max_students').val() || '0';
+
+        $('#previewName').text(className);
+        $('#previewCode').text(classCode);
+        $('#previewLevel').text(levelText);
+        $('#previewCapacity').text(maxStudents);
+
+        if (startDate && endDate) {
+            const start = new Date(startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            const end = new Date(endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            $('#previewDates').text(start + ' - ' + end);
+        } else if (startDate) {
+            const start = new Date(startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            $('#previewDates').text('Starting ' + start);
+        } else {
+            $('#previewDates').text('Select dates');
+        }
+
+        // Update preview color based on level
+        const levelId = $('#level').val();
+        if (levelId) {
+            // Get color from level (you can store it as data attribute)
+            const selectedLevel = $('#level option:selected');
+            // Default colors for levels - you can customize
+            const colors = ['#3498db', '#f39c12', '#27ae60', '#660066'];
+            const colorIndex = levelId % colors.length;
+            const color = colors[colorIndex];
+            $('#classPreview').css('background', 'linear-gradient(135deg, ' + color + ' 0%, ' + color + '99 100%)');
+        }
+    }
+
+    // Bind preview updates
+    $('#class_name, #class_code, #level, #start_date, #end_date, #max_students').on('input change', updatePreview);
+
+    // Auto-uppercase class code
+    $('#class_code').on('input', function() {
+        $(this).val($(this).val().toUpperCase());
+    });
+
+    // Date range validation
+    $('#start_date, #end_date').on('change', function() {
+        const startDate = $('#start_date').val();
+        const endDate = $('#end_date').val();
+
+        if (startDate && endDate && new Date(startDate) >= new Date(endDate)) {
+            $('#end_date').addClass('is-invalid');
+            $('#end_date').siblings('.invalid-feedback').text('End date must be after start date.');
+        } else {
+            $('#end_date').removeClass('is-invalid');
+        }
+    });
+
+    // Set minimum start date to today
+    const today = new Date().toISOString().split('T')[0];
+    $('#start_date').attr('min', today);
+
+    // Update end date minimum when start date changes
+    $('#start_date').on('change', function() {
+        const startDate = $(this).val();
+        if (startDate) {
+            $('#end_date').attr('min', startDate);
+        }
+    });
+
+    // Form validation
+    const form = document.getElementById('classForm');
+    if (form) {
+        form.addEventListener('submit', function(event) {
+            // Check if at least one schedule item exists
+            const scheduleItems = $('.schedule-item').length;
+            if (scheduleItems === 0) {
+                event.preventDefault();
+                event.stopPropagation();
+                alert('Please add at least one class session to the schedule.');
+                return;
+            }
+
+            // Validate all schedule time ranges
+            let hasInvalidTimes = false;
+            $('.schedule-item').each(function() {
+                const fromTime = $(this).find('.schedule-from-time').val();
+                const toTime = $(this).find('.schedule-to-time').val();
+
+                if (fromTime && toTime && fromTime >= toTime) {
+                    hasInvalidTimes = true;
+                    $(this).find('.schedule-to-time').addClass('is-invalid');
+                    $(this).find('.schedule-time-error').text('End time must be after start time').css('display', 'block');
+                }
+            });
+
+            if (hasInvalidTimes) {
+                event.preventDefault();
+                event.stopPropagation();
+                alert('Please fix the invalid time ranges in the schedule.');
+                return;
+            }
+
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            } else {
+                // Show loading state
+                $('#submitBtn').prop('disabled', true);
+                $('#submitSpinner').removeClass('d-none');
+                $('#submitIcon').addClass('d-none');
+                $('#submitText').text('Creating Class...');
+            }
+            form.classList.add('was-validated');
+        }, false);
+    }
+
+    // Reset button handler
+    $('#resetBtn').on('click', function() {
+        setTimeout(function() {
+            // Clear schedule items
+            $('#scheduleContainer').empty();
+            scheduleCount = 0;
+            // Add one default item
+            $('#addScheduleBtn').trigger('click');
+            updatePreview();
+            updateProgress();
+            form.classList.remove('was-validated');
+        }, 100);
+    });
+
+    // Update progress bar based on filled sections
+    function updateProgress() {
+        let progress = 0;
+        const sections = 3;
+
+        // Check Basic Info (class_name, class_code, level)
+        if ($('#class_name').val() && $('#class_code').val() && $('#level').val()) {
+            progress += 1;
+            $('.badge').eq(0).removeClass('bg-primary-subtle text-primary').addClass('bg-success text-white');
+        } else {
+            $('.badge').eq(0).removeClass('bg-success text-white').addClass('bg-primary-subtle text-primary');
+        }
+
+        // Check Schedule (at least one schedule item with day, from time, and to time)
+        const hasSchedule = $('.schedule-item').length > 0;
+        const firstDay = $('select[name="schedule_day"]').first().val();
+        const firstFromTime = $('input[name="schedule_from_time"]').first().val();
+        const firstToTime = $('input[name="schedule_to_time"]').first().val();
+
+        if (hasSchedule && firstDay && firstFromTime && firstToTime) {
+            progress += 1;
+            $('.badge').eq(1).removeClass('bg-light text-muted').addClass('bg-success text-white');
+        } else {
+            $('.badge').eq(1).removeClass('bg-success text-white').addClass('bg-light text-muted');
+        }
+
+        // Check Configuration (dates and max_students)
+        if ($('#start_date').val() && $('#end_date').val() && $('#max_students').val()) {
+            progress += 1;
+            $('.badge').eq(2).removeClass('bg-light text-muted').addClass('bg-success text-white');
+        } else {
+            $('.badge').eq(2).removeClass('bg-success text-white').addClass('bg-light text-muted');
+        }
+
+        const percentage = (progress / sections) * 100;
+        $('.progress-bar').css('width', percentage + '%').attr('aria-valuenow', percentage);
+    }
+
+    // Bind progress update to input changes
+    $('#class_name, #class_code, #level, #start_date, #end_date, #max_students').on('input change', updateProgress);
+    $(document).on('input change', 'select[name="schedule_day"], input[name="schedule_from_time"], input[name="schedule_to_time"]', updateProgress);
+
+    // Initial updates
+    updateProgress();
+    updatePreview();
+});
+</script>
+
+<style>
+.avatar-xs {
+    width: 24px;
+    height: 24px;
+}
+
+.avatar-xs .avatar-title {
+    font-size: 12px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.avatar-lg {
+    width: 70px;
+    height: 70px;
+}
+
+fieldset {
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+legend {
+    border-bottom: 2px solid var(--bs-primary);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.schedule-item {
+    transition: all 0.2s ease;
+}
+
+.schedule-item:hover {
+    background-color: #f8f9fa;
+}
+
+.schedule-item small {
+    display: block;
+    margin-top: 0.25rem;
+}
+
+.avatar-sm {
+    width: 2rem;
+    height: 2rem;
+}
+
+.avatar-sm .avatar-title {
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+</style>
+{% endblock %}

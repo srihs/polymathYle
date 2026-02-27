@@ -338,14 +338,12 @@
                         <label for="teacher_select" class="form-label">
                             Teacher <span class="text-danger">*</span>
                         </label>
-                        <select class="form-select" id="teacher_select" required aria-describedby="teacher_select_help">
+                        <select class="form-select" id="teacher_select" required >
                             <option value="">-- Select Teacher --</option>
                             {% for teacher in teachers %}
                                 <option value="{{ teacher.id }}">{{ teacher.full_name }} ({{ teacher.employee_id }})</option>
                             {% endfor %}
                         </select>
-                        <div id="teacher_select_help" class="form-text">Choose the teacher for whom to set a new rate</div>
-                    </div>
                 </form>
             </div>
             <div class="modal-footer">

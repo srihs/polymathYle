@@ -81,12 +81,11 @@
                                            name="full_name"
                                            value="{{ student.full_name }}"
                                            placeholder="e.g., John Michael Smith"
-                                           aria-describedby="full_name_help"
+                                           
                                            autocomplete="name"
                                            required>
                                     <div class="invalid-feedback">Please enter the student's full name.</div>
                                 </div>
-                                <div id="full_name_help" class="form-text">Enter first, middle (optional), and last name</div>
                             </div>
                             <div class="col-md-6">
                                 <label for="name_with_initials" class="form-label">
@@ -100,11 +99,10 @@
                                            name="name_with_initials"
                                            value="{{ student.name_with_initials }}"
                                            placeholder="e.g., J.M. Smith"
-                                           aria-describedby="name_initials_help"
+                                           
                                            required>
                                     <div class="invalid-feedback">Please enter name with initials.</div>
                                 </div>
-                                <div id="name_initials_help" class="form-text">Official name format with initials</div>
                             </div>
                         </div>
 
@@ -119,11 +117,9 @@
                                            name="student_email"
                                            value="{{ student.student_email }}"
                                            placeholder="e.g., student@example.com"
-                                           aria-describedby="email_help"
+                                           
                                            autocomplete="email">
                                 </div>
-                                <div id="email_help" class="form-text">Optional email for student communications</div>
-                            </div>
                             <div class="col-md-6">
                                 <label for="current_school" class="form-label">Current School</label>
                                 <div class="input-group">
@@ -134,10 +130,8 @@
                                            name="current_school"
                                            value="{{ student.current_school }}"
                                            placeholder="e.g., Royal College, Colombo"
-                                           aria-describedby="school_help">
+                                           >
                                 </div>
-                                <div id="school_help" class="form-text">Student's regular day school</div>
-                            </div>
                         </div>
                     </fieldset>
 
@@ -159,12 +153,11 @@
                                            name="primary_contact_number"
                                            value="{{ student.primary_contact_number }}"
                                            placeholder="e.g., +94 77 123 4567"
-                                           aria-describedby="phone_help"
+                                           
                                            autocomplete="tel"
                                            required>
                                     <div class="invalid-feedback">Please enter a valid contact number.</div>
                                 </div>
-                                <div id="phone_help" class="form-text">Primary guardian's phone number</div>
                             </div>
                             <div class="col-md-6">
                                 <label for="whatsapp_number" class="form-label">WhatsApp Number</label>
@@ -176,9 +169,8 @@
                                            name="whatsapp_number"
                                            value="{{ student.whatsapp_number }}"
                                            placeholder="e.g., +94 77 123 4567"
-                                           aria-describedby="whatsapp_help">
+                                           >
                                 </div>
-                                <div id="whatsapp_help" class="form-text">For class updates and quick communications</div>
                             </div>
                         </div>
 
@@ -194,11 +186,10 @@
                                               name="home_address"
                                               rows="2"
                                               placeholder="e.g., 123 Main Street, Colombo 07"
-                                              aria-describedby="address_help"
+                                              
                                               required>{{ student.home_address }}</textarea>
                                     <div class="invalid-feedback">Please enter the home address.</div>
                                 </div>
-                                <div id="address_help" class="form-text">Complete home address for records</div>
                             </div>
                         </div>
                     </fieldset>
@@ -213,16 +204,14 @@
                                 <label for="current_level" class="form-label">
                                     Current YLE Level <span class="text-danger" aria-label="required">*</span>
                                 </label>
-                                <select class="form-select" id="current_level" name="current_level" aria-describedby="level_help" required>
+                                <select class="form-select" id="current_level" name="current_level"  required>
                                     <option value="STARTERS" {% if student.current_level == 'STARTERS' %}selected{% endif %}>Pre A1 Starters</option>
                                     <option value="MOVERS" {% if student.current_level == 'MOVERS' %}selected{% endif %}>A1 Movers</option>
                                     <option value="FLYERS" {% if student.current_level == 'FLYERS' %}selected{% endif %}>A2 Flyers</option>
                                 </select>
-                                <div id="level_help" class="form-text">Student's current Cambridge YLE level</div>
-                            </div>
                             <div class="col-md-6">
                                 <label for="assigned_class" class="form-label">Assigned Class</label>
-                                <select class="form-select" id="assigned_class" name="assigned_class" aria-describedby="class_help">
+                                <select class="form-select" id="assigned_class" name="assigned_class" >
                                     <option value="">Not Assigned</option>
                                     {% for class in classes %}
                                         <option value="{{ class.id }}" {% if student.assigned_class and student.assigned_class.id == class.id %}selected{% endif %}>
@@ -230,8 +219,6 @@
                                         </option>
                                     {% endfor %}
                                 </select>
-                                <div id="class_help" class="form-text">Select the class this student is enrolled in</div>
-                            </div>
                         </div>
 
                         <!-- YLE Level Visual Cards -->
@@ -306,14 +293,7 @@
                                        id="profile_picture"
                                        name="profile_picture"
                                        accept="image/jpeg,image/png,image/webp"
-                                       aria-describedby="picture_help">
-                                <div id="picture_help" class="form-text">
-                                    {% if student.profile_picture %}
-                                        <span class="text-success"><i class="ri-check-line"></i> Current photo uploaded</span> - Upload new to replace
-                                    {% else %}
-                                        Recommended: Square image, min 200x200px (JPG, PNG, WebP)
-                                    {% endif %}
-                                </div>
+                                       >
                             </div>
                             <div class="col-md-6">
                                 <div id="imagePreview" class="{% if not student.profile_picture %}d-none{% endif %}">

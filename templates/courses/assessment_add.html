@@ -1,0 +1,528 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block PageTitle %}Add Assessment - Polymath School of English{% endblock %}
+{% block pageTitle %}Add New Assessment{% endblock %}
+{% block Title %}Courses{% endblock %}
+{% block functionTitle %}Add Assessment{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header border-bottom">
+                <div class="d-flex align-items-center">
+                    <div class="avatar-sm me-3">
+                        <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                            <i class="ri-clipboard-add-line fs-4"></i>
+                        </span>
+                    </div>
+                    <div>
+                        <h5 class="card-title mb-0">Add New Assessment</h5>
+                        <p class="text-muted mb-0 small">Create a new assessment for a unit or level</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Form Progress Indicator -->
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="badge bg-primary-subtle text-primary">Step 1: Basic Info</span>
+                        <span class="badge bg-light text-muted">Step 2: Configuration</span>
+                        <span class="badge bg-light text-muted">Step 3: Skills & Scoring</span>
+                    </div>
+                    <div class="progress" style="height: 4px;" role="progressbar" aria-label="Form progress" aria-valuenow="33" aria-valuemin="0" aria-valuemax="100">
+                        <div class="progress-bar" style="width: 33%"></div>
+                    </div>
+                </div>
+
+                <form method="post" action="{% url 'assessment_add' %}" id="assessmentForm" novalidate>
+                    {% csrf_token %}
+
+                    <!-- Basic Information Section -->
+                    <fieldset class="mb-4">
+                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
+                            <i class="ri-information-line me-2"></i>Basic Information
+                        </legend>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text"><i class="ri-file-text-line"></i></span>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="title"
+                                           name="title"
+                                           placeholder="Assessment Title *"
+                                           autocomplete="off"
+                                           required>
+                                    <div class="invalid-feedback">Please enter the assessment title.</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text"><i class="ri-file-list-3-line"></i></span>
+                                    <select class="form-select" id="assessment_type" name="assessment_type" required>
+                                        <option value="" disabled selected>Select Assessment Type *</option>
+                                        {% for value, label in assessment_types %}
+                                        <option value="{{ value }}">{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="invalid-feedback">Please select the assessment type.</div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <textarea class="form-control"
+                                          id="description"
+                                          name="description"
+                                          rows="3"
+                                          placeholder="Assessment Description *"
+                                          required></textarea>
+                                <div class="invalid-feedback">Please enter a description.</div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Assessment Scope Section -->
+                    <fieldset class="mb-4">
+                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
+                            <i class="ri-list-check me-2"></i>Assessment Scope
+                        </legend>
+                        <div class="alert alert-info alert-dismissible fade show" role="alert">
+                            <i class="ri-information-line me-2"></i>
+                            <strong>Choose scope:</strong> Select either a specific Unit (for unit tests) or a Level (for level-wide exams). You can select both if needed.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="ri-book-line"></i></span>
+                                    <select class="form-select" id="unit" name="unit">
+                                        <option value="" selected>Select Unit (Optional)</option>
+                                        {% for unit in units %}
+                                        <option value="{{ unit.id }}">{{ unit.level.short_code }} - {{ unit.title }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="ri-stack-line"></i></span>
+                                    <select class="form-select" id="level" name="level">
+                                        <option value="" selected>Select Level (Optional)</option>
+                                        {% for level in levels %}
+                                        <option value="{{ level.id }}">{{ level.name }} ({{ level.cefr_level }})</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Configuration Section -->
+                    <fieldset class="mb-4">
+                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
+                            <i class="ri-settings-3-line me-2"></i>Configuration
+                        </legend>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text"><i class="ri-time-line"></i></span>
+                                    <input type="number"
+                                           class="form-control"
+                                           id="time_limit_minutes"
+                                           name="time_limit_minutes"
+                                           placeholder="Time Limit *"
+                                           value="30"
+                                           min="5"
+                                           max="300"
+                                           required>
+                                    <span class="input-group-text">mins</span>
+                                    <div class="invalid-feedback">Please enter time limit (5-300 minutes).</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text"><i class="ri-percent-line"></i></span>
+                                    <input type="number"
+                                           class="form-control"
+                                           id="passing_percentage"
+                                           name="passing_percentage"
+                                           placeholder="Passing Percentage *"
+                                           value="60"
+                                           min="0"
+                                           max="100"
+                                           step="0.01"
+                                           required>
+                                    <span class="input-group-text">%</span>
+                                    <div class="invalid-feedback">Please enter passing percentage (0-100).</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text"><i class="ri-trophy-line"></i></span>
+                                    <input type="number"
+                                           class="form-control"
+                                           id="max_score"
+                                           name="max_score"
+                                           placeholder="Maximum Score *"
+                                           value="100"
+                                           min="1"
+                                           max="1000"
+                                           required>
+                                    <span class="input-group-text">points</span>
+                                    <div class="invalid-feedback">Please enter maximum score (1-1000).</div>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Skills Tested Section -->
+                    <fieldset class="mb-4">
+                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
+                            <i class="ri-checkbox-multiple-line me-2"></i>Skills Tested
+                        </legend>
+                        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                            <i class="ri-alert-line me-2"></i>
+                            <strong>Important:</strong> Select at least one skill that this assessment will test.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-3 col-sm-6">
+                                <div class="card border h-100">
+                                    <div class="card-body">
+                                        <div class="form-check form-switch form-switch-lg mb-2">
+                                            <input class="form-check-input skill-checkbox"
+                                                   type="checkbox"
+                                                   id="tests_listening"
+                                                   name="tests_listening"
+                                                   checked>
+                                            <label class="form-check-label" for="tests_listening">
+                                                <i class="ri-headphone-line text-primary me-1"></i>
+                                                <strong>Listening</strong>
+                                            </label>
+                                        </div>
+                                        <p class="text-muted small mb-0">Audio comprehension and understanding</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-sm-6">
+                                <div class="card border h-100">
+                                    <div class="card-body">
+                                        <div class="form-check form-switch form-switch-lg mb-2">
+                                            <input class="form-check-input skill-checkbox"
+                                                   type="checkbox"
+                                                   id="tests_reading"
+                                                   name="tests_reading"
+                                                   checked>
+                                            <label class="form-check-label" for="tests_reading">
+                                                <i class="ri-book-read-line text-info me-1"></i>
+                                                <strong>Reading</strong>
+                                            </label>
+                                        </div>
+                                        <p class="text-muted small mb-0">Reading comprehension and analysis</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-sm-6">
+                                <div class="card border h-100">
+                                    <div class="card-body">
+                                        <div class="form-check form-switch form-switch-lg mb-2">
+                                            <input class="form-check-input skill-checkbox"
+                                                   type="checkbox"
+                                                   id="tests_writing"
+                                                   name="tests_writing"
+                                                   checked>
+                                            <label class="form-check-label" for="tests_writing">
+                                                <i class="ri-edit-line text-success me-1"></i>
+                                                <strong>Writing</strong>
+                                            </label>
+                                        </div>
+                                        <p class="text-muted small mb-0">Written expression and composition</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-sm-6">
+                                <div class="card border h-100">
+                                    <div class="card-body">
+                                        <div class="form-check form-switch form-switch-lg mb-2">
+                                            <input class="form-check-input skill-checkbox"
+                                                   type="checkbox"
+                                                   id="tests_speaking"
+                                                   name="tests_speaking">
+                                            <label class="form-check-label" for="tests_speaking">
+                                                <i class="ri-speak-line text-warning me-1"></i>
+                                                <strong>Speaking</strong>
+                                            </label>
+                                        </div>
+                                        <p class="text-muted small mb-0">Oral communication and fluency</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="skill_error" class="invalid-feedback d-none">
+                            Please select at least one skill to test.
+                        </div>
+                    </fieldset>
+
+                    <!-- Preview Section -->
+                    <fieldset class="mb-4">
+                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
+                            <i class="ri-eye-line me-2"></i>Preview
+                        </legend>
+                        <div class="border rounded p-3" id="assessmentPreview" style="background: linear-gradient(135deg, #660066 0%, #66006699 100%); min-height: 100px;">
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-lg me-3">
+                                    <span class="avatar-title bg-white bg-opacity-25 rounded-circle" style="width: 70px; height: 70px;">
+                                        <i id="previewIcon" class="ri-clipboard-line text-white" style="font-size: 2rem;"></i>
+                                    </span>
+                                </div>
+                                <div class="text-white">
+                                    <h4 class="mb-1 text-white" id="previewTitle">Assessment Title</h4>
+                                    <div class="d-flex flex-wrap gap-2 mb-2">
+                                        <span class="badge bg-white bg-opacity-25 text-white" id="previewType">Type</span>
+                                        <span class="badge bg-white bg-opacity-25 text-white" id="previewScope">Scope</span>
+                                    </div>
+                                    <div class="text-white small opacity-75">
+                                        <i class="ri-time-line me-1"></i><span id="previewTime">0</span> mins
+                                        <span class="mx-2">|</span>
+                                        <i class="ri-trophy-line me-1"></i><span id="previewScore">0</span> points
+                                        <span class="mx-2">|</span>
+                                        <i class="ri-percent-line me-1"></i><span id="previewPassing">0</span>% to pass
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Form Actions -->
+                    <div class="border-top pt-4 mt-4">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                            <div class="text-muted small">
+                                <span class="text-danger">*</span> indicates required fields
+                            </div>
+                            <div class="d-flex flex-wrap gap-2">
+                                <a href="{% url 'assessment_list' %}" class="btn btn-outline-secondary">
+                                    <i class="ri-close-line me-1"></i> Cancel
+                                </a>
+                                <button type="reset" class="btn btn-light" id="resetBtn">
+                                    <i class="ri-refresh-line me-1"></i> Reset Form
+                                </button>
+                                <button type="submit" class="btn btn-success" id="submitBtn">
+                                    <span class="spinner-border spinner-border-sm d-none me-1" role="status" aria-hidden="true" id="submitSpinner"></span>
+                                    <i class="ri-add-line me-1" id="submitIcon"></i>
+                                    <span id="submitText">Create Assessment</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Live preview updates
+    function updatePreview() {
+        var title = $('#title').val() || 'Assessment Title';
+        var type = $('#assessment_type option:selected').text() || 'Type';
+        var timeLimit = $('#time_limit_minutes').val() || '0';
+        var maxScore = $('#max_score').val() || '0';
+        var passingPct = $('#passing_percentage').val() || '0';
+
+        // Determine scope
+        var unitText = $('#unit option:selected').text();
+        var levelText = $('#level option:selected').text();
+        var scope = 'Select Scope';
+
+        if (unitText && !unitText.includes('Select')) {
+            scope = unitText;
+        } else if (levelText && !levelText.includes('Select')) {
+            scope = levelText;
+        }
+
+        $('#previewTitle').text(title);
+        $('#previewType').text(type);
+        $('#previewScope').text(scope);
+        $('#previewTime').text(timeLimit);
+        $('#previewScore').text(maxScore);
+        $('#previewPassing').text(passingPct);
+
+        // Update icon based on assessment type
+        var assessmentType = $('#assessment_type').val();
+        var icon = 'ri-clipboard-line';
+        var color = '#660066';
+
+        if (assessmentType === 'LEVEL_TEST') {
+            icon = 'ri-award-line';
+            color = '#dc3545';
+        } else if (assessmentType === 'PRACTICE_TEST') {
+            icon = 'ri-edit-box-line';
+            color = '#198754';
+        } else if (assessmentType === 'UNIT_TEST') {
+            icon = 'ri-file-list-3-line';
+            color = '#0dcaf0';
+        }
+
+        $('#previewIcon').attr('class', icon + ' text-white').css('font-size', '2rem');
+        $('#assessmentPreview').css('background', 'linear-gradient(135deg, ' + color + ' 0%, ' + color + '99 100%)');
+    }
+
+    // Bind preview updates
+    $('#title, #assessment_type, #unit, #level, #time_limit_minutes, #max_score, #passing_percentage').on('input change', updatePreview);
+
+    // Form validation
+    var form = document.getElementById('assessmentForm');
+    if (form) {
+        form.addEventListener('submit', function(event) {
+            // Check if at least one skill is selected
+            var skillsSelected = $('.skill-checkbox:checked').length > 0;
+            if (!skillsSelected) {
+                event.preventDefault();
+                event.stopPropagation();
+                $('#skill_error').removeClass('d-none').addClass('d-block');
+                alert('Please select at least one skill to test.');
+                return;
+            } else {
+                $('#skill_error').removeClass('d-block').addClass('d-none');
+            }
+
+            // Check if either unit or level is selected
+            var unitSelected = $('#unit').val();
+            var levelSelected = $('#level').val();
+            if (!unitSelected && !levelSelected) {
+                event.preventDefault();
+                event.stopPropagation();
+                alert('Please select either a Unit or a Level for this assessment.');
+                return;
+            }
+
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            } else {
+                // Show loading state
+                $('#submitBtn').prop('disabled', true);
+                $('#submitSpinner').removeClass('d-none');
+                $('#submitIcon').addClass('d-none');
+                $('#submitText').text('Creating Assessment...');
+            }
+            form.classList.add('was-validated');
+        }, false);
+    }
+
+    // Reset button handler
+    $('#resetBtn').on('click', function() {
+        setTimeout(function() {
+            updatePreview();
+            updateProgress();
+            form.classList.remove('was-validated');
+            $('#skill_error').removeClass('d-block').addClass('d-none');
+        }, 100);
+    });
+
+    // Update progress bar based on filled sections
+    function updateProgress() {
+        var progress = 0;
+        var sections = 3;
+
+        // Check Basic Info (title, assessment_type, description)
+        if ($('#title').val() && $('#assessment_type').val() && $('#description').val()) {
+            progress += 1;
+            $('.badge').eq(0).removeClass('bg-primary-subtle text-primary').addClass('bg-success text-white');
+        } else {
+            $('.badge').eq(0).removeClass('bg-success text-white').addClass('bg-primary-subtle text-primary');
+        }
+
+        // Check Configuration (time_limit, passing_percentage, max_score, and scope)
+        var hasScope = $('#unit').val() || $('#level').val();
+        if ($('#time_limit_minutes').val() && $('#passing_percentage').val() && $('#max_score').val() && hasScope) {
+            progress += 1;
+            $('.badge').eq(1).removeClass('bg-light text-muted').addClass('bg-success text-white');
+        } else {
+            $('.badge').eq(1).removeClass('bg-success text-white').addClass('bg-light text-muted');
+        }
+
+        // Check Skills (at least one skill selected)
+        var skillsSelected = $('.skill-checkbox:checked').length > 0;
+        if (skillsSelected) {
+            progress += 1;
+            $('.badge').eq(2).removeClass('bg-light text-muted').addClass('bg-success text-white');
+        } else {
+            $('.badge').eq(2).removeClass('bg-success text-white').addClass('bg-light text-muted');
+        }
+
+        var percentage = (progress / sections) * 100;
+        $('.progress-bar').css('width', percentage + '%').attr('aria-valuenow', percentage);
+    }
+
+    // Bind progress update to input changes
+    $('#title, #assessment_type, #description, #unit, #level, #time_limit_minutes, #passing_percentage, #max_score').on('input change', updateProgress);
+    $('.skill-checkbox').on('change', updateProgress);
+
+    // Initial updates
+    updateProgress();
+    updatePreview();
+});
+</script>
+
+<style>
+.avatar-xs {
+    width: 24px;
+    height: 24px;
+}
+
+.avatar-xs .avatar-title {
+    font-size: 12px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.avatar-lg {
+    width: 70px;
+    height: 70px;
+}
+
+.avatar-sm {
+    width: 2rem;
+    height: 2rem;
+}
+
+.avatar-sm .avatar-title {
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+fieldset {
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+legend {
+    border-bottom: 2px solid var(--bs-primary);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.form-switch-lg .form-check-input {
+    width: 3em;
+    height: 1.5em;
+}
+
+.card.border:hover {
+    border-color: var(--bs-primary) !important;
+    transition: border-color 0.2s ease;
+}
+</style>
+{% endblock %}

@@ -53,12 +53,11 @@
                                            id="name"
                                            name="name"
                                            placeholder="Level Name *"
-                                           aria-describedby="name_help"
+                                           
                                            autocomplete="off"
                                            required>
                                     <div class="invalid-feedback">Please enter the level name.</div>
                                 </div>
-                                <div id="name_help" class="form-text">Full name of the YLE level (e.g., "Pre A1 Starters")</div>
                             </div>
                             <div class="col-md-6">
                                 <div class="input-group has-validation">
@@ -68,13 +67,12 @@
                                            id="short_code"
                                            name="short_code"
                                            placeholder="Short Code (e.g., STARTERS) *"
-                                           aria-describedby="short_code_help"
+                                           
                                            pattern="[A-Z0-9]+"
                                            autocomplete="off"
                                            required>
                                     <div class="invalid-feedback">Please enter a unique short code (uppercase letters/numbers).</div>
                                 </div>
-                                <div id="short_code_help" class="form-text">Unique identifier in uppercase (e.g., "STARTERS", "MOVERS")</div>
                             </div>
                             <div class="col-md-6">
                                 <div class="input-group has-validation">
@@ -89,7 +87,6 @@
                                     </select>
                                     <div class="invalid-feedback">Please select the CEFR level.</div>
                                 </div>
-                                <div id="cefr_level_help" class="form-text">Common European Framework of Reference level</div>
                             </div>
                             <div class="col-md-6">
                                 <div class="input-group">
@@ -102,21 +99,21 @@
                                            value="{{ levels_count }}"
                                            min="0"
                                            max="100"
-                                           aria-describedby="order_help">
+                                           >
                                     <div class="invalid-feedback">Please enter a valid order number.</div>
                                 </div>
-                                <div id="order_help" class="form-text">Lower numbers appear first (0 = first)</div>
                             </div>
+                        </div>
+
+                        <div class="row g-3 mt-2">
                             <div class="col-12">
                                 <textarea class="form-control"
                                           id="description"
                                           name="description"
                                           rows="3"
                                           placeholder="Describe this level *"
-                                          aria-describedby="description_help"
+                                          
                                           required></textarea>
-                                <div id="description_help" class="form-text">Describe the level, target audience, and what makes it unique</div>
-                                <div class="invalid-feedback">Please enter a description.</div>
                             </div>
                         </div>
                     </fieldset>
@@ -137,12 +134,11 @@
                                            placeholder="Minimum Age *"
                                            min="4"
                                            max="18"
-                                           aria-describedby="age_min_help"
+                                           
                                            required>
                                     <span class="input-group-text">years</span>
                                     <div class="invalid-feedback">Please enter minimum age (4-18).</div>
                                 </div>
-                                <div id="age_min_help" class="form-text">Minimum recommended age</div>
                             </div>
                             <div class="col-md-4">
                                 <div class="input-group has-validation">
@@ -154,12 +150,11 @@
                                            placeholder="Maximum Age *"
                                            min="4"
                                            max="18"
-                                           aria-describedby="age_max_help"
+                                           
                                            required>
                                     <span class="input-group-text">years</span>
                                     <div class="invalid-feedback">Please enter maximum age (4-18).</div>
                                 </div>
-                                <div id="age_max_help" class="form-text">Maximum recommended age</div>
                             </div>
                             <div class="col-md-4">
                                 <div class="input-group has-validation">
@@ -171,12 +166,11 @@
                                            placeholder="Exam Duration (minutes) *"
                                            min="30"
                                            max="300"
-                                           aria-describedby="duration_help"
+                                           
                                            required>
                                     <span class="input-group-text">mins</span>
                                     <div class="invalid-feedback">Please enter exam duration (30-300 minutes).</div>
                                 </div>
-                                <div id="duration_help" class="form-text">Total exam time in minutes</div>
                             </div>
                         </div>
                     </fieldset>
@@ -201,17 +195,14 @@
                                            name="icon"
                                            value="ri-medal-line"
                                            placeholder="Icon Class (e.g., ri-medal-line) *"
-                                           aria-describedby="icon_help"
+                                           
                                            required>
                                     <div class="invalid-feedback">Please enter an icon class.</div>
                                 </div>
-                                <div id="icon_help" class="form-text">
-                                    RemixIcon class name. Examples:
-                                    <code>ri-seedling-line</code>,
-                                    <code>ri-run-line</code>,
-                                    <code>ri-rocket-line</code>
-                                </div>
                             </div>
+                        </div>
+
+                        <div class="row g-3 mt-2">
                             <div class="col-md-6">
                                 <div class="input-group has-validation">
                                     <input type="color"
@@ -220,7 +211,7 @@
                                            name="color_theme"
                                            value="#660066"
                                            title="Choose level color"
-                                           aria-describedby="color_help"
+                                           
                                            required>
                                     <input type="text"
                                            class="form-control"
@@ -230,12 +221,6 @@
                                            placeholder="Color Theme (e.g., #660066) *"
                                            required>
                                     <div class="invalid-feedback">Please select a color theme.</div>
-                                </div>
-                                <div id="color_help" class="form-text">
-                                    Hex color for UI elements. Common choices:
-                                    <button type="button" class="btn btn-sm btn-info color-preset" data-color="#3498db" style="padding: 2px 8px;">#3498db</button>
-                                    <button type="button" class="btn btn-sm btn-warning color-preset" data-color="#f39c12" style="padding: 2px 8px;">#f39c12</button>
-                                    <button type="button" class="btn btn-sm btn-success color-preset" data-color="#27ae60" style="padding: 2px 8px;">#27ae60</button>
                                 </div>
                             </div>
                             <div class="col-12">

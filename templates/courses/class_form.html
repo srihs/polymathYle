@@ -42,7 +42,6 @@
                                 <select class="form-select"
                                         id="level"
                                         name="level"
-                                        aria-describedby="level_help"
                                         required>
                                     <option value="">Select Level</option>
                                     {% for level in levels %}
@@ -53,7 +52,6 @@
                                     </option>
                                     {% endfor %}
                                 </select>
-                                <div id="level_help" class="form-text">Select the YLE level for this class</div>
                                 <div class="invalid-feedback">Please select a YLE level.</div>
                             </div>
                             <div class="col-md-6">
@@ -68,12 +66,10 @@
                                            name="class_code"
                                            value="{{ class.class_code|default:'' }}"
                                            placeholder="e.g., START-A, MOV-B"
-                                           aria-describedby="class_code_help"
                                            pattern="[A-Za-z0-9\-]+"
                                            required>
                                     <div class="invalid-feedback">Please enter a unique class code.</div>
                                 </div>
-                                <div id="class_code_help" class="form-text">Unique identifier (e.g., START-A, MOV-2024-B)</div>
                             </div>
                             <div class="col-md-6">
                                 <label for="class_name" class="form-label">
@@ -87,11 +83,9 @@
                                            name="class_name"
                                            value="{{ class.class_name|default:'' }}"
                                            placeholder="e.g., Morning Batch A, Weekend Class"
-                                           aria-describedby="class_name_help"
                                            required>
                                     <div class="invalid-feedback">Please enter a class name.</div>
                                 </div>
-                                <div id="class_name_help" class="form-text">Display name for the class</div>
                             </div>
                             <div class="col-md-6">
                                 <label for="room_number" class="form-label">Room Number</label>
@@ -102,10 +96,8 @@
                                            id="room_number"
                                            name="room_number"
                                            value="{{ class.room_number|default:'' }}"
-                                           placeholder="e.g., Room 101, Lab A"
-                                           aria-describedby="room_number_help">
+                                           placeholder="e.g., Room 101, Lab A">
                                 </div>
-                                <div id="room_number_help" class="form-text">Classroom or location</div>
                             </div>
                         </div>
                     </fieldset>
@@ -120,8 +112,7 @@
                                 <label for="teacher" class="form-label">Assigned Teacher</label>
                                 <select class="form-select"
                                         id="teacher"
-                                        name="teacher"
-                                        aria-describedby="teacher_help">
+                                        name="teacher">
                                     <option value="">Select Teacher (Optional)</option>
                                     {% for teacher in teachers %}
                                     <option value="{{ teacher.id }}"
@@ -136,7 +127,6 @@
                                     </option>
                                     {% endfor %}
                                 </select>
-                                <div id="teacher_help" class="form-text">Teacher to assign to this class</div>
                             </div>
                             <div class="col-md-6">
                                 <label for="max_students" class="form-label">
@@ -151,12 +141,10 @@
                                            value="{{ class.max_students|default:25 }}"
                                            min="1"
                                            max="50"
-                                           aria-describedby="max_students_help"
                                            required>
                                     <span class="input-group-text">students</span>
                                     <div class="invalid-feedback">Please enter a valid capacity (1-50).</div>
                                 </div>
-                                <div id="max_students_help" class="form-text">Maximum capacity for this class</div>
                             </div>
                         </div>
                     </fieldset>
@@ -178,11 +166,9 @@
                                            id="start_date"
                                            name="start_date"
                                            value="{{ class.start_date|date:'Y-m-d'|default:'' }}"
-                                           aria-describedby="start_date_help"
                                            required>
                                     <div class="invalid-feedback">Please select a start date.</div>
                                 </div>
-                                <div id="start_date_help" class="form-text">When does the class begin?</div>
                             </div>
                             <div class="col-md-6">
                                 <label for="end_date" class="form-label">
@@ -195,11 +181,9 @@
                                            id="end_date"
                                            name="end_date"
                                            value="{{ class.end_date|date:'Y-m-d'|default:'' }}"
-                                           aria-describedby="end_date_help"
                                            required>
                                     <div class="invalid-feedback">Please select an end date after start date.</div>
                                 </div>
-                                <div id="end_date_help" class="form-text">When does the class end?</div>
                             </div>
                         </div>
                     </fieldset>
@@ -212,63 +196,75 @@
                         <div id="scheduleContainer">
                             {% if class.schedule %}
                             {% for session in class.schedule %}
-                            <div class="schedule-row row g-3 mb-3" data-index="{{ forloop.counter0 }}">
-                                <div class="col-md-4">
-                                    <label class="form-label">Day</label>
-                                    <select class="form-select" name="schedule_day[]" required>
-                                        <option value="">Select Day</option>
-                                        <option value="Monday" {% if session.day == 'Monday' %}selected{% endif %}>Monday</option>
-                                        <option value="Tuesday" {% if session.day == 'Tuesday' %}selected{% endif %}>Tuesday</option>
-                                        <option value="Wednesday" {% if session.day == 'Wednesday' %}selected{% endif %}>Wednesday</option>
-                                        <option value="Thursday" {% if session.day == 'Thursday' %}selected{% endif %}>Thursday</option>
-                                        <option value="Friday" {% if session.day == 'Friday' %}selected{% endif %}>Friday</option>
-                                        <option value="Saturday" {% if session.day == 'Saturday' %}selected{% endif %}>Saturday</option>
-                                        <option value="Sunday" {% if session.day == 'Sunday' %}selected{% endif %}>Sunday</option>
-                                    </select>
+                            <div class="schedule-row mb-3" data-index="{{ forloop.counter0 }}">
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <select class="form-select" name="schedule_day[]" required>
+                                            <option value="">Select Day *</option>
+                                            <option value="Monday" {% if session.day == 'Monday' %}selected{% endif %}>Monday</option>
+                                            <option value="Tuesday" {% if session.day == 'Tuesday' %}selected{% endif %}>Tuesday</option>
+                                            <option value="Wednesday" {% if session.day == 'Wednesday' %}selected{% endif %}>Wednesday</option>
+                                            <option value="Thursday" {% if session.day == 'Thursday' %}selected{% endif %}>Thursday</option>
+                                            <option value="Friday" {% if session.day == 'Friday' %}selected{% endif %}>Friday</option>
+                                            <option value="Saturday" {% if session.day == 'Saturday' %}selected{% endif %}>Saturday</option>
+                                            <option value="Sunday" {% if session.day == 'Sunday' %}selected{% endif %}>Sunday</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="position-relative">
+                                            <input type="time" class="form-control schedule-from-time" name="schedule_from_time[]" value="{% if session.from_time %}{{ session.from_time }}{% elif session.time %}{{ session.time }}{% endif %}" required>
+                                            <small class="text-muted position-absolute" style="font-size: 0.75rem; left: 0; bottom: -18px;">From Time</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="position-relative">
+                                            <input type="time" class="form-control schedule-to-time" name="schedule_to_time[]" value="{{ session.to_time }}" required>
+                                            <small class="text-muted position-absolute" style="font-size: 0.75rem; left: 0; bottom: -18px;">To Time</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button type="button" class="btn btn-danger btn-sm remove-schedule w-100" title="Remove session">
+                                            <i class="ri-delete-bin-line"></i> Remove
+                                        </button>
+                                    </div>
                                 </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">Start Time</label>
-                                    <input type="time" class="form-control" name="schedule_time[]" value="{{ session.time }}" required>
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">Duration (mins)</label>
-                                    <input type="number" class="form-control" name="schedule_duration[]" value="{{ session.duration_minutes|default:90 }}" min="15" max="240">
-                                </div>
-                                <div class="col-md-2 d-flex align-items-end">
-                                    <button type="button" class="btn btn-outline-danger w-100 remove-schedule" title="Remove session">
-                                        <i class="ri-delete-bin-line"></i>
-                                    </button>
-                                </div>
+                                <div class="error-message text-danger mt-2 schedule-time-error" style="display: none;"></div>
                             </div>
                             {% endfor %}
                             {% else %}
-                            <div class="schedule-row row g-3 mb-3" data-index="0">
-                                <div class="col-md-4">
-                                    <label class="form-label">Day</label>
-                                    <select class="form-select" name="schedule_day[]">
-                                        <option value="">Select Day</option>
-                                        <option value="Monday">Monday</option>
-                                        <option value="Tuesday">Tuesday</option>
-                                        <option value="Wednesday">Wednesday</option>
-                                        <option value="Thursday">Thursday</option>
-                                        <option value="Friday">Friday</option>
-                                        <option value="Saturday">Saturday</option>
-                                        <option value="Sunday">Sunday</option>
-                                    </select>
+                            <div class="schedule-row mb-3" data-index="0">
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <select class="form-select" name="schedule_day[]">
+                                            <option value="">Select Day</option>
+                                            <option value="Monday">Monday</option>
+                                            <option value="Tuesday">Tuesday</option>
+                                            <option value="Wednesday">Wednesday</option>
+                                            <option value="Thursday">Thursday</option>
+                                            <option value="Friday">Friday</option>
+                                            <option value="Saturday">Saturday</option>
+                                            <option value="Sunday">Sunday</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="position-relative">
+                                            <input type="time" class="form-control schedule-from-time" name="schedule_from_time[]">
+                                            <small class="text-muted position-absolute" style="font-size: 0.75rem; left: 0; bottom: -18px;">From Time</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="position-relative">
+                                            <input type="time" class="form-control schedule-to-time" name="schedule_to_time[]">
+                                            <small class="text-muted position-absolute" style="font-size: 0.75rem; left: 0; bottom: -18px;">To Time</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button type="button" class="btn btn-danger btn-sm remove-schedule w-100" title="Remove session">
+                                            <i class="ri-delete-bin-line"></i> Remove
+                                        </button>
+                                    </div>
                                 </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">Start Time</label>
-                                    <input type="time" class="form-control" name="schedule_time[]">
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">Duration (mins)</label>
-                                    <input type="number" class="form-control" name="schedule_duration[]" value="90" min="15" max="240">
-                                </div>
-                                <div class="col-md-2 d-flex align-items-end">
-                                    <button type="button" class="btn btn-outline-danger w-100 remove-schedule" title="Remove session">
-                                        <i class="ri-delete-bin-line"></i>
-                                    </button>
-                                </div>
+                                <div class="error-message text-danger mt-2 schedule-time-error" style="display: none;"></div>
                             </div>
                             {% endif %}
                         </div>
@@ -359,7 +355,7 @@
                     </div>
                     <div class="flex-grow-1 ms-3">
                         <h6 class="mb-1">Schedule</h6>
-                        <p class="text-muted small mb-0">Add multiple sessions for classes that meet on different days</p>
+                        <p class="text-muted small mb-0">Add multiple sessions with from/to times for classes that meet on different days</p>
                     </div>
                 </div>
                 <div class="d-flex">
@@ -423,33 +419,35 @@ $(document).ready(function() {
     // Add schedule row
     $('#addScheduleBtn').on('click', function() {
         var newRow = `
-            <div class="schedule-row row g-3 mb-3" data-index="${scheduleIndex}">
-                <div class="col-md-4">
-                    <label class="form-label">Day</label>
-                    <select class="form-select" name="schedule_day[]">
-                        <option value="">Select Day</option>
-                        <option value="Monday">Monday</option>
-                        <option value="Tuesday">Tuesday</option>
-                        <option value="Wednesday">Wednesday</option>
-                        <option value="Thursday">Thursday</option>
-                        <option value="Friday">Friday</option>
-                        <option value="Saturday">Saturday</option>
-                        <option value="Sunday">Sunday</option>
-                    </select>
+            <div class="schedule-row card mb-3 p-3" data-index="${scheduleIndex}">
+                <div class="row g-3 align-items-center">
+                    <div class="col-12 col-md-3">
+                        <select class="form-select" name="schedule_day[]">
+                            <option value="">Select Day</option>
+                            <option value="Monday">Monday</option>
+                            <option value="Tuesday">Tuesday</option>
+                            <option value="Wednesday">Wednesday</option>
+                            <option value="Thursday">Thursday</option>
+                            <option value="Friday">Friday</option>
+                            <option value="Saturday">Saturday</option>
+                            <option value="Sunday">Sunday</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <input type="time" class="form-control schedule-from-time" name="schedule_from_time[]">
+                        <small class="text-muted">From Time</small>
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <input type="time" class="form-control schedule-to-time" name="schedule_to_time[]">
+                        <small class="text-muted">To Time</small>
+                    </div>
+                    <div class="col-12 col-md-3 text-end">
+                        <button type="button" class="btn btn-danger btn-sm remove-schedule" title="Remove session">
+                            <i class="ri-delete-bin-line"></i> Remove
+                        </button>
+                    </div>
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label">Start Time</label>
-                    <input type="time" class="form-control" name="schedule_time[]">
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Duration (mins)</label>
-                    <input type="number" class="form-control" name="schedule_duration[]" value="90" min="15" max="240">
-                </div>
-                <div class="col-md-2 d-flex align-items-end">
-                    <button type="button" class="btn btn-outline-danger w-100 remove-schedule" title="Remove session">
-                        <i class="ri-delete-bin-line"></i>
-                    </button>
-                </div>
+                <div class="error-message text-danger mt-2 schedule-time-error" style="display: none;"></div>
             </div>
         `;
         $('#scheduleContainer').append(newRow);
@@ -465,7 +463,24 @@ $(document).ready(function() {
             var row = $(this).closest('.schedule-row');
             row.find('select').val('');
             row.find('input[type="time"]').val('');
-            row.find('input[type="number"]').val('90');
+        }
+    });
+
+    // Validate time range (to time must be after from time)
+    $(document).on('change', '.schedule-from-time, .schedule-to-time', function() {
+        var scheduleRow = $(this).closest('.schedule-row');
+        var fromTime = scheduleRow.find('.schedule-from-time').val();
+        var toTime = scheduleRow.find('.schedule-to-time').val();
+        var errorDiv = scheduleRow.find('.schedule-time-error');
+
+        if (fromTime && toTime) {
+            if (fromTime >= toTime) {
+                scheduleRow.find('.schedule-to-time').addClass('is-invalid');
+                errorDiv.text('End time must be after start time').css('display', 'block');
+            } else {
+                scheduleRow.find('.schedule-to-time').removeClass('is-invalid');
+                errorDiv.css('display', 'none');
+            }
         }
     });
 
@@ -487,6 +502,26 @@ $(document).ready(function() {
     // Form validation
     var form = document.getElementById('classForm');
     form.addEventListener('submit', function(event) {
+        // Validate all schedule time ranges
+        var hasInvalidTimes = false;
+        $('.schedule-row').each(function() {
+            var fromTime = $(this).find('.schedule-from-time').val();
+            var toTime = $(this).find('.schedule-to-time').val();
+
+            if (fromTime && toTime && fromTime >= toTime) {
+                hasInvalidTimes = true;
+                $(this).find('.schedule-to-time').addClass('is-invalid');
+                $(this).find('.schedule-time-error').text('End time must be after start time').css('display', 'block');
+            }
+        });
+
+        if (hasInvalidTimes) {
+            event.preventDefault();
+            event.stopPropagation();
+            alert('Please fix the invalid time ranges in the schedule.');
+            return;
+        }
+
         if (!form.checkValidity()) {
             event.preventDefault();
             event.stopPropagation();
@@ -532,6 +567,19 @@ legend {
 .form-switch-lg .form-check-input {
     width: 3em;
     height: 1.5em;
+}
+
+.schedule-row {
+    transition: all 0.2s ease;
+}
+
+.schedule-row:hover {
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+}
+
+.schedule-row small {
+    display: block;
+    margin-top: 0.25rem;
 }
 </style>
 {% endblock %}

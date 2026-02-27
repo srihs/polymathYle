@@ -51,8 +51,7 @@
                                 <label for="student" class="form-label">
                                     Select Student <span class="text-danger">*</span>
                                 </label>
-                                <select class="form-select select2-student" id="student" name="student" required
-                                        aria-describedby="student-help student-error">
+                                <select class="form-select select2-student" id="student" name="student" required>
                                     <option value="">Search for a student...</option>
                                     {% for student in students %}
                                     <option value="{{ student.id }}"
@@ -63,9 +62,6 @@
                                     </option>
                                     {% endfor %}
                                 </select>
-                                <div id="student-help" class="form-text">
-                                    Select the student who will receive this certificate
-                                </div>
                                 {% if form.student.errors %}
                                 <div id="student-error" class="invalid-feedback d-block" role="alert">
                                     {{ form.student.errors.0 }}
@@ -85,8 +81,7 @@
                                 <label for="certificate_type" class="form-label">
                                     Certificate Type <span class="text-danger">*</span>
                                 </label>
-                                <select class="form-select" id="certificate_type" name="certificate_type" required
-                                        aria-describedby="type-help">
+                                <select class="form-select" id="certificate_type" name="certificate_type" required>
                                     <option value="">Select type...</option>
                                     <option value="COMPLETION" {% if form.certificate_type.value == 'COMPLETION' %}selected{% endif %}>
                                         Completion Certificate
@@ -98,16 +93,12 @@
                                         Participation Certificate
                                     </option>
                                 </select>
-                                <div id="type-help" class="form-text">
-                                    The type of certificate being issued
-                                </div>
                             </div>
                             <div class="col-md-6">
                                 <label for="level" class="form-label">
                                     YLE Level <span class="text-danger">*</span>
                                 </label>
-                                <select class="form-select" id="level" name="level" required
-                                        aria-describedby="level-help">
+                                <select class="form-select" id="level" name="level" required>
                                     <option value="">Select level...</option>
                                     <option value="STARTERS" {% if form.level.value == 'STARTERS' %}selected{% endif %}>
                                         Pre A1 Starters
@@ -119,9 +110,6 @@
                                         A2 Flyers
                                     </option>
                                 </select>
-                                <div id="level-help" class="form-text">
-                                    The Cambridge YLE level for this certificate
-                                </div>
                             </div>
                             <div class="col-md-6">
                                 <label for="issue_date" class="form-label">

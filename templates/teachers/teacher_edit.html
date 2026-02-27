@@ -61,12 +61,11 @@
                                            name="full_name"
                                            value="{{ teacher.full_name }}"
                                            placeholder="e.g., John Michael Smith"
-                                           aria-describedby="full_name_help"
+                                           
                                            autocomplete="name"
                                            required>
                                     <div class="invalid-feedback">Please enter the teacher's full name.</div>
                                 </div>
-                                <div id="full_name_help" class="form-text">Enter first, middle (optional), and last name</div>
                             </div>
                             <div class="col-md-6">
                                 <label for="employee_id" class="form-label">
@@ -80,12 +79,11 @@
                                            name="employee_id"
                                            value="{{ teacher.employee_id }}"
                                            placeholder="e.g., EMP001"
-                                           aria-describedby="employee_id_help"
+                                           
                                            pattern="[A-Za-z0-9]+"
                                            required>
                                     <div class="invalid-feedback">Please enter a unique employee ID.</div>
                                 </div>
-                                <div id="employee_id_help" class="form-text">Unique identifier for internal use</div>
                             </div>
                         </div>
                     </fieldset>
@@ -108,12 +106,11 @@
                                            name="email"
                                            value="{{ teacher.email }}"
                                            placeholder="e.g., john.smith@example.com"
-                                           aria-describedby="email_help"
+                                           
                                            autocomplete="email"
                                            required>
                                     <div class="invalid-feedback">Please enter a valid email address.</div>
                                 </div>
-                                <div id="email_help" class="form-text">Used for official communications and notifications</div>
                             </div>
                             <div class="col-md-6">
                                 <label for="contact_number" class="form-label">
@@ -127,12 +124,11 @@
                                            name="contact_number"
                                            value="{{ teacher.contact_number }}"
                                            placeholder="e.g., +94 77 123 4567"
-                                           aria-describedby="contact_number_help"
+                                           
                                            autocomplete="tel"
                                            required>
                                     <div class="invalid-feedback">Please enter a valid contact number.</div>
                                 </div>
-                                <div id="contact_number_help" class="form-text">Include country code if international</div>
                             </div>
                         </div>
                     </fieldset>
@@ -155,13 +151,12 @@
                                            name="username"
                                            value="{{ teacher.user.username }}"
                                            placeholder="e.g., john.smith"
-                                           aria-describedby="username_help"
+                                           
                                            autocomplete="username"
                                            pattern="[a-zA-Z0-9._]+"
                                            required>
                                     <div class="invalid-feedback">Username can only contain letters, numbers, dots, and underscores.</div>
                                 </div>
-                                <div id="username_help" class="form-text">Letters, numbers, dots, and underscores only</div>
                             </div>
                             <div class="col-md-6">
                                 <label for="password" class="form-label">New Password</label>
@@ -172,15 +167,11 @@
                                            id="password"
                                            name="password"
                                            placeholder="Leave blank to keep current"
-                                           aria-describedby="password_help"
+                                           
                                            autocomplete="new-password">
                                     <button class="btn btn-outline-secondary" type="button" id="togglePassword" aria-label="Toggle password visibility">
                                         <i class="ri-eye-line" id="passwordIcon"></i>
                                     </button>
-                                </div>
-                                <div id="password_help" class="form-text">
-                                    <i class="ri-information-line me-1"></i>
-                                    Only fill this if you want to change the current password
                                 </div>
                             </div>
                         </div>
@@ -203,10 +194,9 @@
                                            value="{{ teacher.years_of_experience }}"
                                            min="0"
                                            max="50"
-                                           aria-describedby="experience_help">
+                                           >
                                     <span class="input-group-text">years</span>
                                 </div>
-                                <div id="experience_help" class="form-text">Total teaching experience</div>
                             </div>
                             <div class="col-md-4">
                                 <label for="date_joined" class="form-label">
@@ -219,20 +209,18 @@
                                            id="date_joined"
                                            name="date_joined"
                                            value="{{ teacher.date_joined|date:'Y-m-d' }}"
-                                           aria-describedby="date_joined_help"
+                                           
                                            required>
                                     <div class="invalid-feedback">Please select the joining date.</div>
                                 </div>
-                                <div id="date_joined_help" class="form-text">Employment start date</div>
                             </div>
                             <div class="col-md-4">
                                 <label for="employment_type" class="form-label">Employment Type</label>
-                                <select class="form-select" id="employment_type" name="employment_type" aria-describedby="employment_type_help">
+                                <select class="form-select" id="employment_type" name="employment_type" >
                                     <option value="FULL_TIME" {% if teacher.employment_type == 'FULL_TIME' %}selected{% endif %}>Full Time</option>
                                     <option value="PART_TIME" {% if teacher.employment_type == 'PART_TIME' %}selected{% endif %}>Part Time</option>
                                     <option value="CONTRACT" {% if teacher.employment_type == 'CONTRACT' %}selected{% endif %}>Contract</option>
                                 </select>
-                                <div id="employment_type_help" class="form-text">Current employment status</div>
                             </div>
                         </div>
 
@@ -244,8 +232,7 @@
                                           name="qualifications"
                                           rows="3"
                                           placeholder="e.g., CELTA, TESOL, B.Ed in English, MA in Applied Linguistics"
-                                          aria-describedby="qualifications_help">{{ teacher.qualifications }}</textarea>
-                                <div id="qualifications_help" class="form-text">List teaching certifications and degrees</div>
+                                          >{{ teacher.qualifications }}</textarea>
                             </div>
                             <div class="col-md-6">
                                 <label for="bio" class="form-label">Biography</label>
@@ -254,8 +241,7 @@
                                           name="bio"
                                           rows="3"
                                           placeholder="Brief introduction about the teacher's background and teaching style..."
-                                          aria-describedby="bio_help">{{ teacher.bio }}</textarea>
-                                <div id="bio_help" class="form-text">Short bio for student/parent view</div>
+                                          >{{ teacher.bio }}</textarea>
                             </div>
                         </div>
 
@@ -267,14 +253,7 @@
                                        id="profile_picture"
                                        name="profile_picture"
                                        accept="image/jpeg,image/png,image/webp"
-                                       aria-describedby="profile_picture_help">
-                                <div id="profile_picture_help" class="form-text">
-                                    {% if teacher.profile_picture %}
-                                        <span class="text-success"><i class="ri-check-line"></i> Current photo uploaded</span> - Upload new to replace
-                                    {% else %}
-                                        Recommended: Square image, min 200x200px (JPG, PNG, WebP)
-                                    {% endif %}
-                                </div>
+                                       >
                             </div>
                             <div class="col-md-6">
                                 <div id="imagePreview" class="{% if not teacher.profile_picture %}d-none{% endif %}">

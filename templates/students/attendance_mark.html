@@ -117,7 +117,7 @@
                             </label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="ri-book-open-line"></i></span>
-                                <select class="form-select" id="class_id" name="class_id" required aria-describedby="class_help">
+                                <select class="form-select" id="class_id" name="class_id" required>
                                     <option value="">Select a class...</option>
                                     {% for class in classes %}
                                         <option value="{{ class.id }}" {% if selected_class and selected_class.id == class.id %}selected{% endif %}>
@@ -126,7 +126,6 @@
                                     {% endfor %}
                                 </select>
                             </div>
-                            <div id="class_help" class="form-text">Select the class to mark attendance for</div>
                         </div>
                         <div class="col-lg-4 col-md-4">
                             <label for="attendance_date" class="form-label">
@@ -139,10 +138,8 @@
                                        id="attendance_date"
                                        name="attendance_date"
                                        value="{{ attendance_date|date:'Y-m-d' }}"
-                                       required
-                                       aria-describedby="date_help">
+                                       required>
                             </div>
-                            <div id="date_help" class="form-text">Select the date for attendance</div>
                         </div>
                         <div class="col-lg-3 col-md-2">
                             <button type="submit" class="btn btn-primary w-100">
