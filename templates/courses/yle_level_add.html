@@ -1,0 +1,482 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block PageTitle %}Add YLE Level - Polymath School of English{% endblock %}
+{% block pageTitle %}Add New YLE Level{% endblock %}
+{% block Title %}Courses{% endblock %}
+{% block functionTitle %}Add YLE Level{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header border-bottom">
+                <div class="d-flex align-items-center">
+                    <div class="avatar-sm me-3">
+                        <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                            <i class="ri-stack-add-line fs-4"></i>
+                        </span>
+                    </div>
+                    <div>
+                        <h5 class="card-title mb-0">Add New YLE Level</h5>
+                        <p class="text-muted mb-0 small">Configure a new Cambridge Young Learners English level</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Form Progress Indicator -->
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="badge bg-primary-subtle text-primary">Step 1: Basic Info</span>
+                        <span class="badge bg-light text-muted">Step 2: Details</span>
+                        <span class="badge bg-light text-muted">Step 3: Visual</span>
+                    </div>
+                    <div class="progress" style="height: 4px;" role="progressbar" aria-label="Form progress" aria-valuenow="33" aria-valuemin="0" aria-valuemax="100">
+                        <div class="progress-bar" style="width: 33%"></div>
+                    </div>
+                </div>
+
+                <form method="post" action="{% url 'yle_level_add' %}" id="yleLevelForm" novalidate>
+                    {% csrf_token %}
+
+                    <!-- Basic Information Section -->
+                    <fieldset class="mb-4">
+                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
+                            <i class="ri-information-line me-2"></i>Basic Information
+                        </legend>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text"><i class="ri-medal-line"></i></span>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="name"
+                                           name="name"
+                                           placeholder="Level Name *"
+                                           aria-describedby="name_help"
+                                           autocomplete="off"
+                                           required>
+                                    <div class="invalid-feedback">Please enter the level name.</div>
+                                </div>
+                                <div id="name_help" class="form-text">Full name of the YLE level (e.g., "Pre A1 Starters")</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text"><i class="ri-code-line"></i></span>
+                                    <input type="text"
+                                           class="form-control text-uppercase"
+                                           id="short_code"
+                                           name="short_code"
+                                           placeholder="Short Code (e.g., STARTERS) *"
+                                           aria-describedby="short_code_help"
+                                           pattern="[A-Z0-9]+"
+                                           autocomplete="off"
+                                           required>
+                                    <div class="invalid-feedback">Please enter a unique short code (uppercase letters/numbers).</div>
+                                </div>
+                                <div id="short_code_help" class="form-text">Unique identifier in uppercase (e.g., "STARTERS", "MOVERS")</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text"><i class="ri-bar-chart-line"></i></span>
+                                    <select class="form-select" id="cefr_level" name="cefr_level" required>
+                                        <option value="" disabled selected>Select CEFR Level *</option>
+                                        <option value="Pre A1">Pre A1</option>
+                                        <option value="A1">A1</option>
+                                        <option value="A2">A2</option>
+                                        <option value="B1">B1</option>
+                                        <option value="B2">B2</option>
+                                    </select>
+                                    <div class="invalid-feedback">Please select the CEFR level.</div>
+                                </div>
+                                <div id="cefr_level_help" class="form-text">Common European Framework of Reference level</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="ri-sort-number-asc"></i></span>
+                                    <input type="number"
+                                           class="form-control"
+                                           id="order"
+                                           name="order"
+                                           placeholder="Display Order"
+                                           value="{{ levels_count }}"
+                                           min="0"
+                                           max="100"
+                                           aria-describedby="order_help">
+                                    <div class="invalid-feedback">Please enter a valid order number.</div>
+                                </div>
+                                <div id="order_help" class="form-text">Lower numbers appear first (0 = first)</div>
+                            </div>
+                            <div class="col-12">
+                                <textarea class="form-control"
+                                          id="description"
+                                          name="description"
+                                          rows="3"
+                                          placeholder="Describe this level *"
+                                          aria-describedby="description_help"
+                                          required></textarea>
+                                <div id="description_help" class="form-text">Describe the level, target audience, and what makes it unique</div>
+                                <div class="invalid-feedback">Please enter a description.</div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Level Details Section -->
+                    <fieldset class="mb-4">
+                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
+                            <i class="ri-list-check me-2"></i>Level Details
+                        </legend>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text"><i class="ri-user-smile-line"></i></span>
+                                    <input type="number"
+                                           class="form-control"
+                                           id="age_range_min"
+                                           name="age_range_min"
+                                           placeholder="Minimum Age *"
+                                           min="4"
+                                           max="18"
+                                           aria-describedby="age_min_help"
+                                           required>
+                                    <span class="input-group-text">years</span>
+                                    <div class="invalid-feedback">Please enter minimum age (4-18).</div>
+                                </div>
+                                <div id="age_min_help" class="form-text">Minimum recommended age</div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text"><i class="ri-user-line"></i></span>
+                                    <input type="number"
+                                           class="form-control"
+                                           id="age_range_max"
+                                           name="age_range_max"
+                                           placeholder="Maximum Age *"
+                                           min="4"
+                                           max="18"
+                                           aria-describedby="age_max_help"
+                                           required>
+                                    <span class="input-group-text">years</span>
+                                    <div class="invalid-feedback">Please enter maximum age (4-18).</div>
+                                </div>
+                                <div id="age_max_help" class="form-text">Maximum recommended age</div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text"><i class="ri-time-line"></i></span>
+                                    <input type="number"
+                                           class="form-control"
+                                           id="duration_minutes"
+                                           name="duration_minutes"
+                                           placeholder="Exam Duration (minutes) *"
+                                           min="30"
+                                           max="300"
+                                           aria-describedby="duration_help"
+                                           required>
+                                    <span class="input-group-text">mins</span>
+                                    <div class="invalid-feedback">Please enter exam duration (30-300 minutes).</div>
+                                </div>
+                                <div id="duration_help" class="form-text">Total exam time in minutes</div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Visual Theme Section -->
+                    <fieldset class="mb-4">
+                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
+                            <i class="ri-palette-line me-2"></i>Visual Theme
+                        </legend>
+                        <div class="alert alert-info alert-dismissible fade show" role="alert">
+                            <i class="ri-information-line me-2"></i>
+                            <strong>Customize the look:</strong> Choose an icon and color to make this level stand out in the interface.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text"><i class="ri-image-line"></i></span>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="icon"
+                                           name="icon"
+                                           value="ri-medal-line"
+                                           placeholder="Icon Class (e.g., ri-medal-line) *"
+                                           aria-describedby="icon_help"
+                                           required>
+                                    <div class="invalid-feedback">Please enter an icon class.</div>
+                                </div>
+                                <div id="icon_help" class="form-text">
+                                    RemixIcon class name. Examples:
+                                    <code>ri-seedling-line</code>,
+                                    <code>ri-run-line</code>,
+                                    <code>ri-rocket-line</code>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-group has-validation">
+                                    <input type="color"
+                                           class="form-control form-control-color"
+                                           id="color_theme"
+                                           name="color_theme"
+                                           value="#660066"
+                                           title="Choose level color"
+                                           aria-describedby="color_help"
+                                           required>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="color_theme_text"
+                                           value="#660066"
+                                           pattern="#[0-9A-Fa-f]{6}"
+                                           placeholder="Color Theme (e.g., #660066) *"
+                                           required>
+                                    <div class="invalid-feedback">Please select a color theme.</div>
+                                </div>
+                                <div id="color_help" class="form-text">
+                                    Hex color for UI elements. Common choices:
+                                    <button type="button" class="btn btn-sm btn-info color-preset" data-color="#3498db" style="padding: 2px 8px;">#3498db</button>
+                                    <button type="button" class="btn btn-sm btn-warning color-preset" data-color="#f39c12" style="padding: 2px 8px;">#f39c12</button>
+                                    <button type="button" class="btn btn-sm btn-success color-preset" data-color="#27ae60" style="padding: 2px 8px;">#27ae60</button>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Preview</label>
+                                <div class="border rounded p-3" id="levelPreview" style="background: linear-gradient(135deg, #660066 0%, #66006699 100%); min-height: 100px;">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-lg me-3">
+                                            <span class="avatar-title bg-white bg-opacity-25 rounded-circle" style="width: 70px; height: 70px;">
+                                                <i id="previewIcon" class="ri-medal-line text-white" style="font-size: 2rem;"></i>
+                                            </span>
+                                        </div>
+                                        <div class="text-white">
+                                            <h4 class="mb-1 text-white" id="previewName">Level Name</h4>
+                                            <span class="badge bg-white bg-opacity-25 text-white" id="previewCEFR">CEFR</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Status Section -->
+                    <fieldset class="mb-4">
+                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
+                            <i class="ri-settings-3-line me-2"></i>Status
+                        </legend>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-check form-switch form-switch-lg">
+                                    <input class="form-check-input"
+                                           type="checkbox"
+                                           id="is_active"
+                                           name="is_active"
+                                           checked>
+                                    <label class="form-check-label" for="is_active">
+                                        <strong>Active Level</strong>
+                                        <p class="text-muted mb-0 small">Active levels appear in listings and can be assigned to classes</p>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Form Actions -->
+                    <div class="border-top pt-4 mt-4">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                            <div class="text-muted small">
+                                <span class="text-danger">*</span> indicates required fields
+                            </div>
+                            <div class="d-flex flex-wrap gap-2">
+                                <a href="{% url 'level_list' %}" class="btn btn-outline-secondary">
+                                    <i class="ri-close-line me-1"></i> Cancel
+                                </a>
+                                <button type="reset" class="btn btn-light" id="resetBtn">
+                                    <i class="ri-refresh-line me-1"></i> Reset Form
+                                </button>
+                                <button type="submit" class="btn btn-success" id="submitBtn">
+                                    <span class="spinner-border spinner-border-sm d-none me-1" role="status" aria-hidden="true" id="submitSpinner"></span>
+                                    <i class="ri-add-line me-1" id="submitIcon"></i>
+                                    <span id="submitText">Create YLE Level</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Live preview updates
+    function updatePreview() {
+        var name = $('#name').val() || 'Level Name';
+        var cefr = $('#cefr_level').val() || 'CEFR';
+        var icon = $('#icon').val() || 'ri-medal-line';
+        var color = $('#color_theme').val() || '#660066';
+
+        $('#previewName').text(name);
+        $('#previewCEFR').text(cefr);
+        $('#previewIcon').attr('class', icon + ' text-white').css('font-size', '2rem');
+        $('#levelPreview').css('background', 'linear-gradient(135deg, ' + color + ' 0%, ' + color + '99 100%)');
+    }
+
+    // Sync color picker with text input (these handlers also update preview)
+    $('#color_theme').on('input change', function() {
+        $('#color_theme_text').val($(this).val());
+        updatePreview();
+    });
+
+    $('#color_theme_text').on('input', function() {
+        var color = $(this).val();
+        // Update preview immediately for visual feedback as user types
+        updatePreview();
+        // Only update the color picker if valid hex color
+        if (/^#[0-9A-Fa-f]{6}$/.test(color)) {
+            $('#color_theme').val(color);
+        }
+    });
+
+    // Bind preview updates to other fields
+    $('#name, #cefr_level, #icon').on('input change', updatePreview);
+
+    // Color preset buttons
+    $('.color-preset').on('click', function(e) {
+        e.preventDefault();
+        var color = $(this).data('color');
+        // Update both inputs and trigger the color picker's input event
+        // This will sync both fields and update the preview
+        $('#color_theme').val(color).trigger('input');
+    });
+
+    // Auto-uppercase short code
+    $('#short_code').on('input', function() {
+        $(this).val($(this).val().toUpperCase());
+    });
+
+    // Age range validation
+    $('#age_range_min, #age_range_max').on('change', function() {
+        var minAge = parseInt($('#age_range_min').val());
+        var maxAge = parseInt($('#age_range_max').val());
+
+        if (minAge && maxAge && minAge >= maxAge) {
+            $('#age_range_max').addClass('is-invalid');
+            $('#age_range_max').siblings('.invalid-feedback').text('Maximum age must be greater than minimum age.');
+        } else {
+            $('#age_range_max').removeClass('is-invalid');
+        }
+    });
+
+    // Form validation
+    var form = document.getElementById('yleLevelForm');
+    if (form) {
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            } else {
+                // Show loading state
+                $('#submitBtn').prop('disabled', true);
+                $('#submitSpinner').removeClass('d-none');
+                $('#submitIcon').addClass('d-none');
+                $('#submitText').text('Creating Level...');
+            }
+            form.classList.add('was-validated');
+        }, false);
+    }
+
+    // Reset button handler
+    $('#resetBtn').on('click', function() {
+        setTimeout(function() {
+            updatePreview();
+            form.classList.remove('was-validated');
+        }, 100);
+    });
+
+    // Update progress bar based on filled sections
+    function updateProgress() {
+        var progress = 0;
+        var sections = 3;
+
+        // Check Basic Info (name, short_code, cefr_level, description)
+        if ($('#name').val() && $('#short_code').val() && $('#cefr_level').val() && $('#description').val()) {
+            progress += 1;
+            $('.badge').eq(0).removeClass('bg-primary-subtle text-primary').addClass('bg-success text-white');
+        } else {
+            $('.badge').eq(0).removeClass('bg-success text-white').addClass('bg-primary-subtle text-primary');
+        }
+
+        // Check Details (ages and duration)
+        if ($('#age_range_min').val() && $('#age_range_max').val() && $('#duration_minutes').val()) {
+            progress += 1;
+            $('.badge').eq(1).removeClass('bg-light text-muted').addClass('bg-success text-white');
+        } else {
+            $('.badge').eq(1).removeClass('bg-success text-white').addClass('bg-light text-muted');
+        }
+
+        // Check Visual (icon and color)
+        if ($('#icon').val() && $('#color_theme').val()) {
+            progress += 1;
+            $('.badge').eq(2).removeClass('bg-light text-muted').addClass('bg-success text-white');
+        } else {
+            $('.badge').eq(2).removeClass('bg-success text-white').addClass('bg-light text-muted');
+        }
+
+        var percentage = (progress / sections) * 100;
+        $('.progress-bar').css('width', percentage + '%').attr('aria-valuenow', percentage);
+    }
+
+    // Bind progress update to input changes
+    $('#name, #short_code, #cefr_level, #description, #age_range_min, #age_range_max, #duration_minutes, #icon, #color_theme').on('input change', updateProgress);
+
+    // Initial updates
+    updateProgress();
+    updatePreview();
+});
+</script>
+
+<style>
+.avatar-xs {
+    width: 24px;
+    height: 24px;
+}
+
+.avatar-xs .avatar-title {
+    font-size: 12px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.avatar-lg {
+    width: 70px;
+    height: 70px;
+}
+
+fieldset {
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+legend {
+    border-bottom: 2px solid var(--bs-primary);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.form-switch-lg .form-check-input {
+    width: 3em;
+    height: 1.5em;
+}
+
+.form-control-color {
+    max-width: 80px;
+}
+</style>
+{% endblock %}

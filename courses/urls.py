@@ -9,6 +9,7 @@ from . import views
 urlpatterns = [
     # ============== YLE LEVEL URLs ==============
     path('levels/', views.level_list_view, name='level_list'),
+    path('levels/add/', views.yle_level_add_view, name='yle_level_add'),
     path('levels/<int:level_id>/', views.level_detail_view, name='level_detail'),
 
     # ============== CLASS URLs ==============

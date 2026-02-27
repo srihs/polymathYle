@@ -109,7 +109,7 @@
                                        id="search"
                                        name="search"
                                        value="{{ search_query }}"
-                                       placeholder="Name, Admission No., Email..."
+                                       placeholder="Name, Reference No., Email..."
                                        aria-label="Search applications">
                                 {% if search_query %}
                                     <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('search').value=''; document.getElementById('filterForm').submit();" aria-label="Clear search">
@@ -202,7 +202,7 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th scope="col">Date</th>
-                                        <th scope="col">Admission No.</th>
+                                        <th scope="col">Reference No.</th>
                                         <th scope="col">Student</th>
                                         <th scope="col">Age/Gender</th>
                                         <th scope="col">Contact</th>
@@ -220,9 +220,9 @@
                                                 </span>
                                             </td>
                                             <td>
-                                                {% if app.admission_number %}
+                                                {% if app.reference_number %}
                                                     <span class="badge bg-primary-subtle text-primary fw-medium">
-                                                        {{ app.admission_number }}
+                                                        {{ app.reference_number }}
                                                     </span>
                                                 {% else %}
                                                     <span class="text-muted small">Pending</span>
@@ -231,7 +231,7 @@
                                             <td>
                                                 <div class="d-flex align-items-center">
                                                     <div class="avatar-sm me-3">
-                                                        <span class="avatar-title rounded-circle bg-{% if app.gender == 'M' %}info{% else %}pink{% endif %}-subtle text-{% if app.gender == 'M' %}info{% else %}pink{% endif %}">
+                                                        <span class="avatar-title rounded-circle bg-{% if app.gender == 'MALE' %}info{% else %}pink{% endif %}-subtle text-{% if app.gender == 'MALE' %}info{% else %}pink{% endif %}">
                                                             {{ app.full_name|first|upper }}
                                                         </span>
                                                     </div>
@@ -246,7 +246,7 @@
                                                 <span class="text-muted">years</span>
                                                 <br>
                                                 <small class="text-muted">
-                                                    {% if app.gender == 'M' %}
+                                                    {% if app.gender == 'MALE' %}
                                                         <i class="ri-men-line text-info"></i> Male
                                                     {% else %}
                                                         <i class="ri-women-line text-pink"></i> Female
@@ -335,7 +335,7 @@
                                         <div class="card-body">
                                             <div class="d-flex align-items-start mb-3">
                                                 <div class="avatar-md me-3">
-                                                    <span class="avatar-title bg-{% if app.gender == 'M' %}info{% else %}pink{% endif %}-subtle text-{% if app.gender == 'M' %}info{% else %}pink{% endif %} rounded-circle fs-4">
+                                                    <span class="avatar-title bg-{% if app.gender == 'MALE' %}info{% else %}pink{% endif %}-subtle text-{% if app.gender == 'MALE' %}info{% else %}pink{% endif %} rounded-circle fs-4">
                                                         {{ app.full_name|first|upper }}
                                                     </span>
                                                 </div>
@@ -343,8 +343,8 @@
                                                     <h5 class="mb-1">{{ app.full_name }}</h5>
                                                     <p class="text-muted mb-2 small">{{ app.name_with_initials }}</p>
                                                     <div class="d-flex flex-wrap gap-1">
-                                                        {% if app.admission_number %}
-                                                            <span class="badge bg-primary-subtle text-primary">{{ app.admission_number }}</span>
+                                                        {% if app.reference_number %}
+                                                            <span class="badge bg-primary-subtle text-primary">{{ app.reference_number }}</span>
                                                         {% endif %}
                                                         {% if app.status == 'PENDING' %}
                                                             <span class="badge bg-warning">Pending</span>

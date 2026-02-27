@@ -93,7 +93,7 @@
                         </p>
                     </div>
                     {% if perms.courses.add_ylelevel %}
-                    <a href="{% url 'admin:courses_ylelevel_add' %}" class="btn btn-success">
+                    <a href="{% url 'yle_level_add' %}" class="btn btn-success">
                         <i class="ri-add-line me-1"></i> Add Level
                     </a>
                     {% endif %}
@@ -255,7 +255,7 @@
                     Set up the Cambridge YLE levels (Starters, Movers, Flyers) to start organizing your courses.
                 </p>
                 {% if perms.courses.add_ylelevel %}
-                <a href="{% url 'admin:courses_ylelevel_add' %}" class="btn btn-primary">
+                <a href="{% url 'yle_level_add' %}" class="btn btn-primary">
                     <i class="ri-add-line me-1"></i> Add First Level
                 </a>
                 {% endif %}

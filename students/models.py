@@ -11,6 +11,13 @@ class Application(models.Model):
     Based on Polymath College application form structure
     """
     # APPLICATION DETAILS
+    reference_number = models.CharField(
+        max_length=20,
+        unique=True,
+        blank=True,
+        null=True,
+        help_text="Unique reference number in format A{YYMMDD}-{ID}"
+    )
     admission_number = models.CharField(max_length=50, unique=True, blank=True, null=True)
     application_date = models.DateField(auto_now_add=True)
     receipt_number = models.CharField(max_length=50, blank=True)
@@ -137,11 +144,20 @@ class Application(models.Model):
         if self.date_of_birth:
             self.age = self.calculate_age()
 
+        # Save first to get the ID for new applications
+        is_new = self.pk is None
+        super().save(*args, **kwargs)
+
+        # Generate reference number if it doesn't exist (for new applications)
+        if is_new and not self.reference_number:
+            app_date = self.application_date or date.today()
+            self.reference_number = f"A{app_date.strftime('%y%m%d')}-{self.pk}"
+            super().save(update_fields=['reference_number'])
+
         # Generate admission number if approved and not set
         if self.status == 'APPROVED' and not self.admission_number:
             self.admission_number = self.generate_admission_number()
-
-        super().save(*args, **kwargs)
+            super().save(update_fields=['admission_number'])
 
     def generate_admission_number(self):
         """Generate unique admission number"""

@@ -30,13 +30,18 @@
                                 <h3 class="mb-1">{{ application.full_name }}</h3>
                                 <p class="text-muted mb-2">{{ application.name_with_initials }}</p>
                                 <div class="d-flex flex-wrap gap-2">
-                                    {% if application.admission_number %}
+                                    {% if application.reference_number %}
                                         <span class="badge bg-primary-subtle text-primary">
-                                            <i class="ri-hashtag me-1"></i>{{ application.admission_number }}
+                                            <i class="ri-key-line me-1"></i>{{ application.reference_number }}
                                         </span>
                                     {% else %}
                                         <span class="badge bg-secondary-subtle text-secondary">
-                                            <i class="ri-hashtag me-1"></i>No Admission Number
+                                            <i class="ri-key-line me-1"></i>No Reference Number
+                                        </span>
+                                    {% endif %}
+                                    {% if application.admission_number %}
+                                        <span class="badge bg-info-subtle text-info">
+                                            <i class="ri-hashtag me-1"></i>{{ application.admission_number }}
                                         </span>
                                     {% endif %}
                                     {% if application.status == 'PENDING' %}
@@ -425,6 +430,18 @@
                 <div class="table-responsive">
                     <table class="table table-borderless table-sm mb-0">
                         <tbody>
+                            <tr>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-key-line me-2"></i>Reference Number
+                                </th>
+                                <td class="fw-medium">
+                                    {% if application.reference_number %}
+                                        <span class="badge bg-primary-subtle text-primary">{{ application.reference_number }}</span>
+                                    {% else %}
+                                        <span class="text-muted">Not generated</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
                             <tr>
                                 <th class="ps-0 text-muted">
                                     <i class="ri-calendar-line me-2"></i>Application Date

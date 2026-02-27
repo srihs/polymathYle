@@ -48,13 +48,14 @@ def application_status_view(request):
     searched = False
 
     if request.method == 'POST':
-        admission_number = request.POST.get('admission_number')
+        reference_number = request.POST.get('reference_number')
         email = request.POST.get('email')
         searched = True
 
         try:
+            # Try to find by reference_number first, then by admission_number (backward compatibility)
             application = Application.objects.get(
-                admission_number=admission_number,
+                Q(reference_number=reference_number) | Q(admission_number=reference_number),
                 primary_contact_email=email
             )
         except Application.DoesNotExist:
@@ -300,6 +301,7 @@ def application_list_view(request):
     search_query = request.GET.get('search', '')
     if search_query:
         applications = applications.filter(
+            Q(reference_number__icontains=search_query) |
             Q(admission_number__icontains=search_query) |
             Q(full_name__icontains=search_query) |
             Q(primary_contact_email__icontains=search_query) |

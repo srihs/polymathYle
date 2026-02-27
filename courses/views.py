@@ -43,6 +43,97 @@ def level_list_view(request):
 
 
 @login_required
+@permission_required('courses.add_ylelevel', raise_exception=True)
+def yle_level_add_view(request):
+    """
+    Add a new YLE level (admin/staff only).
+    """
+    if request.method == 'POST':
+        # Get form data
+        name = request.POST.get('name', '').strip()
+        short_code = request.POST.get('short_code', '').strip().upper()
+        cefr_level = request.POST.get('cefr_level', '').strip()
+        description = request.POST.get('description', '').strip()
+        age_range_min = request.POST.get('age_range_min')
+        age_range_max = request.POST.get('age_range_max')
+        duration_minutes = request.POST.get('duration_minutes')
+        order = request.POST.get('order', '0')
+        icon = request.POST.get('icon', 'ri-medal-line').strip()
+        color_theme = request.POST.get('color_theme', '#660066').strip()
+        is_active = request.POST.get('is_active') == 'on'
+
+        # Validate required fields
+        if not all([name, short_code, cefr_level, description, age_range_min, age_range_max, duration_minutes, icon, color_theme]):
+            messages.error(request, 'Please fill in all required fields.')
+            return redirect('yle_level_add')
+
+        # Check for duplicate short code
+        if YLELevel.objects.filter(short_code=short_code).exists():
+            messages.error(request, f'A YLE level with short code "{short_code}" already exists.')
+            return redirect('yle_level_add')
+
+        try:
+            # Convert numeric fields to integers
+            age_min = int(age_range_min)
+            age_max = int(age_range_max)
+            duration = int(duration_minutes)
+            level_order = int(order)
+
+            # Validate age ranges
+            if age_min < 4 or age_min > 18:
+                messages.error(request, 'Minimum age must be between 4 and 18 years.')
+                return redirect('yle_level_add')
+
+            if age_max < 4 or age_max > 18:
+                messages.error(request, 'Maximum age must be between 4 and 18 years.')
+                return redirect('yle_level_add')
+
+            if age_min >= age_max:
+                messages.error(request, 'Maximum age must be greater than minimum age.')
+                return redirect('yle_level_add')
+
+            # Validate duration
+            if duration < 30 or duration > 300:
+                messages.error(request, 'Exam duration must be between 30 and 300 minutes.')
+                return redirect('yle_level_add')
+
+            # Create YLE Level
+            new_level = YLELevel.objects.create(
+                name=name,
+                short_code=short_code,
+                cefr_level=cefr_level,
+                description=description,
+                age_range_min=age_min,
+                age_range_max=age_max,
+                duration_minutes=duration,
+                order=level_order,
+                icon=icon,
+                color_theme=color_theme,
+                is_active=is_active,
+            )
+
+            messages.success(request, f'YLE Level "{new_level.name}" created successfully!')
+            return redirect('level_detail', level_id=new_level.id)
+
+        except ValueError as e:
+            messages.error(request, f'Invalid data provided: {str(e)}')
+            return redirect('yle_level_add')
+        except Exception as e:
+            messages.error(request, f'An error occurred while creating the level: {str(e)}')
+            return redirect('yle_level_add')
+
+    # GET request - show form
+    # Get existing levels count for order suggestion
+    levels_count = YLELevel.objects.count()
+
+    context = {
+        'levels_count': levels_count,
+    }
+
+    return render(request, 'courses/yle_level_add.html', context)
+
+
+@login_required
 def level_detail_view(request, level_id):
     """
     Detail view for a specific YLE level.

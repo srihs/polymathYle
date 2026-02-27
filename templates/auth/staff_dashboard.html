@@ -220,9 +220,9 @@
                                             <span class="fw-medium">{{ app.age }}</span> yrs
                                         </td>
                                         <td>
-                                            {% if app.gender == 'M' %}
+                                            {% if app.gender == 'MALE' %}
                                                 <span class="badge bg-info-subtle text-info">Male</span>
-                                            {% elif app.gender == 'F' %}
+                                            {% elif app.gender == 'FEMALE' %}
                                                 <span class="badge bg-pink-subtle text-pink">Female</span>
                                             {% else %}
                                                 <span class="badge bg-secondary-subtle text-secondary">{{ app.gender }}</span>
