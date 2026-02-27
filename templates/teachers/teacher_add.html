@@ -8,7 +8,7 @@
 
 {% block content %}
 <div class="row">
-    <div class="col-lg-8">
+    <div class="col-12">
         <div class="card">
             <div class="card-header border-bottom">
                 <div class="d-flex align-items-center">
@@ -24,19 +24,6 @@
                 </div>
             </div>
             <div class="card-body">
-                <!-- Form Progress Indicator -->
-                <div class="mb-4">
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="badge bg-primary-subtle text-primary">Step 1: Basic Info</span>
-                        <span class="badge bg-light text-muted">Step 2: Contact</span>
-                        <span class="badge bg-light text-muted">Step 3: Account</span>
-                        <span class="badge bg-light text-muted">Step 4: Professional</span>
-                    </div>
-                    <div class="progress" style="height: 4px;" role="progressbar" aria-label="Form progress" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
-                        <div class="progress-bar" style="width: 25%"></div>
-                    </div>
-                </div>
-
                 <form method="post" enctype="multipart/form-data" action="{% url 'teacher_add' %}" id="teacherForm" novalidate>
                     {% csrf_token %}
 
@@ -47,34 +34,28 @@
                         </legend>
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label for="full_name" class="form-label">
-                                    Full Name <span class="text-danger" aria-label="required">*</span>
-                                </label>
                                 <div class="input-group has-validation">
                                     <span class="input-group-text"><i class="ri-user-line"></i></span>
                                     <input type="text"
                                            class="form-control"
                                            id="full_name"
                                            name="full_name"
-                                           placeholder="e.g., John Michael Smith"
-                                           
+                                           placeholder="Full Name (e.g., John Michael Smith) *"
+                                           aria-label="Full Name"
                                            autocomplete="name"
                                            required>
                                     <div class="invalid-feedback">Please enter the teacher's full name.</div>
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <label for="employee_id" class="form-label">
-                                    Employee ID <span class="text-danger" aria-label="required">*</span>
-                                </label>
                                 <div class="input-group has-validation">
                                     <span class="input-group-text"><i class="ri-hashtag"></i></span>
                                     <input type="text"
                                            class="form-control"
                                            id="employee_id"
                                            name="employee_id"
-                                           placeholder="e.g., EMP001"
-                                           
+                                           placeholder="Employee ID (e.g., EMP001) *"
+                                           aria-label="Employee ID"
                                            pattern="[A-Za-z0-9]+"
                                            required>
                                     <div class="invalid-feedback">Please enter a unique employee ID.</div>
@@ -90,34 +71,28 @@
                         </legend>
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label for="email" class="form-label">
-                                    Email Address <span class="text-danger" aria-label="required">*</span>
-                                </label>
                                 <div class="input-group has-validation">
                                     <span class="input-group-text"><i class="ri-mail-line"></i></span>
                                     <input type="email"
                                            class="form-control"
                                            id="email"
                                            name="email"
-                                           placeholder="e.g., john.smith@example.com"
-                                           
+                                           placeholder="Email Address (e.g., john.smith@example.com) *"
+                                           aria-label="Email Address"
                                            autocomplete="email"
                                            required>
                                     <div class="invalid-feedback">Please enter a valid email address.</div>
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <label for="contact_number" class="form-label">
-                                    Contact Number <span class="text-danger" aria-label="required">*</span>
-                                </label>
                                 <div class="input-group has-validation">
                                     <span class="input-group-text"><i class="ri-phone-line"></i></span>
                                     <input type="tel"
                                            class="form-control"
                                            id="contact_number"
                                            name="contact_number"
-                                           placeholder="e.g., +94 77 123 4567"
-                                           
+                                           placeholder="Contact Number (e.g., +94 77 123 4567) *"
+                                           aria-label="Contact Number"
                                            autocomplete="tel"
                                            required>
                                     <div class="invalid-feedback">Please enter a valid contact number.</div>
@@ -138,17 +113,14 @@
                         </div>
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label for="username" class="form-label">
-                                    Username <span class="text-danger" aria-label="required">*</span>
-                                </label>
                                 <div class="input-group has-validation">
                                     <span class="input-group-text"><i class="ri-at-line"></i></span>
                                     <input type="text"
                                            class="form-control"
                                            id="username"
                                            name="username"
-                                           placeholder="e.g., john.smith"
-                                           
+                                           placeholder="Username (e.g., john.smith) *"
+                                           aria-label="Username"
                                            autocomplete="username"
                                            pattern="[a-zA-Z0-9._]+"
                                            required>
@@ -156,9 +128,6 @@
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <label for="password" class="form-label">
-                                    Initial Password <span class="text-danger" aria-label="required">*</span>
-                                </label>
                                 <div class="input-group has-validation">
                                     <span class="input-group-text"><i class="ri-key-line"></i></span>
                                     <input type="password"
@@ -166,7 +135,8 @@
                                            id="password"
                                            name="password"
                                            value="teacher123"
-                                           
+                                           placeholder="Initial Password *"
+                                           aria-label="Initial Password"
                                            autocomplete="new-password">
                                     <button class="btn btn-outline-secondary" type="button" id="togglePassword" aria-label="Toggle password visibility">
                                         <i class="ri-eye-line" id="passwordIcon"></i>
@@ -184,39 +154,37 @@
                         </legend>
                         <div class="row g-3">
                             <div class="col-md-4">
-                                <label for="years_of_experience" class="form-label">Years of Experience</label>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="ri-time-line"></i></span>
                                     <input type="number"
                                            class="form-control"
                                            id="years_of_experience"
                                            name="years_of_experience"
-                                           value="0"
                                            min="0"
                                            max="50"
-                                           >
-                                    <span class="input-group-text">years</span>
+                                           placeholder="Years of Experience"
+                                           aria-label="Years of Experience">
                                 </div>
                             </div>
                             <div class="col-md-4">
-                                <label for="date_joined" class="form-label">
-                                    Date Joined <span class="text-danger" aria-label="required">*</span>
-                                </label>
                                 <div class="input-group has-validation">
                                     <span class="input-group-text"><i class="ri-calendar-line"></i></span>
-                                    <input type="date"
-                                           class="form-control"
+                                    <input type="text"
+                                           class="form-control flatpickr-input"
                                            id="date_joined"
                                            name="date_joined"
-                                           
+                                           placeholder="Date Joined *"
+                                           aria-label="Date Joined"
+                                           data-provider="flatpickr"
+                                           data-date-format="Y-m-d"
                                            required>
                                     <div class="invalid-feedback">Please select the joining date.</div>
                                 </div>
                             </div>
                             <div class="col-md-4">
-                                <label for="employment_type" class="form-label">Employment Type</label>
-                                <select class="form-select" id="employment_type" name="employment_type" >
-                                    <option value="FULL_TIME" selected>Full Time</option>
+                                <select class="form-select" id="employment_type" name="employment_type" aria-label="Employment Type">
+                                    <option value="" disabled selected>Select Employment Type</option>
+                                    <option value="FULL_TIME">Full Time</option>
                                     <option value="PART_TIME">Part Time</option>
                                     <option value="CONTRACT">Contract</option>
                                 </select>
@@ -225,38 +193,35 @@
 
                         <div class="row g-3 mt-2">
                             <div class="col-md-6">
-                                <label for="qualifications" class="form-label">Qualifications</label>
                                 <textarea class="form-control"
                                           id="qualifications"
                                           name="qualifications"
                                           rows="3"
-                                          placeholder="e.g., CELTA, TESOL, B.Ed in English, MA in Applied Linguistics"
-                                          ></textarea>
+                                          placeholder="Qualifications (e.g., CELTA, TESOL, B.Ed in English, MA in Applied Linguistics)"
+                                          aria-label="Qualifications"></textarea>
                             </div>
                             <div class="col-md-6">
-                                <label for="bio" class="form-label">Biography</label>
                                 <textarea class="form-control"
                                           id="bio"
                                           name="bio"
                                           rows="3"
-                                          placeholder="Brief introduction about the teacher's background and teaching style..."
-                                          ></textarea>
+                                          placeholder="Biography - Brief introduction about the teacher's background and teaching style..."
+                                          aria-label="Biography"></textarea>
                             </div>
                         </div>
 
                         <div class="row g-3 mt-2">
                             <div class="col-md-6">
-                                <label for="profile_picture" class="form-label">Profile Picture</label>
+                                <label for="profile_picture" class="form-label text-muted small mb-1">Profile Picture (JPG, PNG, WebP)</label>
                                 <input type="file"
                                        class="form-control"
                                        id="profile_picture"
                                        name="profile_picture"
                                        accept="image/jpeg,image/png,image/webp"
-                                       >
+                                       aria-label="Profile Picture">
                             </div>
                             <div class="col-md-6">
                                 <div id="imagePreview" class="d-none">
-                                    <label class="form-label">Preview</label>
                                     <div class="border rounded p-2 bg-light text-center">
                                         <img id="previewImg" src="" alt="Profile preview" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
                                     </div>
@@ -357,85 +322,22 @@
             </div>
         </div>
     </div>
-
-    <!-- Help Sidebar -->
-    <div class="col-lg-4">
-        <!-- Quick Tips Card -->
-        <div class="card sticky-top" style="top: 80px;">
-            <div class="card-header bg-primary bg-opacity-10">
-                <h6 class="card-title mb-0 text-primary">
-                    <i class="ri-lightbulb-line me-2"></i>Quick Tips
-                </h6>
-            </div>
-            <div class="card-body">
-                <div class="d-flex mb-3">
-                    <div class="flex-shrink-0">
-                        <span class="avatar-xs avatar-title bg-success-subtle text-success rounded-circle">1</span>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <h6 class="mb-1">Employee ID</h6>
-                        <p class="text-muted small mb-0">Use a consistent format like EMP001, T001, or initials + number</p>
-                    </div>
-                </div>
-                <div class="d-flex mb-3">
-                    <div class="flex-shrink-0">
-                        <span class="avatar-xs avatar-title bg-success-subtle text-success rounded-circle">2</span>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <h6 class="mb-1">Username</h6>
-                        <p class="text-muted small mb-0">Suggest using firstname.lastname format for easy recognition</p>
-                    </div>
-                </div>
-                <div class="d-flex mb-3">
-                    <div class="flex-shrink-0">
-                        <span class="avatar-xs avatar-title bg-success-subtle text-success rounded-circle">3</span>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <h6 class="mb-1">YLE Levels</h6>
-                        <p class="text-muted small mb-0">Select all levels the teacher is qualified to teach</p>
-                    </div>
-                </div>
-                <div class="d-flex">
-                    <div class="flex-shrink-0">
-                        <span class="avatar-xs avatar-title bg-success-subtle text-success rounded-circle">4</span>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <h6 class="mb-1">Password</h6>
-                        <p class="text-muted small mb-0">Remind teacher to change password on first login</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Cambridge YLE Info Card -->
-        <div class="card mt-3">
-            <div class="card-header bg-info bg-opacity-10">
-                <h6 class="card-title mb-0 text-info">
-                    <i class="ri-information-line me-2"></i>About Cambridge YLE
-                </h6>
-            </div>
-            <div class="card-body">
-                <p class="small text-muted mb-2">Cambridge Young Learners English (YLE) tests are designed for children aged 6-12 learning English.</p>
-                <ul class="small text-muted ps-3 mb-0">
-                    <li><strong>Starters:</strong> First step in English journey</li>
-                    <li><strong>Movers:</strong> Elementary proficiency</li>
-                    <li><strong>Flyers:</strong> Ready for KET/PET exams</li>
-                </ul>
-            </div>
-        </div>
-    </div>
 </div>
 
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script>
 $(document).ready(function() {
-    // Set today's date as default for date_joined
-    var today = new Date().toISOString().split('T')[0];
-    if (!$('#date_joined').val()) {
-        $('#date_joined').val(today);
-    }
+    // Initialize Flatpickr for date_joined with placeholder
+    flatpickr('#date_joined', {
+        dateFormat: 'Y-m-d',
+        altInput: true,
+        altFormat: 'F j, Y',
+        disableMobile: true
+    });
 
     // Password visibility toggle
     $('#togglePassword').on('click', function() {
@@ -509,53 +411,6 @@ $(document).ready(function() {
             label.removeClass('border-primary bg-primary-subtle');
         }
     });
-
-    // Update progress bar based on filled sections
-    function updateProgress() {
-        var progress = 0;
-        var sections = 4;
-
-        // Check Basic Info (full_name and employee_id)
-        if ($('#full_name').val() && $('#employee_id').val()) {
-            progress += 1;
-            $('.badge').eq(0).removeClass('bg-primary-subtle text-primary').addClass('bg-success text-white');
-        } else {
-            $('.badge').eq(0).removeClass('bg-success text-white').addClass('bg-primary-subtle text-primary');
-        }
-
-        // Check Contact Info (email and contact_number)
-        if ($('#email').val() && $('#contact_number').val()) {
-            progress += 1;
-            $('.badge').eq(1).removeClass('bg-light text-muted').addClass('bg-success text-white');
-        } else {
-            $('.badge').eq(1).removeClass('bg-success text-white').addClass('bg-light text-muted');
-        }
-
-        // Check Account Info (username)
-        if ($('#username').val()) {
-            progress += 1;
-            $('.badge').eq(2).removeClass('bg-light text-muted').addClass('bg-success text-white');
-        } else {
-            $('.badge').eq(2).removeClass('bg-success text-white').addClass('bg-light text-muted');
-        }
-
-        // Check Professional (date_joined)
-        if ($('#date_joined').val()) {
-            progress += 1;
-            $('.badge').eq(3).removeClass('bg-light text-muted').addClass('bg-success text-white');
-        } else {
-            $('.badge').eq(3).removeClass('bg-success text-white').addClass('bg-light text-muted');
-        }
-
-        var percentage = (progress / sections) * 100;
-        $('.progress-bar').css('width', percentage + '%').attr('aria-valuenow', percentage);
-    }
-
-    // Bind progress update to input changes
-    $('#full_name, #employee_id, #email, #contact_number, #username, #date_joined').on('input change', updateProgress);
-
-    // Initial progress check
-    updateProgress();
 });
 </script>
 

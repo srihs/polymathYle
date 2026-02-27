@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
 from django.db.models import Avg, Count, Q
 from django.core.paginator import Paginator
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta
 
 
 @login_required
@@ -78,7 +78,7 @@ def teacher_detail_view(request, teacher_id):
     """
     View detailed teacher information
     """
-    from .models import Teacher, TeacherDocument, TeacherHourlyRate
+    from .models import Teacher, TeacherDocument
     from courses.models import Class
 
     teacher = get_object_or_404(
@@ -89,10 +89,6 @@ def teacher_detail_view(request, teacher_id):
     # Get documents
     documents = teacher.documents.all().order_by('-uploaded_at')
 
-    # Get hourly rate history
-    rate_history = teacher.hourly_rates.all().order_by('-effective_from')
-    current_rate = teacher.get_current_hourly_rate()
-
     # Get classes taught
     classes_taught = Class.objects.filter(teacher=teacher, is_active=True)
 
@@ -102,8 +98,6 @@ def teacher_detail_view(request, teacher_id):
     context = {
         'teacher': teacher,
         'documents': documents,
-        'rate_history': rate_history,
-        'current_rate': current_rate,
         'classes_taught': classes_taught,
         'specializations': specializations,
     }
@@ -117,7 +111,7 @@ def teacher_add_view(request):
     """
     Add new teacher
     """
-    from .models import Teacher, TeacherDocument, TeacherHourlyRate
+    from .models import Teacher, TeacherDocument
     from django.contrib.auth.models import User, Group
     from django.db import transaction, IntegrityError
 
@@ -198,7 +192,7 @@ def teacher_edit_view(request, teacher_id):
     """
     Edit teacher profile
     """
-    from .models import Teacher, TeacherDocument, TeacherHourlyRate
+    from .models import Teacher, TeacherDocument
 
     teacher = get_object_or_404(Teacher, id=teacher_id)
 
@@ -293,155 +287,5 @@ def teacher_documents_view(request):
     return render(request, 'teachers/teacher_documents.html', context)
 
 
-# Teacher Hourly Rates Management
-@login_required
-@permission_required('teachers.view_teacherhourlyrate', raise_exception=True)
-def teacher_rates_view(request):
-    """List all teacher hourly rates with filtering"""
-    from .models import Teacher, TeacherHourlyRate
-
-    rates = TeacherHourlyRate.objects.select_related('teacher').all()
-
-    # Search functionality
-    search_query = request.GET.get('search', '')
-    if search_query:
-        rates = rates.filter(
-            Q(teacher__full_name__icontains=search_query) |
-            Q(teacher__employee_id__icontains=search_query)
-        )
-
-    # Filter by teacher
-    teacher_id = request.GET.get('teacher', '')
-    if teacher_id:
-        rates = rates.filter(teacher_id=teacher_id)
-
-    # Filter by active status
-    is_current = request.GET.get('is_current', '')
-    if is_current == 'true':
-        rates = rates.filter(is_current=True)
-    elif is_current == 'false':
-        rates = rates.filter(is_current=False)
-
-    # Sorting
-    sort_by = request.GET.get('sort', '-effective_from')
-    rates = rates.order_by(sort_by)
-
-    # Pagination
-    from django.core.paginator import Paginator
-    paginator = Paginator(rates, 20)
-    page_number = request.GET.get('page', 1)
-    page_obj = paginator.get_page(page_number)
-
-    # Get all teachers for filter dropdown
-    teachers = Teacher.objects.filter(is_active=True).order_by('full_name')
-
-    context = {
-        'page_obj': page_obj,
-        'rates': page_obj.object_list,
-        'teachers': teachers,
-        'search_query': search_query,
-        'selected_teacher': teacher_id,
-        'is_current': is_current,
-        'sort_by': sort_by,
-    }
-
-    return render(request, 'teachers/teacher_rates.html', context)
 
 
-# Add Teacher Hourly Rate
-@login_required
-@permission_required('teachers.add_teacherhourlyrate', raise_exception=True)
-def teacher_rate_add_view(request, teacher_id):
-    """Add a new hourly rate for a teacher"""
-    from .models import Teacher, TeacherHourlyRate
-    
-    teacher = get_object_or_404(Teacher, id=teacher_id)
-    
-    if request.method == 'POST':
-        # Get form data
-        hourly_rate = request.POST.get('hourly_rate')
-        currency = request.POST.get('currency', 'LKR')
-        effective_from = request.POST.get('effective_from')
-        effective_until = request.POST.get('effective_until')
-        is_current = request.POST.get('is_current') == 'on'
-        reason = request.POST.get('reason', '')
-        
-        # Create new rate
-        rate = TeacherHourlyRate.objects.create(
-            teacher=teacher,
-            hourly_rate=hourly_rate,
-            currency=currency,
-            effective_from=effective_from,
-            effective_until=effective_until if effective_until else None,
-            is_current=is_current,
-            reason=reason,
-            approved_by=request.user,
-            approval_date=date.today()
-        )
-        
-        messages.success(request, f'New hourly rate added successfully for {teacher.full_name}!')
-        return redirect('teacher_detail', teacher_id=teacher.id)
-    
-    # Get current rate if exists
-    current_rate = teacher.hourly_rates.filter(is_current=True).first()
-    
-    context = {
-        'teacher': teacher,
-        'current_rate': current_rate,
-        'currencies': TeacherHourlyRate.CURRENCY_CHOICES,
-    }
-    
-    return render(request, 'teachers/teacher_rate_add.html', context)
-
-
-# Edit Teacher Hourly Rate
-@login_required
-@permission_required('teachers.change_teacherhourlyrate', raise_exception=True)
-def teacher_rate_edit_view(request, rate_id):
-    """Edit an existing hourly rate"""
-    from .models import TeacherHourlyRate
-    
-    rate = get_object_or_404(TeacherHourlyRate, id=rate_id)
-    teacher = rate.teacher
-    
-    if request.method == 'POST':
-        # Update rate data
-        rate.hourly_rate = request.POST.get('hourly_rate')
-        rate.currency = request.POST.get('currency', 'LKR')
-        rate.effective_from = request.POST.get('effective_from')
-        rate.effective_until = request.POST.get('effective_until') or None
-        rate.is_current = request.POST.get('is_current') == 'on'
-        rate.reason = request.POST.get('reason', '')
-        
-        rate.save()
-        
-        messages.success(request, f'Hourly rate updated successfully!')
-        return redirect('teacher_detail', teacher_id=teacher.id)
-    
-    context = {
-        'teacher': teacher,
-        'rate': rate,
-        'currencies': TeacherHourlyRate.CURRENCY_CHOICES,
-    }
-    
-    return render(request, 'teachers/teacher_rate_edit.html', context)
-
-
-# Delete Teacher Hourly Rate
-@login_required
-@permission_required('teachers.delete_teacherhourlyrate', raise_exception=True)
-def teacher_rate_delete_view(request, rate_id):
-    """Delete a teacher hourly rate"""
-    from .models import TeacherHourlyRate
-    
-    rate = get_object_or_404(TeacherHourlyRate, id=rate_id)
-    teacher_id = rate.teacher.id
-    
-    if request.method == 'POST':
-        rate.delete()
-        messages.success(request, 'Hourly rate deleted successfully!')
-        return redirect('teacher_detail', teacher_id=teacher_id)
-    
-    # If not POST, redirect back
-    messages.error(request, 'Invalid request method')
-    return redirect('teacher_detail', teacher_id=teacher_id)

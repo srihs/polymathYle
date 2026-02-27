@@ -1,7 +1,7 @@
 """
 URL configuration for the courses app.
 
-Handles routing for YLE Levels, Classes, Units, Lessons, and Assessments.
+Handles routing for YLE Levels, Classes, Units, and Lessons.
 """
 from django.urls import path
 from . import views
@@ -25,13 +25,6 @@ urlpatterns = [
     # ============== LESSON URLs ==============
     path('units/<int:unit_id>/lessons/', views.lesson_list_view, name='lesson_list'),
     path('lessons/<int:lesson_id>/', views.lesson_detail_view, name='lesson_detail'),
-
-    # ============== ASSESSMENT URLs ==============
-    path('assessments/', views.assessment_list_view, name='assessment_list'),
-    path('assessments/add/', views.assessment_add_view, name='assessment_add'),
-    path('assessments/<int:assessment_id>/', views.assessment_detail_view, name='assessment_detail'),
-    path('assessments/<int:assessment_id>/take/', views.assessment_take_view, name='assessment_take'),
-    path('assessments/results/<int:result_id>/', views.assessment_result_view, name='assessment_result'),
 
     # ============== API ENDPOINTS ==============
     path('api/classes/<int:class_id>/students/', views.api_class_students, name='api_class_students'),

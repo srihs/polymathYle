@@ -117,7 +117,6 @@ def teacher_dashboard_view(request):
         'classes': classes,
         'students_count': students_count,
         'specializations': teacher.get_specializations(),
-        'current_rate': teacher.get_current_hourly_rate(),
     }
 
     return render(request, 'auth/teacher_dashboard.html', context)

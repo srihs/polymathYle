@@ -1,0 +1,341 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block PageTitle %}{% if tier %}Edit{% else %}Add{% endif %} Payment Tier - Polymath School of English{% endblock %}
+{% block pageTitle %}{% if tier %}Edit{% else %}Add New{% endif %} Payment Tier{% endblock %}
+{% block Title %}Payments{% endblock %}
+{% block functionTitle %}{% if tier %}Edit Tier{% else %}Add Tier{% endif %}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header border-bottom">
+                <div class="d-flex align-items-center">
+                    <div class="avatar-sm me-3">
+                        <span class="avatar-title bg-{% if tier %}warning{% else %}success{% endif %}-subtle text-{% if tier %}warning{% else %}success{% endif %} rounded-circle">
+                            <i class="ri-{% if tier %}edit{% else %}add{% endif %}-line fs-4"></i>
+                        </span>
+                    </div>
+                    <div>
+                        <h5 class="card-title mb-0">{% if tier %}Edit{% else %}Add New{% endif %} Payment Tier</h5>
+                        <p class="text-muted mb-0 small">
+                            {% if tier %}
+                                Update the payment tier configuration below
+                            {% else %}
+                                Fill in the details below to create a new payment tier
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <form method="post" action="" id="paymentTierForm" novalidate>
+                    {% csrf_token %}
+
+                    <!-- Basic Information Section -->
+                    <fieldset class="mb-4">
+                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
+                            <i class="ri-information-line me-2"></i>Basic Information
+                        </legend>
+
+                        <div class="row g-3">
+                            <!-- Tier Name -->
+                            <div class="col-12">
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text"><i class="ri-price-tag-3-line"></i></span>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="id_name"
+                                           name="name"
+                                           value="{% if form_data %}{{ form_data.name }}{% elif tier %}{{ tier.name }}{% endif %}"
+                                           placeholder="Enter tier name (e.g., Senior Teacher, Junior Teacher)"
+                                           aria-label="Tier Name"
+                                           required>
+                                    <div class="invalid-feedback">Please enter a tier name.</div>
+                                </div>
+                            </div>
+
+                            <!-- Status -->
+                            <div class="col-12">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input"
+                                           type="checkbox"
+                                           id="id_is_active"
+                                           name="is_active"
+                                           {% if form_data %}{% if form_data.is_active %}checked{% endif %}{% elif tier %}{% if tier.is_active %}checked{% endif %}{% else %}checked{% endif %}
+                                           role="switch">
+                                    <label class="form-check-label" for="id_is_active">
+                                        <strong>Active Tier</strong>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Payment Configuration Section -->
+                    <fieldset class="mb-4">
+                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
+                            <i class="ri-money-dollar-circle-line me-2"></i>Payment Configuration
+                        </legend>
+
+                        <!-- Payment Type Selection -->
+                        <div class="mb-4">
+                            <label class="form-label">
+                                Payment Type <span class="text-danger" aria-label="required">*</span>
+                            </label>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="form-check form-check-card h-100">
+                                        <input class="form-check-input"
+                                               type="radio"
+                                               id="payment_type_hourly"
+                                               name="payment_type"
+                                               value="HOURLY"
+                                               {% if form_data %}{% if form_data.payment_type == 'HOURLY' %}checked{% endif %}{% elif tier %}{% if tier.payment_type == 'HOURLY' %}checked{% endif %}{% else %}checked{% endif %}
+                                               required>
+                                        <label class="form-check-label d-block p-3 border rounded cursor-pointer"
+                                               for="payment_type_hourly">
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-sm me-3 flex-shrink-0">
+                                                    <span class="avatar-title bg-info-subtle text-info rounded">
+                                                        <i class="ri-time-line fs-4"></i>
+                                                    </span>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-1">Hourly Rate</h6>
+                                                    <p class="text-muted mb-0 small">Pay based on hours worked</p>
+                                                </div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check form-check-card h-100">
+                                        <input class="form-check-input"
+                                               type="radio"
+                                               id="payment_type_fixed"
+                                               name="payment_type"
+                                               value="FIXED"
+                                               {% if form_data %}{% if form_data.payment_type == 'FIXED' %}checked{% endif %}{% elif tier %}{% if tier.payment_type == 'FIXED' %}checked{% endif %}{% endif %}
+                                               required>
+                                        <label class="form-check-label d-block p-3 border rounded cursor-pointer"
+                                               for="payment_type_fixed">
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-sm me-3 flex-shrink-0">
+                                                    <span class="avatar-title bg-success-subtle text-success rounded">
+                                                        <i class="ri-money-dollar-box-line fs-4"></i>
+                                                    </span>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-1">Fixed Amount</h6>
+                                                    <p class="text-muted mb-0 small">Fixed monthly/periodic payment</p>
+                                                </div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Amount Fields -->
+                        <div class="row g-3">
+                            <!-- Hourly Rate Field -->
+                            <div class="col-md-6" id="hourly_rate_container">
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text">LKR</span>
+                                    <input type="number"
+                                           class="form-control"
+                                           id="id_hourly_rate"
+                                           name="hourly_rate"
+                                           value="{% if form_data %}{{ form_data.hourly_rate }}{% elif tier and tier.hourly_rate %}{{ tier.hourly_rate }}{% endif %}"
+                                           placeholder="0.00"
+                                           step="0.01"
+                                           min="0"
+                                           aria-label="Hourly Rate">
+                                    <span class="input-group-text">/hour</span>
+                                    <div class="invalid-feedback">Please enter the hourly rate.</div>
+                                </div>
+                            </div>
+
+                            <!-- Fixed Amount Field -->
+                            <div class="col-md-6" id="fixed_amount_container" style="display: none;">
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text">LKR</span>
+                                    <input type="number"
+                                           class="form-control"
+                                           id="id_fixed_amount"
+                                           name="fixed_amount"
+                                           value="{% if form_data %}{{ form_data.fixed_amount }}{% elif tier and tier.fixed_amount %}{{ tier.fixed_amount }}{% endif %}"
+                                           placeholder="0.00"
+                                           step="0.01"
+                                           min="0"
+                                           aria-label="Fixed Amount">
+                                    <div class="invalid-feedback">Please enter the fixed amount.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Form Actions -->
+                    <div class="border-top pt-4 mt-4">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                            <div class="text-muted small">
+                                <span class="text-danger">*</span> indicates required fields
+                            </div>
+                            <div class="d-flex flex-wrap gap-2">
+                                <a href="{% url 'payment_tier_list' %}" class="btn btn-outline-secondary">
+                                    <i class="ri-close-line me-1"></i> Cancel
+                                </a>
+                                <button type="submit" class="btn btn-{% if tier %}warning{% else %}success{% endif %}" id="submitBtn">
+                                    <span class="spinner-border spinner-border-sm d-none me-1" role="status" aria-hidden="true" id="submitSpinner"></span>
+                                    <i class="ri-{% if tier %}save{% else %}add{% endif %}-line me-1" id="submitIcon"></i>
+                                    <span id="submitText">{% if tier %}Save Changes{% else %}Create Tier{% endif %}</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Function to toggle amount fields based on payment type
+    function toggleAmountFields() {
+        var paymentType = $('input[name="payment_type"]:checked').val();
+
+        if (paymentType === 'HOURLY') {
+            $('#hourly_rate_container').show();
+            $('#fixed_amount_container').hide();
+            $('#id_hourly_rate').prop('required', true);
+            $('#id_fixed_amount').prop('required', false).val('');
+            // Update card styling
+            $('label[for="payment_type_hourly"]').addClass('border-primary bg-primary-subtle');
+            $('label[for="payment_type_fixed"]').removeClass('border-primary bg-primary-subtle');
+        } else if (paymentType === 'FIXED') {
+            $('#hourly_rate_container').hide();
+            $('#fixed_amount_container').show();
+            $('#id_hourly_rate').prop('required', false).val('');
+            $('#id_fixed_amount').prop('required', true);
+            // Update card styling
+            $('label[for="payment_type_fixed"]').addClass('border-primary bg-primary-subtle');
+            $('label[for="payment_type_hourly"]').removeClass('border-primary bg-primary-subtle');
+        }
+    }
+
+    // Initialize on page load
+    toggleAmountFields();
+
+    // Toggle on payment type change
+    $('input[name="payment_type"]').on('change', function() {
+        toggleAmountFields();
+    });
+
+    // Form validation
+    var form = document.getElementById('paymentTierForm');
+
+    form.addEventListener('submit', function(event) {
+        // Custom validation for amount fields
+        var paymentType = $('input[name="payment_type"]:checked').val();
+        var isValid = true;
+
+        if (paymentType === 'HOURLY') {
+            var hourlyRate = $('#id_hourly_rate').val();
+            if (!hourlyRate || parseFloat(hourlyRate) <= 0) {
+                $('#id_hourly_rate').addClass('is-invalid');
+                isValid = false;
+            } else {
+                $('#id_hourly_rate').removeClass('is-invalid');
+            }
+        } else if (paymentType === 'FIXED') {
+            var fixedAmount = $('#id_fixed_amount').val();
+            if (!fixedAmount || parseFloat(fixedAmount) <= 0) {
+                $('#id_fixed_amount').addClass('is-invalid');
+                isValid = false;
+            } else {
+                $('#id_fixed_amount').removeClass('is-invalid');
+            }
+        }
+
+        if (!form.checkValidity() || !isValid) {
+            event.preventDefault();
+            event.stopPropagation();
+        } else {
+            // Show loading state
+            $('#submitBtn').prop('disabled', true);
+            $('#submitSpinner').removeClass('d-none');
+            $('#submitIcon').addClass('d-none');
+            $('#submitText').text('Saving...');
+        }
+
+        form.classList.add('was-validated');
+    }, false);
+
+    // Remove validation error on input
+    $('#id_hourly_rate, #id_fixed_amount').on('input', function() {
+        $(this).removeClass('is-invalid');
+    });
+});
+</script>
+
+<style>
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.form-check-card .form-check-input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.form-check-card .form-check-label {
+    transition: all 0.2s ease;
+}
+
+.form-check-card .form-check-label:hover {
+    border-color: var(--bs-primary) !important;
+    background-color: var(--bs-primary-bg-subtle);
+}
+
+.form-check-card .form-check-input:checked + .form-check-label {
+    border-color: var(--bs-primary) !important;
+    background-color: var(--bs-primary-bg-subtle);
+}
+
+.form-check-card .form-check-input:focus + .form-check-label {
+    box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
+}
+
+fieldset {
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+legend {
+    border-bottom: 2px solid var(--bs-primary);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.avatar-xs {
+    width: 24px;
+    height: 24px;
+}
+
+.avatar-xs .avatar-title {
+    font-size: 12px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+</style>
+{% endblock %}

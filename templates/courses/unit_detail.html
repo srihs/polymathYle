@@ -151,27 +151,6 @@
             </div>
         </div>
     </div>
-
-    <div class="col-xl-3 col-md-6">
-        <div class="card card-animate">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <p class="text-uppercase fw-medium text-muted text-truncate mb-3">Assessments</p>
-                        <h4 class="fs-22 fw-semibold mb-1">
-                            <span class="counter-value">{{ unit.assessments.count|default:0 }}</span>
-                        </h4>
-                        <p class="text-muted mb-0">Unit tests</p>
-                    </div>
-                    <div class="avatar-sm flex-shrink-0">
-                        <span class="avatar-title bg-warning-subtle rounded-circle fs-3">
-                            <i class="ri-clipboard-line text-warning"></i>
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 
 <div class="row">
@@ -278,40 +257,6 @@
                         <span class="badge bg-warning">{{ speaking_lessons|default:0 }} lessons</span>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- Unit Assessments -->
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">
-                    <i class="ri-clipboard-line me-2 text-primary"></i>Unit Assessments
-                </h5>
-            </div>
-            <div class="card-body">
-                {% if unit.assessments.all %}
-                <div class="d-flex flex-column gap-2">
-                    {% for assessment in unit.assessments.all %}
-                    <a href="{% url 'assessment_detail' assessment.id %}" class="d-flex align-items-center p-2 border rounded text-dark text-decoration-none hover-shadow">
-                        <span class="avatar-xs me-2">
-                            <span class="avatar-title bg-warning-subtle text-warning rounded">
-                                <i class="ri-file-list-3-line"></i>
-                            </span>
-                        </span>
-                        <div class="flex-grow-1">
-                            <h6 class="mb-0">{{ assessment.title }}</h6>
-                            <small class="text-muted">{{ assessment.time_limit_minutes }} mins | {{ assessment.passing_percentage }}% to pass</small>
-                        </div>
-                        <i class="ri-arrow-right-s-line text-muted"></i>
-                    </a>
-                    {% endfor %}
-                </div>
-                {% else %}
-                <div class="text-center py-3">
-                    <i class="ri-clipboard-line fs-1 text-muted opacity-50"></i>
-                    <p class="text-muted mb-0 small">No assessments for this unit</p>
-                </div>
-                {% endif %}
             </div>
         </div>
     </div>

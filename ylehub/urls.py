@@ -39,8 +39,8 @@ urlpatterns = [
     path('students/', include('students.urls')),
     path('teachers/', include('teachers.urls')),
     path('courses/', include('courses.urls')),
-    path('progress/', include('progress.urls')),
     path('certification/', include('certification.urls')),
+    path('payments/', include('payments.urls')),
 ]
 
 # Serve media files in development

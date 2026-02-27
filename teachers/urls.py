@@ -10,10 +10,4 @@ urlpatterns = [
 
     # Teacher Documents
     path('documents/', views.teacher_documents_view, name='teacher_documents'),
-
-    # Teacher Rates
-    path('rates/', views.teacher_rates_view, name='teacher_rates'),
-    path('<int:teacher_id>/rate/add/', views.teacher_rate_add_view, name='teacher_rate_add'),
-    path('rate/<int:rate_id>/edit/', views.teacher_rate_edit_view, name='teacher_rate_edit'),
-    path('rate/<int:rate_id>/delete/', views.teacher_rate_delete_view, name='teacher_rate_delete'),
 ]

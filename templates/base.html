@@ -170,215 +170,291 @@
                 <div id="two-column-menu">
                 </div>
                 <ul class="navbar-nav" id="navbar-nav">
-                    <li class="menu-title"><span data-key="t-menu">Menu</span></li>
                     <li class="nav-item">
                         <a class="nav-link menu-link" href="{% url 'dashboard' %}">
                             <i class="bx bxs-dashboard"></i> <span data-key="t-dashboards">Dashboard</span>
                         </a>
                     </li> <!-- end Dashboard Menu -->
 
-                    <!-- Students Menu -->
-                    {% if perms.students.view_student or perms.students.view_application %}
+                    <!-- Student Management Menu -->
+                    {% if perms.students.view_student or perms.students.view_application or perms.students.view_attendance %}
                     <li class="nav-item">
                         <a href="#sidebarStudents" class="nav-link" data-bs-toggle="collapse" role="button"
                            aria-expanded="false" aria-controls="sidebarStudents">
-                            <i class="ri-user-line"></i><span data-key="t-students">Students</span>
+                            <i class="ri-user-line"></i><span data-key="t-students">Student Management</span>
                         </a>
                         <div class="collapse menu-dropdown" id="sidebarStudents">
                             <ul class="nav nav-sm flex-column">
-                                {% if perms.students.view_student %}
-                                <li class="nav-item">
-                                    <a href="{% url 'student_list' %}" class="nav-link">
-                                        <i class="ri-team-line"></i> All Students
-                                    </a>
-                                </li>
-                                {% endif %}
+                                <!-- Applications Sub-Menu -->
                                 {% if perms.students.view_application %}
                                 <li class="nav-item">
-                                    <a href="{% url 'application_list' %}" class="nav-link">
+                                    <a href="#sidebarApplicationsMenu" class="nav-link" data-bs-toggle="collapse" role="button"
+                                       aria-expanded="false" aria-controls="sidebarApplicationsMenu">
                                         <i class="ri-file-list-line"></i> Applications
                                     </a>
+                                    <div class="collapse menu-dropdown" id="sidebarApplicationsMenu">
+                                        <ul class="nav nav-sm flex-column">
+                                            <li class="nav-item">
+                                                <a href="{% url 'application_list' %}" class="nav-link">
+                                                    <i class="ri-list-check"></i> Application List
+                                                </a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a href="{% url 'apply' %}" class="nav-link" target="_blank">
+                                                    <i class="ri-user-add-line"></i> New Application
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
                                 </li>
                                 {% endif %}
+                                <!-- Students Sub-Menu -->
+                                {% if perms.students.view_student %}
                                 <li class="nav-item">
-                                    <a href="{% url 'apply' %}" class="nav-link" target="_blank">
-                                        <i class="ri-user-add-line"></i> New Application
+                                    <a href="#sidebarStudentsMenu" class="nav-link" data-bs-toggle="collapse" role="button"
+                                       aria-expanded="false" aria-controls="sidebarStudentsMenu">
+                                        <i class="ri-team-line"></i> Students
                                     </a>
+                                    <div class="collapse menu-dropdown" id="sidebarStudentsMenu">
+                                        <ul class="nav nav-sm flex-column">
+                                            <li class="nav-item">
+                                                <a href="{% url 'student_list' %}" class="nav-link">
+                                                    <i class="ri-user-line"></i> Student List
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
                                 </li>
+                                {% endif %}
+                                <!-- Attendance Sub-Menu -->
+                                {% if perms.students.view_attendance or perms.students.add_attendance %}
+                                <li class="nav-item">
+                                    <a href="#sidebarAttendanceMenu" class="nav-link" data-bs-toggle="collapse" role="button"
+                                       aria-expanded="false" aria-controls="sidebarAttendanceMenu">
+                                        <i class="ri-checkbox-multiple-line"></i> Attendance
+                                    </a>
+                                    <div class="collapse menu-dropdown" id="sidebarAttendanceMenu">
+                                        <ul class="nav nav-sm flex-column">
+                                            {% if perms.students.add_attendance %}
+                                            <li class="nav-item">
+                                                <a href="{% url 'attendance_mark' %}" class="nav-link">
+                                                    <i class="ri-checkbox-line"></i> Mark Attendance
+                                                </a>
+                                            </li>
+                                            {% endif %}
+                                        </ul>
+                                    </div>
+                                </li>
+                                {% endif %}
                             </ul>
                         </div>
                     </li>
                     {% endif %}
 
-                    <!-- Teachers Menu -->
-                    {% if perms.students.view_teacher %}
+                    <!-- Academic Management Menu -->
+                    {% if perms.courses.view_ylelevel or perms.courses.view_class or perms.certification.view_certificate or perms.certification.view_achievement or perms.students.view_teacher %}
                     <li class="nav-item">
-                        <a href="#sidebarTeachers" class="nav-link" data-bs-toggle="collapse" role="button"
-                           aria-expanded="false" aria-controls="sidebarTeachers">
-                            <i class="ri-user-star-line"></i><span data-key="t-teachers">Teachers</span>
+                        <a href="#sidebarAcademic" class="nav-link" data-bs-toggle="collapse" role="button"
+                           aria-expanded="false" aria-controls="sidebarAcademic">
+                            <i class="ri-graduation-cap-line"></i><span data-key="t-academic">Academic Management</span>
                         </a>
-                        <div class="collapse menu-dropdown" id="sidebarTeachers">
+                        <div class="collapse menu-dropdown" id="sidebarAcademic">
                             <ul class="nav nav-sm flex-column">
+                                <!-- Teachers Sub-Menu -->
+                                {% if perms.students.view_teacher %}
                                 <li class="nav-item">
-                                    <a href="{% url 'teacher_list' %}" class="nav-link">
-                                        <i class="ri-team-line"></i> All Teachers
+                                    <a href="#sidebarTeachersMenu" class="nav-link" data-bs-toggle="collapse" role="button"
+                                       aria-expanded="false" aria-controls="sidebarTeachersMenu">
+                                        <i class="ri-user-star-line"></i> Teachers
                                     </a>
-                                </li>
-                                {% if perms.students.add_teacher %}
-                                <li class="nav-item">
-                                    <a href="{% url 'teacher_add' %}" class="nav-link">
-                                        <i class="ri-user-add-line"></i> Add Teacher
-                                    </a>
+                                    <div class="collapse menu-dropdown" id="sidebarTeachersMenu">
+                                        <ul class="nav nav-sm flex-column">
+                                            <li class="nav-item">
+                                                <a href="{% url 'teacher_list' %}" class="nav-link">
+                                                    <i class="ri-team-line"></i> All Teachers
+                                                </a>
+                                            </li>
+                                            {% if perms.students.add_teacher %}
+                                            <li class="nav-item">
+                                                <a href="{% url 'teacher_add' %}" class="nav-link">
+                                                    <i class="ri-user-add-line"></i> Add Teacher
+                                                </a>
+                                            </li>
+                                            {% endif %}
+                                            <li class="nav-item">
+                                                <a href="{% url 'teacher_documents' %}" class="nav-link">
+                                                    <i class="ri-file-text-line"></i> Documents
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
                                 </li>
                                 {% endif %}
-                                <li class="nav-item">
-                                    <a href="{% url 'teacher_documents' %}" class="nav-link">
-                                        <i class="ri-file-text-line"></i> Documents
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="{% url 'teacher_rates' %}" class="nav-link">
-                                        <i class="ri-money-dollar-circle-line"></i> Hourly Rates
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </li>
-                    {% endif %}
 
-                    <!-- Classes & Courses Menu -->
-                    {% if perms.courses.view_class or perms.courses.view_ylelevel %}
-                    <li class="nav-item">
-                        <a href="#sidebarCourses" class="nav-link" data-bs-toggle="collapse" role="button"
-                           aria-expanded="false" aria-controls="sidebarCourses">
-                            <i class="ri-book-open-line"></i><span data-key="t-courses">Classes & Courses</span>
-                        </a>
-                        <div class="collapse menu-dropdown" id="sidebarCourses">
-                            <ul class="nav nav-sm flex-column">
+                                <!-- Courses Sub-Menu -->
                                 {% if perms.courses.view_ylelevel %}
                                 <li class="nav-item">
-                                    <a href="{% url 'level_list' %}" class="nav-link">
-                                        <i class="ri-stack-line"></i> YLE Levels
+                                    <a href="#sidebarCoursesMenu" class="nav-link" data-bs-toggle="collapse" role="button"
+                                       aria-expanded="false" aria-controls="sidebarCoursesMenu">
+                                        <i class="ri-book-open-line"></i> Courses
                                     </a>
+                                    <div class="collapse menu-dropdown" id="sidebarCoursesMenu">
+                                        <ul class="nav nav-sm flex-column">
+                                            <li class="nav-item">
+                                                <a href="{% url 'level_list' %}" class="nav-link">
+                                                    <i class="ri-stack-line"></i> Course List
+                                                </a>
+                                            </li>
+                                            {% if perms.courses.add_ylelevel %}
+                                            <li class="nav-item">
+                                                <a href="{% url 'yle_level_add' %}" class="nav-link">
+                                                    <i class="ri-add-circle-line"></i> Add New Course
+                                                </a>
+                                            </li>
+                                            {% endif %}
+                                        </ul>
+                                    </div>
                                 </li>
                                 {% endif %}
+
+                                <!-- Classes Sub-Menu -->
                                 {% if perms.courses.view_class %}
                                 <li class="nav-item">
-                                    <a href="{% url 'class_list' %}" class="nav-link">
-                                        <i class="ri-home-4-line"></i> All Classes
+                                    <a href="#sidebarClassesMenu" class="nav-link" data-bs-toggle="collapse" role="button"
+                                       aria-expanded="false" aria-controls="sidebarClassesMenu">
+                                        <i class="ri-home-4-line"></i> Classes
                                     </a>
+                                    <div class="collapse menu-dropdown" id="sidebarClassesMenu">
+                                        <ul class="nav nav-sm flex-column">
+                                            <li class="nav-item">
+                                                <a href="{% url 'class_list' %}" class="nav-link">
+                                                    <i class="ri-team-line"></i> Class List
+                                                </a>
+                                            </li>
+                                            {% if perms.courses.add_class %}
+                                            <li class="nav-item">
+                                                <a href="{% url 'class_add' %}" class="nav-link">
+                                                    <i class="ri-add-circle-line"></i> Add New Class
+                                                </a>
+                                            </li>
+                                            {% endif %}
+                                        </ul>
+                                    </div>
                                 </li>
                                 {% endif %}
+
+                                <!-- Certification Sub-Menu -->
+                                {% if perms.certification.view_certificate or perms.certification.view_achievement %}
                                 <li class="nav-item">
-                                    <a href="{% url 'assessment_list' %}" class="nav-link">
-                                        <i class="ri-file-list-3-line"></i> Assessments
+                                    <a href="#sidebarCertification" class="nav-link" data-bs-toggle="collapse" role="button"
+                                       aria-expanded="false" aria-controls="sidebarCertification">
+                                        <i class="ri-award-line"></i> Certification
                                     </a>
+                                    <div class="collapse menu-dropdown" id="sidebarCertification">
+                                        <ul class="nav nav-sm flex-column">
+                                            <li class="nav-item">
+                                                <a href="{% url 'certificate_list' %}" class="nav-link">
+                                                    <i class="ri-award-fill"></i> Certificates
+                                                </a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a href="{% url 'achievement_list' %}" class="nav-link">
+                                                    <i class="ri-trophy-line"></i> Achievements
+                                                </a>
+                                            </li>
+                                            {% if perms.certification.add_certificate %}
+                                            <li class="nav-item">
+                                                <a href="{% url 'certificate_issue' %}" class="nav-link">
+                                                    <i class="ri-file-add-line"></i> Issue Certificate
+                                                </a>
+                                            </li>
+                                            {% endif %}
+                                            <li class="nav-item">
+                                                <a href="{% url 'certificate_verify' %}" class="nav-link">
+                                                    <i class="ri-shield-check-line"></i> Verify Certificate
+                                                </a>
+                                            </li>
+                                            {% if user.is_staff %}
+                                            <li class="nav-item">
+                                                <a href="{% url 'certification_report' %}" class="nav-link">
+                                                    <i class="ri-bar-chart-box-line"></i> Certification Report
+                                                </a>
+                                            </li>
+                                            {% endif %}
+                                        </ul>
+                                    </div>
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </li>
+                    {% endif %}
+
+                    <!-- Admin Menu -->
+                    {% if user.is_superuser %}
+                    <li class="nav-item">
+                        <a href="#sidebarAdmin" class="nav-link" data-bs-toggle="collapse" role="button"
+                           aria-expanded="false" aria-controls="sidebarAdmin">
+                            <i class="ri-settings-3-line"></i><span data-key="t-admin">Administration</span>
+                        </a>
+                        <div class="collapse menu-dropdown" id="sidebarAdmin">
+                            <ul class="nav nav-sm flex-column">
+                                <!-- User Management Sub-Menu -->
+                                <li class="nav-item">
+                                    <a href="#sidebarUserManagement" class="nav-link" data-bs-toggle="collapse" role="button"
+                                       aria-expanded="false" aria-controls="sidebarUserManagement">
+                                        <i class="ri-user-settings-line"></i> User Management
+                                    </a>
+                                    <div class="collapse menu-dropdown" id="sidebarUserManagement">
+                                        <ul class="nav nav-sm flex-column">
+                                            <li class="nav-item">
+                                                <a href="/admin/auth/user/" class="nav-link">
+                                                    <i class="ri-user-line"></i> Users
+                                                </a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a href="/admin/auth/group/" class="nav-link">
+                                                    <i class="ri-group-line"></i> Groups & Permissions
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
                                 </li>
                             </ul>
                         </div>
                     </li>
                     {% endif %}
 
-                    <!-- Attendance Menu -->
-                    {% if perms.students.view_attendance or perms.students.add_attendance %}
+                    <!-- Payments Menu -->
+                    {% if user.is_staff %}
                     <li class="nav-item">
-                        <a href="#sidebarAttendance" class="nav-link" data-bs-toggle="collapse" role="button"
-                           aria-expanded="false" aria-controls="sidebarAttendance">
-                            <i class="ri-checkbox-multiple-line"></i><span data-key="t-attendance">Attendance</span>
+                        <a href="#sidebarPayments" class="nav-link" data-bs-toggle="collapse" role="button"
+                           aria-expanded="false" aria-controls="sidebarPayments">
+                            <i class="ri-money-dollar-circle-line"></i><span data-key="t-payments">Payments</span>
                         </a>
-                        <div class="collapse menu-dropdown" id="sidebarAttendance">
+                        <div class="collapse menu-dropdown" id="sidebarPayments">
                             <ul class="nav nav-sm flex-column">
-                                {% if perms.students.add_attendance %}
+                                <!-- Payment Tiers Sub-Menu -->
                                 <li class="nav-item">
-                                    <a href="{% url 'attendance_mark' %}" class="nav-link">
-                                        <i class="ri-checkbox-line"></i> Mark Attendance
+                                    <a href="#sidebarPaymentTiers" class="nav-link" data-bs-toggle="collapse" role="button"
+                                       aria-expanded="false" aria-controls="sidebarPaymentTiers">
+                                        <i class="ri-price-tag-3-line"></i> Payment Tiers
                                     </a>
+                                    <div class="collapse menu-dropdown" id="sidebarPaymentTiers">
+                                        <ul class="nav nav-sm flex-column">
+                                            <li class="nav-item">
+                                                <a href="{% url 'payment_tier_list' %}" class="nav-link">
+                                                    <i class="ri-list-check"></i> Payment Tier List
+                                                </a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a href="{% url 'payment_tier_add' %}" class="nav-link">
+                                                    <i class="ri-add-line"></i> Add New Payment Tier
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
                                 </li>
-                                {% endif %}
-                                {% if perms.students.view_attendance %}
-                                <li class="nav-item">
-                                    <a href="{% url 'attendance_report' %}" class="nav-link">
-                                        <i class="ri-file-chart-line"></i> Attendance Reports
-                                    </a>
-                                </li>
-                                {% endif %}
-                            </ul>
-                        </div>
-                    </li>
-                    {% endif %}
-
-                    <!-- Progress & Assessment Menu -->
-                    {% if perms.progress.view_skillprogress or perms.progress.view_assessmentresult %}
-                    <li class="nav-item">
-                        <a href="#sidebarProgress" class="nav-link" data-bs-toggle="collapse" role="button"
-                           aria-expanded="false" aria-controls="sidebarProgress">
-                            <i class="ri-line-chart-line"></i><span data-key="t-progress">Progress & Assessment</span>
-                        </a>
-                        <div class="collapse menu-dropdown" id="sidebarProgress">
-                            <ul class="nav nav-sm flex-column">
-                                <li class="nav-item">
-                                    <a href="{% url 'progress_dashboard' %}" class="nav-link">
-                                        <i class="ri-dashboard-line"></i> Progress Dashboard
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="{% url 'skill_progress_list' %}" class="nav-link">
-                                        <i class="ri-stack-line"></i> Skill Progress
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="{% url 'unit_progress_list' %}" class="nav-link">
-                                        <i class="ri-book-read-line"></i> Unit Progress
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="{% url 'assessment_list' %}" class="nav-link">
-                                        <i class="ri-file-chart-line"></i> Assessments
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </li>
-                    {% endif %}
-
-                    <!-- Certification Menu -->
-                    {% if perms.certification.view_certificate or perms.certification.view_achievement %}
-                    <li class="nav-item">
-                        <a href="#sidebarCertification" class="nav-link" data-bs-toggle="collapse" role="button"
-                           aria-expanded="false" aria-controls="sidebarCertification">
-                            <i class="ri-award-line"></i><span data-key="t-certification">Certification</span>
-                        </a>
-                        <div class="collapse menu-dropdown" id="sidebarCertification">
-                            <ul class="nav nav-sm flex-column">
-                                <li class="nav-item">
-                                    <a href="{% url 'certificate_list' %}" class="nav-link">
-                                        <i class="ri-award-fill"></i> Certificates
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="{% url 'achievement_list' %}" class="nav-link">
-                                        <i class="ri-trophy-line"></i> Achievements
-                                    </a>
-                                </li>
-                                {% if perms.certification.add_certificate %}
-                                <li class="nav-item">
-                                    <a href="{% url 'certificate_issue' %}" class="nav-link">
-                                        <i class="ri-file-add-line"></i> Issue Certificate
-                                    </a>
-                                </li>
-                                {% endif %}
-                                <li class="nav-item">
-                                    <a href="{% url 'certificate_verify' %}" class="nav-link">
-                                        <i class="ri-shield-check-line"></i> Verify Certificate
-                                    </a>
-                                </li>
-                                {% if user.is_staff %}
-                                <li class="nav-item">
-                                    <a href="{% url 'certification_report' %}" class="nav-link">
-                                        <i class="ri-bar-chart-box-line"></i> Certification Report
-                                    </a>
-                                </li>
-                                {% endif %}
                             </ul>
                         </div>
                     </li>
@@ -393,16 +469,6 @@
                         <div class="collapse menu-dropdown" id="sidebarReports">
                             <ul class="nav nav-sm flex-column">
                                 <li class="nav-item">
-                                    <a href="{% url 'attendance_report' %}" class="nav-link">
-                                        <i class="ri-calendar-check-line"></i> Attendance Report
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="{% url 'progress_dashboard' %}" class="nav-link">
-                                        <i class="ri-line-chart-line"></i> Progress Report
-                                    </a>
-                                </li>
-                                <li class="nav-item">
                                     <a href="{% url 'certification_report' %}" class="nav-link">
                                         <i class="ri-bar-chart-fill"></i> Certification Report
                                     </a>
@@ -415,35 +481,6 @@
                             </ul>
                         </div>
                     </li>
-
-                    <!-- Admin Menu -->
-                    {% if user.is_superuser %}
-                    <li class="nav-item">
-                        <a href="#sidebarAdmin" class="nav-link" data-bs-toggle="collapse" role="button"
-                           aria-expanded="false" aria-controls="sidebarAdmin">
-                            <i class="ri-settings-3-line"></i><span data-key="t-admin">Administration</span>
-                        </a>
-                        <div class="collapse menu-dropdown" id="sidebarAdmin">
-                            <ul class="nav nav-sm flex-column">
-                                <li class="nav-item">
-                                    <a href="/admin/" class="nav-link">
-                                        <i class="ri-dashboard-line"></i> Django Admin
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="/admin/auth/user/" class="nav-link">
-                                        <i class="ri-user-settings-line"></i> User Management
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="/admin/auth/group/" class="nav-link">
-                                        <i class="ri-group-line"></i> Groups & Permissions
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </li>
-                    {% endif %}
 
                 </ul>
             </div>

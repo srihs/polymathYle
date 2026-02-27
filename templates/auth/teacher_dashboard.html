@@ -158,12 +158,6 @@
                         </a>
                     </div>
                     <div class="col-xl-3 col-lg-4 col-md-6">
-                        <a href="{% url 'assessment_list' %}" class="btn btn-soft-success w-100 py-3">
-                            <i class="ri-file-list-3-line fs-4 d-block mb-2"></i>
-                            <span class="fw-medium">View Assessments</span>
-                        </a>
-                    </div>
-                    <div class="col-xl-3 col-lg-4 col-md-6">
                         <a href="{% url 'student_list' %}" class="btn btn-soft-info w-100 py-3">
                             <i class="ri-user-search-line fs-4 d-block mb-2"></i>
                             <span class="fw-medium">View Students</span>
@@ -331,14 +325,6 @@
                         <span><i class="ri-home-4-line me-2"></i>All Classes</span>
                         <i class="ri-arrow-right-line"></i>
                     </a>
-                    <a href="{% url 'assessment_list' %}" class="btn btn-outline-success d-flex align-items-center justify-content-between">
-                        <span><i class="ri-file-list-3-line me-2"></i>Assessments</span>
-                        <i class="ri-arrow-right-line"></i>
-                    </a>
-                    <a href="{% url 'progress_dashboard' %}" class="btn btn-outline-success d-flex align-items-center justify-content-between">
-                        <span><i class="ri-dashboard-line me-2"></i>Progress Dashboard</span>
-                        <i class="ri-arrow-right-line"></i>
-                    </a>
                 </div>
             </div>
         </div>
@@ -356,7 +342,7 @@
                         </div>
                     </div>
                     <div class="flex-grow-1">
-                        <h5 class="card-title mb-0">Progress & Reports</h5>
+                        <h5 class="card-title mb-0">Reports & Certification</h5>
                     </div>
                 </div>
             </div>
@@ -364,14 +350,6 @@
                 <div class="d-grid gap-2">
                     <a href="{% url 'attendance_report' %}" class="btn btn-outline-info d-flex align-items-center justify-content-between">
                         <span><i class="ri-calendar-check-line me-2"></i>Attendance Reports</span>
-                        <i class="ri-arrow-right-line"></i>
-                    </a>
-                    <a href="{% url 'skill_progress_list' %}" class="btn btn-outline-info d-flex align-items-center justify-content-between">
-                        <span><i class="ri-line-chart-line me-2"></i>Skill Progress</span>
-                        <i class="ri-arrow-right-line"></i>
-                    </a>
-                    <a href="{% url 'unit_progress_list' %}" class="btn btn-outline-info d-flex align-items-center justify-content-between">
-                        <span><i class="ri-file-chart-line me-2"></i>Unit Progress</span>
                         <i class="ri-arrow-right-line"></i>
                     </a>
                     <a href="{% url 'certificate_list' %}" class="btn btn-outline-info d-flex align-items-center justify-content-between">

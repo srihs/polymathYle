@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Teacher, TeacherDocument, TeacherHourlyRate
+from .models import Teacher, TeacherDocument
 
 
 class TeacherDocumentInline(admin.TabularInline):
@@ -8,14 +8,6 @@ class TeacherDocumentInline(admin.TabularInline):
     extra = 1
     fields = ['document_type', 'title', 'document', 'issue_date', 'expiry_date', 'is_verified']
     readonly_fields = ['uploaded_at']
-
-
-class TeacherHourlyRateInline(admin.TabularInline):
-    """Inline admin for teacher hourly rates"""
-    model = TeacherHourlyRate
-    extra = 1
-    fields = ['hourly_rate', 'currency', 'effective_from', 'effective_until', 'is_current', 'reason']
-    readonly_fields = ['created_at']
 
 
 @admin.register(Teacher)
@@ -60,7 +52,7 @@ class TeacherAdmin(admin.ModelAdmin):
         }),
     )
 
-    inlines = [TeacherDocumentInline, TeacherHourlyRateInline]
+    inlines = [TeacherDocumentInline]
     actions = ['activate_teachers', 'deactivate_teachers']
 
     def activate_teachers(self, request, queryset):
@@ -105,26 +97,3 @@ class TeacherDocumentAdmin(admin.ModelAdmin):
     )
 
 
-@admin.register(TeacherHourlyRate)
-class TeacherHourlyRateAdmin(admin.ModelAdmin):
-    list_display = ['teacher', 'hourly_rate', 'currency', 'effective_from', 'effective_until', 'is_current', 'approval_date']
-    list_filter = ['is_current', 'currency', 'effective_from']
-    search_fields = ['teacher__full_name', 'teacher__employee_id', 'reason']
-    readonly_fields = ['created_at', 'updated_at']
-    date_hierarchy = 'effective_from'
-    
-    fieldsets = (
-        ('Teacher', {
-            'fields': ('teacher',)
-        }),
-        ('Rate Details', {
-            'fields': ('hourly_rate', 'currency', 'effective_from', 'effective_until', 'is_current')
-        }),
-        ('Additional Information', {
-            'fields': ('reason', 'approved_by', 'approval_date')
-        }),
-        ('Metadata', {
-            'fields': ('created_at', 'updated_at'),
-            'classes': ('collapse',)
-        }),
-    )

@@ -1,0 +1,277 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block PageTitle %}Payment Tiers - Polymath School of English{% endblock %}
+{% block pageTitle %}Payment Tier Management{% endblock %}
+{% block Title %}Payments{% endblock %}
+{% block functionTitle %}Payment Tiers{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header border-bottom">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-sm me-3">
+                                <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                    <i class="ri-price-tag-3-line fs-4"></i>
+                                </span>
+                            </div>
+                            <div>
+                                <h5 class="card-title mb-0">Payment Tier Management</h5>
+                                <p class="text-muted mb-0 small">Configure payment tiers for teacher compensation</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <a href="{% url 'payment_tier_add' %}" class="btn btn-success">
+                            <i class="ri-add-line me-1"></i> Add New Tier
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Summary -->
+<div class="row">
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate bg-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="fw-medium text-white-75 mb-0">Total Tiers</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ total_count|default:0 }}</h2>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-price-tag-3-line text-white"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate bg-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="fw-medium text-white-75 mb-0">Active Tiers</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ active_count|default:0 }}</h2>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-check-line text-white"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate bg-info">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="fw-medium text-white-75 mb-0">Hourly Tiers</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ hourly_count|default:0 }}</h2>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-time-line text-white"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate bg-warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="fw-medium text-white-75 mb-0">Fixed Tiers</p>
+                        <h2 class="mt-2 mb-0 text-white">{{ fixed_count|default:0 }}</h2>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
+                            <i class="ri-money-dollar-box-line text-white"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Payment Tiers Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center border-bottom">
+                <h5 class="card-title mb-0">
+                    <i class="ri-list-check me-2"></i>Payment Tiers
+                    <span class="badge bg-primary-subtle text-primary ms-2">{{ payment_tiers|length }} tiers</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if payment_tiers %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0" id="paymentTierTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col">Name</th>
+                                    <th scope="col">Payment Type</th>
+                                    <th scope="col">Rate / Amount</th>
+                                    <th scope="col">Status</th>
+                                    <th scope="col">Created</th>
+                                    <th scope="col" class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for tier in payment_tiers %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-sm me-3">
+                                                    <span class="avatar-title bg-{% if tier.payment_type == 'HOURLY' %}info{% else %}success{% endif %}-subtle text-{% if tier.payment_type == 'HOURLY' %}info{% else %}success{% endif %} rounded-circle">
+                                                        <i class="ri-{% if tier.payment_type == 'HOURLY' %}time{% else %}money-dollar-box{% endif %}-line fs-5"></i>
+                                                    </span>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-0 fw-medium">{{ tier.name }}</h6>
+                                                    <small class="text-muted">ID: {{ tier.id }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if tier.payment_type == 'HOURLY' %}
+                                                <span class="badge bg-info-subtle text-info">
+                                                    <i class="ri-time-line me-1"></i>Hourly Rate
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-success-subtle text-success">
+                                                    <i class="ri-money-dollar-box-line me-1"></i>Fixed Amount
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                {% if tier.payment_type == 'HOURLY' %}
+                                                    <strong class="fs-5 text-info">
+                                                        LKR {{ tier.hourly_rate|floatformat:2 }}
+                                                    </strong>
+                                                    <small class="text-muted ms-1">/hour</small>
+                                                {% else %}
+                                                    <strong class="fs-5 text-success">
+                                                        LKR {{ tier.fixed_amount|floatformat:2 }}
+                                                    </strong>
+                                                    <small class="text-muted ms-1">(fixed)</small>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if tier.is_active %}
+                                                <span class="badge bg-success">
+                                                    <i class="ri-check-line me-1"></i>Active
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-danger">
+                                                    <i class="ri-close-line me-1"></i>Inactive
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <i class="ri-calendar-line me-1 text-muted"></i>
+                                            {{ tier.created_at|date:"M d, Y" }}
+                                        </td>
+                                        <td>
+                                            <div class="d-flex justify-content-end gap-1">
+                                                <a href="{% url 'payment_tier_edit' tier.id %}"
+                                                   class="btn btn-sm btn-soft-warning"
+                                                   title="Edit Tier"
+                                                   aria-label="Edit {{ tier.name }}">
+                                                    <i class="ri-edit-line"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <!-- Empty State -->
+                    <div class="text-center py-5">
+                        <div class="avatar-lg mx-auto mb-4">
+                            <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                <i class="ri-price-tag-3-line fs-1"></i>
+                            </span>
+                        </div>
+                        <h5>No Payment Tiers Found</h5>
+                        <p class="text-muted mb-4">
+                            Get started by creating your first payment tier to configure teacher compensation.
+                        </p>
+                        <a href="{% url 'payment_tier_add' %}" class="btn btn-success">
+                            <i class="ri-add-line me-1"></i>Add New Tier
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Initialize DataTable if tiers exist
+    {% if payment_tiers %}
+    $('#paymentTierTable').DataTable({
+        responsive: true,
+        pageLength: 10,
+        order: [[0, 'asc']],
+        language: {
+            search: "",
+            searchPlaceholder: "Search tiers...",
+            lengthMenu: "Show _MENU_ tiers",
+            info: "Showing _START_ to _END_ of _TOTAL_ tiers",
+            emptyTable: "No payment tiers available"
+        },
+        columnDefs: [
+            { orderable: false, targets: [5] }
+        ]
+    });
+    {% endif %}
+});
+</script>
+
+<style>
+.card-animate {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card-animate:hover {
+    transform: translateY(-3px);
+}
+
+/* DataTable customization */
+.dataTables_wrapper .dataTables_filter input {
+    border-radius: 0.25rem;
+    padding: 0.375rem 0.75rem;
+    border: 1px solid #ced4da;
+}
+
+.dataTables_wrapper .dataTables_length select {
+    border-radius: 0.25rem;
+    padding: 0.375rem 0.75rem;
+    border: 1px solid #ced4da;
+}
+</style>
+{% endblock %}

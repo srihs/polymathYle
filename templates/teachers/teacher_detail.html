@@ -160,32 +160,6 @@
         </div>
     </div>
 
-    <div class="col-xl-3 col-md-6">
-        <div class="card card-animate">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <p class="text-uppercase fw-medium text-muted text-truncate mb-3">Current Rate</p>
-                        <h4 class="fs-22 fw-semibold mb-1">
-                            {% if current_rate %}
-                                <span class="counter-value">{{ current_rate }}</span>
-                            {% else %}
-                                <span class="text-muted">Not Set</span>
-                            {% endif %}
-                        </h4>
-                        <p class="text-muted mb-0">
-                            {% if current_rate %}LKR per hour{% else %}Add hourly rate{% endif %}
-                        </p>
-                    </div>
-                    <div class="avatar-sm flex-shrink-0">
-                        <span class="avatar-title bg-primary-subtle rounded-circle fs-3">
-                            <i class="ri-money-dollar-circle-line text-primary"></i>
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 
 <div class="row">
@@ -528,93 +502,6 @@
             </div>
         </div>
 
-        <!-- Hourly Rate History Card -->
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">
-                    <i class="ri-money-dollar-circle-line me-2 text-primary"></i>Hourly Rate History
-                </h5>
-                {% if perms.teachers.add_teacherhourlyrate %}
-                    <a href="{% url 'teacher_rate_add' teacher.id %}" class="btn btn-sm btn-success">
-                        <i class="ri-add-line me-1"></i>Add New Rate
-                    </a>
-                {% endif %}
-            </div>
-            <div class="card-body">
-                {% if rate_history %}
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Rate</th>
-                                    <th>Effective From</th>
-                                    <th>Effective Until</th>
-                                    <th>Status</th>
-                                    <th>Reason</th>
-                                    <th class="text-end">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for rate in rate_history %}
-                                    <tr>
-                                        <td>
-                                            <strong class="fs-5 {% if rate.is_current %}text-success{% endif %}">
-                                                {{ rate.currency }} {{ rate.hourly_rate }}
-                                            </strong>
-                                            <small class="text-muted d-block">per hour</small>
-                                        </td>
-                                        <td>
-                                            <i class="ri-calendar-line me-1 text-muted"></i>
-                                            {{ rate.effective_from|date:"M d, Y" }}
-                                        </td>
-                                        <td>
-                                            {% if rate.effective_until %}
-                                                <i class="ri-calendar-line me-1 text-muted"></i>
-                                                {{ rate.effective_until|date:"M d, Y" }}
-                                            {% else %}
-                                                <span class="text-muted">Present</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            {% if rate.is_current %}
-                                                <span class="badge bg-success">
-                                                    <i class="ri-check-line me-1"></i>Current
-                                                </span>
-                                            {% else %}
-                                                <span class="badge bg-secondary">
-                                                    <i class="ri-history-line me-1"></i>Historical
-                                                </span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            <small class="text-muted">{{ rate.reason|default:"No reason provided"|truncatewords:5 }}</small>
-                                        </td>
-                                        <td class="text-end">
-                                            {% if perms.teachers.change_teacherhourlyrate %}
-                                                <a href="{% url 'teacher_rate_edit' rate.id %}" class="btn btn-sm btn-soft-warning" title="Edit Rate">
-                                                    <i class="ri-edit-line"></i>
-                                                </a>
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                {% else %}
-                    <div class="text-center py-5">
-                        <i class="ri-money-dollar-circle-line fs-1 text-muted opacity-50"></i>
-                        <h6 class="mt-3">No Rate History</h6>
-                        <p class="text-muted mb-3">No hourly rates have been set for this teacher.</p>
-                        {% if perms.teachers.add_teacherhourlyrate %}
-                            <a href="{% url 'teacher_rate_add' teacher.id %}" class="btn btn-primary">
-                                <i class="ri-add-line me-1"></i>Add First Rate
-                            </a>
-                        {% endif %}
-                    </div>
-                {% endif %}
-            </div>
-        </div>
     </div>
 </div>
 

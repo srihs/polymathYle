@@ -230,7 +230,6 @@
                                             </a>
                                         </th>
                                         <th scope="col">Employment</th>
-                                        <th scope="col">Hourly Rate</th>
                                         <th scope="col">Status</th>
                                         <th scope="col" class="text-end">Actions</th>
                                     </tr>
@@ -314,16 +313,6 @@
                                                 {% endif %}
                                             </td>
                                             <td>
-                                                {% if teacher.get_current_hourly_rate %}
-                                                    <span class="fw-medium text-success">
-                                                        LKR {{ teacher.get_current_hourly_rate }}
-                                                    </span>
-                                                    <small class="text-muted">/hr</small>
-                                                {% else %}
-                                                    <span class="text-muted small">Not set</span>
-                                                {% endif %}
-                                            </td>
-                                            <td>
                                                 {% if teacher.is_active %}
                                                     <span class="badge bg-success">
                                                         <i class="ri-check-line me-1"></i>Active
@@ -350,12 +339,6 @@
                                                             <i class="ri-edit-line"></i>
                                                         </a>
                                                     {% endif %}
-                                                    <a href="{% url 'teacher_rate_add' teacher.id %}"
-                                                       class="btn btn-sm btn-soft-success"
-                                                       title="Add Rate"
-                                                       aria-label="Add rate for {{ teacher.full_name }}">
-                                                        <i class="ri-money-dollar-circle-line"></i>
-                                                    </a>
                                                 </div>
                                             </td>
                                         </tr>
