@@ -331,6 +331,8 @@ def certificate_issue_view(request):
         return redirect('certificate_detail', certificate_id=certificate.id)
 
     # GET request - show form
+    from datetime import date
+
     students = Student.objects.filter(is_active=True).order_by('full_name')
     levels = YLELevel.objects.filter(is_active=True)
     templates = CertificateTemplate.objects.filter(is_active=True)
@@ -340,6 +342,7 @@ def certificate_issue_view(request):
         'levels': levels,
         'templates': templates,
         'certificate_types': Certificate.CERTIFICATE_TYPE_CHOICES,
+        'today': date.today(),
     }
 
     return render(request, 'certification/certificate_issue.html', context)
