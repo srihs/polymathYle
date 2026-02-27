@@ -485,7 +485,7 @@
         <!-- Main Form Card -->
         <div class="card border-0 shadow-sm">
             <div class="card-body p-4 p-md-5">
-                <form method="post" enctype="multipart/form-data" id="applicationForm" novalidate>
+                <form method="post" enctype="multipart/form-data" id="applicationForm" novalidate autocomplete="off">
                     {% csrf_token %}
                     {{ form.schedule_preferences }}
 
@@ -1209,6 +1209,10 @@
                 <i class="ri-save-line me-1"></i>
                 Your progress is automatically saved in your browser
             </small>
+            <br>
+            <a href="?new=1" class="small text-muted" id="clearDraftLink" style="display: none;">
+                <i class="ri-refresh-line me-1"></i>Clear saved data and start fresh
+            </a>
         </div>
     </div>
 </div>
@@ -1359,6 +1363,18 @@ $(document).ready(function() {
     // Initialize Form
     // ========================================
     function init() {
+        // FIRST: Check for ?new=1 before anything else
+        // This ensures we clear the draft before any other initialization
+        var urlParams = new URLSearchParams(window.location.search);
+        var isNewApplication = urlParams.get('new') === '1';
+
+        if (isNewApplication) {
+            // Clear localStorage immediately
+            localStorage.removeItem(STORAGE_KEY);
+            // Remove the parameter from URL without reload
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
         // Add form-control class to Django form widgets
         $('input:not([type="checkbox"]):not([type="radio"]):not(.btn-check), textarea').addClass('form-control');
         $('select').addClass('form-select');
@@ -1370,11 +1386,25 @@ $(document).ready(function() {
         setupDraftSaving();
         setupStepperClicks();
 
-        // Load saved draft
-        loadDraft();
+        // Load saved draft (or ensure form is clear for new applications)
+        loadDraft(isNewApplication);
 
         // Initial state
         updateUI();
+
+        // Handle browser back-forward cache (bfcache)
+        // When page is restored from bfcache, re-check for new application state
+        $(window).on('pageshow', function(event) {
+            if (event.originalEvent.persisted) {
+                // Page was restored from bfcache
+                var params = new URLSearchParams(window.location.search);
+                if (params.get('new') === '1') {
+                    localStorage.removeItem(STORAGE_KEY);
+                    clearFormFields();
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }
+            }
+        });
     }
 
     // ========================================
@@ -1401,6 +1431,9 @@ $(document).ready(function() {
                 e.preventDefault();
                 return false;
             }
+
+            // Allow navigation without warning
+            window.allowNavigation = true;
 
             // Show loading state
             $submitBtn.prop('disabled', true);
@@ -1581,8 +1614,10 @@ $(document).ready(function() {
             }
         }
 
-        // Phone validation (Sri Lankan format)
-        if (value && ($field.attr('id') || '').includes('contact') || ($field.attr('id') || '').includes('whatsapp')) {
+        // Phone validation (Sri Lankan format) - exclude email fields
+        var fieldId = $field.attr('id') || '';
+        var isPhoneField = (fieldId.includes('contact_number') || fieldId.includes('whatsapp'));
+        if (value && isPhoneField) {
             var phoneRegex = /^(\+94|0)?[0-9]{9,10}$/;
             var cleanPhone = value.replace(/[\s-]/g, '');
             if (!phoneRegex.test(cleanPhone)) {
@@ -1686,9 +1721,14 @@ $(document).ready(function() {
 
         // Warn before leaving if form has data
         $(window).on('beforeunload', function() {
-            if (formDirty) {
+            if (formDirty && !window.allowNavigation) {
                 return 'You have unsaved changes. Are you sure you want to leave?';
             }
+        });
+
+        // Allow navigation for clear draft link and submit button
+        $('#clearDraftLink').on('click', function() {
+            window.allowNavigation = true;
         });
     }
 
@@ -1722,11 +1762,33 @@ $(document).ready(function() {
         }
     }
 
-    function loadDraft() {
+    function loadDraft(isNewApplication) {
+        // If this is a new application, ensure form is clear and return
+        if (isNewApplication) {
+            // Clear all form fields to ensure fresh start
+            clearFormFields();
+            // Hide the clear draft link since there's no draft
+            $('#clearDraftLink').hide();
+            return;
+        }
+
+        // Double-check URL parameter (for direct calls without the flag)
+        var urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('new') === '1') {
+            localStorage.removeItem(STORAGE_KEY);
+            clearFormFields();
+            window.history.replaceState({}, document.title, window.location.pathname);
+            $('#clearDraftLink').hide();
+            return;
+        }
+
         try {
             var saved = localStorage.getItem(STORAGE_KEY);
             if (saved) {
                 var draft = JSON.parse(saved);
+
+                // Show the clear draft link
+                $('#clearDraftLink').show();
 
                 // Restore form fields
                 if (draft.data) {
@@ -1759,6 +1821,40 @@ $(document).ready(function() {
         } catch (e) {
             console.warn('Could not load draft from localStorage');
         }
+    }
+
+    function clearFormFields() {
+        // Clear all text inputs, textareas, and selects
+        $form.find('input:not([type="checkbox"]):not([type="radio"]):not(.btn-check):not([type="hidden"]), textarea').val('');
+
+        // Reset select elements to first option
+        $form.find('select').each(function() {
+            $(this).prop('selectedIndex', 0);
+        });
+
+        // Uncheck all checkboxes except CSRF
+        $form.find('input[type="checkbox"]:not(.btn-check)').prop('checked', false);
+
+        // Clear schedule checkboxes
+        $('.schedule-check').prop('checked', false);
+        updateSchedulePreferences();
+        updateSelectedCount();
+
+        // Clear the hidden schedule preferences field
+        $('#id_schedule_preferences').val('{}');
+
+        // Reset flatpickr date picker
+        var fpInstance = document.getElementById('id_date_of_birth')._flatpickr;
+        if (fpInstance) {
+            fpInstance.clear();
+        }
+
+        // Remove validation states
+        $form.find('.is-valid, .is-invalid').removeClass('is-valid is-invalid');
+
+        // Reset to step 1
+        currentStep = 1;
+        updateStepIndicators(1);
     }
 
     // ========================================

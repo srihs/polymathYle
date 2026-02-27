@@ -31,12 +31,13 @@ class ApplicationForm(forms.ModelForm):
                 'class': 'form-control',
                 'placeholder': 'Full Name'
             }),
-            'date_of_birth': forms.TextInput(attrs={
+            'date_of_birth': forms.DateInput(attrs={
                 'class': 'form-control flatpickr-input',
                 'placeholder': 'Date of Birth',
                 'data-provider': 'flatpickr',
-                'data-date-format': 'Y-m-d'
-            }),
+                'data-date-format': 'Y-m-d',
+                'type': 'text'  # Override to text for flatpickr
+            }, format='%Y-%m-%d'),
             'gender': forms.Select(attrs={
                 'class': 'form-select'
             }),
