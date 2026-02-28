@@ -236,98 +236,59 @@
             </div>
         </div>
 
-        <!-- Teacher Card -->
-        <div class="card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">
-                    <i class="ri-user-star-line me-2 text-primary"></i>Assigned Teacher
-                </h5>
-            </div>
-            <div class="card-body">
-                {% if class.teacher %}
-                <div class="d-flex align-items-center">
-                    {% if class.teacher.profile_picture %}
-                    <img src="{{ class.teacher.profile_picture.url }}"
-                         alt="{{ class.teacher.full_name }}"
-                         class="rounded-circle me-3"
-                         style="width: 64px; height: 64px; object-fit: cover;">
-                    {% else %}
-                    <div class="avatar-md me-3">
-                        <span class="avatar-title bg-primary-subtle text-primary rounded-circle fs-4">
-                            {{ class.teacher.full_name|first|upper }}
-                        </span>
-                    </div>
-                    {% endif %}
-                    <div class="flex-grow-1">
-                        <h5 class="mb-1">
-                            <a href="{% url 'teacher_detail' class.teacher.id %}" class="text-dark">
-                                {{ class.teacher.full_name }}
-                            </a>
-                        </h5>
-                        <p class="text-muted mb-2 small">{{ class.teacher.email }}</p>
-                        <div class="d-flex flex-wrap gap-1">
-                            {% if class.teacher.teaches_starters %}
-                            <span class="badge bg-info-subtle text-info" title="Starters">S</span>
-                            {% endif %}
-                            {% if class.teacher.teaches_movers %}
-                            <span class="badge bg-warning-subtle text-warning" title="Movers">M</span>
-                            {% endif %}
-                            {% if class.teacher.teaches_flyers %}
-                            <span class="badge bg-success-subtle text-success" title="Flyers">F</span>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-                <div class="mt-3">
-                    <a href="{% url 'teacher_detail' class.teacher.id %}" class="btn btn-sm btn-outline-primary w-100">
-                        <i class="ri-eye-line me-1"></i> View Teacher Profile
-                    </a>
-                </div>
-                {% else %}
-                <div class="text-center py-4">
-                    <i class="ri-user-line fs-1 text-muted opacity-50"></i>
-                    <h6 class="mt-3">No Teacher Assigned</h6>
-                    <p class="text-muted mb-3">This class needs a teacher assignment.</p>
-                    {% if perms.courses.change_class %}
-                    <a href="{% url 'class_edit' class.id %}" class="btn btn-sm btn-primary">
-                        <i class="ri-user-add-line me-1"></i> Assign Teacher
-                    </a>
-                    {% endif %}
-                </div>
-                {% endif %}
-            </div>
-        </div>
 
-        <!-- Schedule Card -->
+        <!-- Schedule & Teachers Card -->
         <div class="card">
             <div class="card-header">
                 <h5 class="card-title mb-0">
-                    <i class="ri-time-line me-2 text-primary"></i>Class Schedule
+                    <i class="ri-time-line me-2 text-primary"></i>Schedule & Teachers
                 </h5>
             </div>
             <div class="card-body">
                 {% if class.schedule %}
                 <div class="d-flex flex-column gap-2">
                     {% for session in class.schedule %}
-                    <div class="d-flex align-items-center p-2 border rounded">
-                        <div class="avatar-xs me-3">
-                            <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
-                                <i class="ri-calendar-line"></i>
-                            </span>
-                        </div>
-                        <div class="flex-grow-1">
-                            <h6 class="mb-0">{{ session.day }}</h6>
-                            <small class="text-muted">
-                                <i class="ri-time-line me-1"></i>
-                                {% if session.from_time and session.to_time %}
-                                {{ session.from_time }} - {{ session.to_time }}
-                                {% elif session.time %}
-                                {{ session.time }}
-                                {% if session.duration_minutes %}
-                                <span class="ms-2">| {{ session.duration_minutes }} mins</span>
+                    <div class="p-3 border rounded bg-light">
+                        <div class="d-flex align-items-start">
+                            <div class="avatar-xs me-3 mt-1">
+                                <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                    <i class="ri-calendar-line"></i>
+                                </span>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">{{ session.day }}</h6>
+                                        <small class="text-muted">
+                                            <i class="ri-time-line me-1"></i>
+                                            {% if session.from_time and session.to_time %}
+                                            {{ session.from_time }} - {{ session.to_time }}
+                                            {% elif session.time %}
+                                            {{ session.time }}
+                                            {% if session.duration_minutes %}
+                                            <span class="ms-2">| {{ session.duration_minutes }} mins</span>
+                                            {% endif %}
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                </div>
+                                {% if session.teacher_name %}
+                                <div class="mt-2 pt-2 border-top">
+                                    <small class="text-muted d-block mb-1">
+                                        <i class="ri-user-star-line me-1"></i>Teacher
+                                    </small>
+                                    <a href="{% url 'teacher_detail' session.teacher_id %}" class="text-dark fw-medium">
+                                        {{ session.teacher_name }}
+                                    </a>
+                                </div>
+                                {% else %}
+                                <div class="mt-2 pt-2 border-top">
+                                    <small class="text-muted">
+                                        <i class="ri-user-line me-1"></i>No teacher assigned
+                                    </small>
+                                </div>
                                 {% endif %}
-                                {% endif %}
-                            </small>
+                            </div>
                         </div>
                     </div>
                     {% endfor %}

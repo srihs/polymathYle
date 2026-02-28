@@ -102,32 +102,12 @@
                         </div>
                     </fieldset>
 
-                    <!-- Teacher & Capacity Section -->
+                    <!-- Capacity Section -->
                     <fieldset class="mb-4">
                         <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
-                            <i class="ri-user-star-line me-2"></i>Teacher & Capacity
+                            <i class="ri-user-star-line me-2"></i>Capacity
                         </legend>
                         <div class="row g-3">
-                            <div class="col-md-6">
-                                <label for="teacher" class="form-label">Assigned Teacher</label>
-                                <select class="form-select"
-                                        id="teacher"
-                                        name="teacher">
-                                    <option value="">Select Teacher (Optional)</option>
-                                    {% for teacher in teachers %}
-                                    <option value="{{ teacher.id }}"
-                                            {% if class and class.teacher and class.teacher.id == teacher.id %}selected{% endif %}
-                                            data-starters="{{ teacher.teaches_starters|yesno:'true,false' }}"
-                                            data-movers="{{ teacher.teaches_movers|yesno:'true,false' }}"
-                                            data-flyers="{{ teacher.teaches_flyers|yesno:'true,false' }}">
-                                        {{ teacher.full_name }}
-                                        {% if teacher.teaches_starters %}[S]{% endif %}
-                                        {% if teacher.teaches_movers %}[M]{% endif %}
-                                        {% if teacher.teaches_flyers %}[F]{% endif %}
-                                    </option>
-                                    {% endfor %}
-                                </select>
-                            </div>
                             <div class="col-md-6">
                                 <label for="max_students" class="form-label">
                                     Maximum Students <span class="text-danger" aria-label="required">*</span>
@@ -193,14 +173,20 @@
                         <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
                             <i class="ri-time-line me-2"></i>Weekly Schedule
                         </legend>
+                        <div class="alert alert-info alert-dismissible fade show small" role="alert">
+                            <i class="ri-information-line me-2"></i>
+                            Each session can have its own teacher. Teachers cannot have overlapping schedules.
+                            <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
                         <div id="scheduleContainer">
                             {% if class.schedule %}
                             {% for session in class.schedule %}
-                            <div class="schedule-row mb-3" data-index="{{ forloop.counter0 }}">
+                            <div class="schedule-row mb-3 p-3 border rounded bg-light" data-index="{{ forloop.counter0 }}">
                                 <div class="row g-3">
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
+                                        <label class="form-label small text-muted mb-1">Day *</label>
                                         <select class="form-select" name="schedule_day[]" required>
-                                            <option value="">Select Day *</option>
+                                            <option value="">Select Day</option>
                                             <option value="Monday" {% if session.day == 'Monday' %}selected{% endif %}>Monday</option>
                                             <option value="Tuesday" {% if session.day == 'Tuesday' %}selected{% endif %}>Tuesday</option>
                                             <option value="Wednesday" {% if session.day == 'Wednesday' %}selected{% endif %}>Wednesday</option>
@@ -210,31 +196,40 @@
                                             <option value="Sunday" {% if session.day == 'Sunday' %}selected{% endif %}>Sunday</option>
                                         </select>
                                     </div>
-                                    <div class="col-md-3">
-                                        <div class="position-relative">
-                                            <input type="time" class="form-control schedule-from-time" name="schedule_from_time[]" value="{% if session.from_time %}{{ session.from_time }}{% elif session.time %}{{ session.time }}{% endif %}" required>
-                                            <small class="text-muted position-absolute" style="font-size: 0.75rem; left: 0; bottom: -18px;">From Time</small>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="position-relative">
-                                            <input type="time" class="form-control schedule-to-time" name="schedule_to_time[]" value="{{ session.to_time }}" required>
-                                            <small class="text-muted position-absolute" style="font-size: 0.75rem; left: 0; bottom: -18px;">To Time</small>
-                                        </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label small text-muted mb-1">From *</label>
+                                        <input type="time" class="form-control schedule-from-time" name="schedule_from_time[]" value="{% if session.from_time %}{{ session.from_time }}{% elif session.time %}{{ session.time }}{% endif %}" required>
                                     </div>
                                     <div class="col-md-2">
+                                        <label class="form-label small text-muted mb-1">To *</label>
+                                        <input type="time" class="form-control schedule-to-time" name="schedule_to_time[]" value="{{ session.to_time }}" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small text-muted mb-1">Teacher</label>
+                                        <select class="form-select schedule-teacher" name="schedule_teacher[]">
+                                            <option value="">Select Teacher</option>
+                                            {% for teacher in teachers %}
+                                            <option value="{{ teacher.id }}" {% if session.teacher_id == teacher.id %}selected{% endif %}>
+                                                {{ teacher.full_name }}
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2 d-flex align-items-end">
                                         <button type="button" class="btn btn-danger btn-sm remove-schedule w-100" title="Remove session">
                                             <i class="ri-delete-bin-line"></i> Remove
                                         </button>
                                     </div>
                                 </div>
                                 <div class="error-message text-danger mt-2 schedule-time-error" style="display: none;"></div>
+                                <div class="error-message text-danger mt-1 schedule-teacher-error" style="display: none;"></div>
                             </div>
                             {% endfor %}
                             {% else %}
-                            <div class="schedule-row mb-3" data-index="0">
+                            <div class="schedule-row mb-3 p-3 border rounded bg-light" data-index="0">
                                 <div class="row g-3">
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
+                                        <label class="form-label small text-muted mb-1">Day *</label>
                                         <select class="form-select" name="schedule_day[]">
                                             <option value="">Select Day</option>
                                             <option value="Monday">Monday</option>
@@ -246,25 +241,31 @@
                                             <option value="Sunday">Sunday</option>
                                         </select>
                                     </div>
-                                    <div class="col-md-3">
-                                        <div class="position-relative">
-                                            <input type="time" class="form-control schedule-from-time" name="schedule_from_time[]">
-                                            <small class="text-muted position-absolute" style="font-size: 0.75rem; left: 0; bottom: -18px;">From Time</small>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="position-relative">
-                                            <input type="time" class="form-control schedule-to-time" name="schedule_to_time[]">
-                                            <small class="text-muted position-absolute" style="font-size: 0.75rem; left: 0; bottom: -18px;">To Time</small>
-                                        </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label small text-muted mb-1">From *</label>
+                                        <input type="time" class="form-control schedule-from-time" name="schedule_from_time[]">
                                     </div>
                                     <div class="col-md-2">
+                                        <label class="form-label small text-muted mb-1">To *</label>
+                                        <input type="time" class="form-control schedule-to-time" name="schedule_to_time[]">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small text-muted mb-1">Teacher</label>
+                                        <select class="form-select schedule-teacher" name="schedule_teacher[]">
+                                            <option value="">Select Teacher</option>
+                                            {% for teacher in teachers %}
+                                            <option value="{{ teacher.id }}">{{ teacher.full_name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2 d-flex align-items-end">
                                         <button type="button" class="btn btn-danger btn-sm remove-schedule w-100" title="Remove session">
                                             <i class="ri-delete-bin-line"></i> Remove
                                         </button>
                                     </div>
                                 </div>
                                 <div class="error-message text-danger mt-2 schedule-time-error" style="display: none;"></div>
+                                <div class="error-message text-danger mt-1 schedule-teacher-error" style="display: none;"></div>
                             </div>
                             {% endif %}
                         </div>
@@ -345,8 +346,8 @@
                         <span class="avatar-xs avatar-title bg-success-subtle text-success rounded-circle">2</span>
                     </div>
                     <div class="flex-grow-1 ms-3">
-                        <h6 class="mb-1">Teacher Selection</h6>
-                        <p class="text-muted small mb-0">[S], [M], [F] indicate which levels the teacher can teach</p>
+                        <h6 class="mb-1">Per-Session Teachers</h6>
+                        <p class="text-muted small mb-0">Each session can have a different teacher. Teachers cannot have overlapping schedules.</p>
                     </div>
                 </div>
                 <div class="d-flex mb-3">
@@ -412,16 +413,33 @@
 {% endblock %}
 
 {% block extra_js %}
+<!-- Teacher data for JavaScript -->
+<script type="application/json" id="teacherData">
+[{% for teacher in teachers %}{"id": {{ teacher.id }}, "name": "{{ teacher.full_name|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}]
+</script>
 <script>
 $(document).ready(function() {
+    // Parse teacher data
+    const teachers = JSON.parse(document.getElementById('teacherData').textContent);
+
     var scheduleIndex = $('#scheduleContainer .schedule-row').length;
+
+    // Build teacher options dynamically
+    function getTeacherOptions() {
+        let options = '<option value="">Select Teacher</option>';
+        teachers.forEach(function(teacher) {
+            options += `<option value="${teacher.id}">${teacher.name}</option>`;
+        });
+        return options;
+    }
 
     // Add schedule row
     $('#addScheduleBtn').on('click', function() {
         var newRow = `
-            <div class="schedule-row card mb-3 p-3" data-index="${scheduleIndex}">
-                <div class="row g-3 align-items-center">
-                    <div class="col-12 col-md-3">
+            <div class="schedule-row mb-3 p-3 border rounded bg-light" data-index="${scheduleIndex}">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted mb-1">Day *</label>
                         <select class="form-select" name="schedule_day[]">
                             <option value="">Select Day</option>
                             <option value="Monday">Monday</option>
@@ -433,21 +451,28 @@ $(document).ready(function() {
                             <option value="Sunday">Sunday</option>
                         </select>
                     </div>
-                    <div class="col-12 col-md-3">
+                    <div class="col-md-2">
+                        <label class="form-label small text-muted mb-1">From *</label>
                         <input type="time" class="form-control schedule-from-time" name="schedule_from_time[]">
-                        <small class="text-muted">From Time</small>
                     </div>
-                    <div class="col-12 col-md-3">
+                    <div class="col-md-2">
+                        <label class="form-label small text-muted mb-1">To *</label>
                         <input type="time" class="form-control schedule-to-time" name="schedule_to_time[]">
-                        <small class="text-muted">To Time</small>
                     </div>
-                    <div class="col-12 col-md-3 text-end">
-                        <button type="button" class="btn btn-danger btn-sm remove-schedule" title="Remove session">
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted mb-1">Teacher</label>
+                        <select class="form-select schedule-teacher" name="schedule_teacher[]">
+                            ${getTeacherOptions()}
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="button" class="btn btn-danger btn-sm remove-schedule w-100" title="Remove session">
                             <i class="ri-delete-bin-line"></i> Remove
                         </button>
                     </div>
                 </div>
                 <div class="error-message text-danger mt-2 schedule-time-error" style="display: none;"></div>
+                <div class="error-message text-danger mt-1 schedule-teacher-error" style="display: none;"></div>
             </div>
         `;
         $('#scheduleContainer').append(newRow);

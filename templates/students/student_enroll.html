@@ -7,192 +7,583 @@
 {% block functionTitle %}Create Student Profile{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12">
-        <!-- Application Summary Card -->
-        <div class="card">
-            <div class="card-header border-bottom bg-success bg-opacity-10">
-                <div class="d-flex align-items-center">
-                    <div class="avatar-sm me-3 flex-shrink-0">
-                        <span class="avatar-title bg-success rounded-circle">
-                            <i class="ri-file-list-check-line text-white"></i>
+<style>
+/* ========================================
+   Wizard Stepper Styles
+   ======================================== */
+.wizard-steps {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: 0.5rem 0;
+    gap: 0;
+}
+
+.wizard-step {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center;
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    min-width: 120px;
+    transition: all 0.3s ease;
+}
+
+.wizard-step:hover:not(.active) {
+    opacity: 0.8;
+}
+
+.wizard-step:focus {
+    outline: 2px solid var(--bs-primary);
+    outline-offset: 2px;
+    border-radius: 8px;
+}
+
+.wizard-step-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    background: #e9ecef;
+    color: #6c757d;
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.wizard-step-icon .step-check {
+    display: none;
+}
+
+.wizard-step.active .wizard-step-icon {
+    background: linear-gradient(135deg, var(--bs-primary) 0%, #6c63ff 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(var(--bs-primary-rgb), 0.3);
+    transform: scale(1.1);
+}
+
+.wizard-step.completed .wizard-step-icon {
+    background: #198754;
+    color: white;
+}
+
+.wizard-step.completed .wizard-step-icon .step-number {
+    display: none;
+}
+
+.wizard-step.completed .wizard-step-icon .step-check {
+    display: block;
+}
+
+.wizard-step-label {
+    text-align: center;
+}
+
+.step-title {
+    display: block;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #495057;
+}
+
+.wizard-step.active .step-title {
+    color: var(--bs-primary);
+}
+
+.wizard-step.completed .step-title {
+    color: #198754;
+}
+
+.step-subtitle {
+    display: block;
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+
+.wizard-step-connector {
+    flex: 0 0 auto;
+    width: 60px;
+    height: 3px;
+    background: #e9ecef;
+    margin: 0;
+    margin-bottom: 2rem;
+    transition: background 0.3s ease;
+    align-self: flex-start;
+    margin-top: 22px;
+}
+
+.wizard-step-connector.completed {
+    background: #198754;
+}
+
+/* ========================================
+   Wizard Panels
+   ======================================== */
+.wizard-panel {
+    display: none !important;
+}
+
+.wizard-panel.active {
+    display: block !important;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.step-header {
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e9ecef;
+    margin-bottom: 1.5rem;
+}
+
+/* ========================================
+   Form Enhancements
+   ======================================== */
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.15);
+}
+
+.form-control.is-valid,
+.form-select.is-valid {
+    border-color: #198754;
+}
+
+.form-control.is-invalid,
+.form-select.is-invalid {
+    border-color: #dc3545;
+}
+
+/* ========================================
+   YLE Level Card Styling
+   ======================================== */
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.form-check-card {
+    position: relative;
+}
+
+.form-check-card .form-check-input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.form-check-card .form-check-label {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.form-check-card .form-check-label:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* ========================================
+   Avatar Styles
+   ======================================== */
+.avatar-md {
+    width: 60px;
+    height: 60px;
+}
+
+.avatar-md .avatar-title {
+    width: 60px;
+    height: 60px;
+}
+
+.avatar-sm {
+    width: 32px;
+    height: 32px;
+}
+
+.avatar-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+/* ========================================
+   Section header styling
+   ======================================== */
+.section-header h6 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #495057;
+}
+
+/* Compact form labels */
+.form-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 0.375rem;
+}
+
+fieldset {
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+legend {
+    border-bottom: 2px solid var(--bs-primary);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+/* ========================================
+   Responsive Adjustments
+   ======================================== */
+@media (max-width: 768px) {
+    .wizard-step {
+        min-width: 80px;
+        padding: 0.25rem 0.5rem;
+    }
+
+    .wizard-step-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 0.9rem;
+    }
+
+    .step-title {
+        font-size: 0.7rem;
+    }
+
+    .wizard-step-connector {
+        width: 30px;
+        margin-top: 16px;
+    }
+}
+
+@media (max-width: 576px) {
+    .wizard-step-label {
+        display: none;
+    }
+
+    .wizard-step-icon {
+        margin-bottom: 0;
+    }
+
+    .wizard-step-connector {
+        margin-bottom: 0;
+        margin-top: 16px;
+    }
+
+    .wizard-step {
+        min-width: auto;
+        padding: 0.25rem;
+    }
+}
+
+/* ========================================
+   Print Styles
+   ======================================== */
+@media print {
+    .wizard-nav,
+    .wizard-steps {
+        display: none !important;
+    }
+
+    .wizard-panel {
+        display: block !important;
+        page-break-inside: avoid;
+    }
+}
+</style>
+
+<div class="row justify-content-center">
+    <div class="col-xl-10 col-lg-11">
+        <!-- Form Header -->
+        <div class="card mb-4 border-0 shadow-sm">
+            <div class="card-body py-4">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-md me-3 d-none d-sm-block">
+                                <span class="avatar-title bg-success-subtle text-success rounded-circle fs-2">
+                                    <i class="ri-user-add-line"></i>
+                                </span>
+                            </div>
+                            <div>
+                                <h4 class="mb-1">Enroll Student</h4>
+                                <p class="text-muted mb-0">Create student profile from approved application</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                        <span class="badge bg-success fs-6 py-2 px-3">
+                            <i class="ri-check-double-line me-1"></i>{{ application.get_status_display }}
                         </span>
                     </div>
-                    <div class="flex-grow-1">
-                        <h5 class="card-title mb-0 text-success">
-                            <i class="ri-check-double-line me-2"></i>Application Approved
-                        </h5>
-                        <small class="text-muted">Ready to create student profile</small>
-                    </div>
-                    <span class="badge bg-success">{{ application.get_status_display }}</span>
-                </div>
-            </div>
-            <div class="card-body">
-                <div class="row g-3 mb-4">
-                    <div class="col-md-6">
-                        <div class="p-3 border rounded bg-light">
-                            <div class="d-flex align-items-center">
-                                <div class="avatar-sm me-3 flex-shrink-0">
-                                    <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
-                                        <i class="ri-hashtag"></i>
-                                    </span>
-                                </div>
-                                <div>
-                                    <p class="text-muted mb-1 small">Admission Number</p>
-                                    <h6 class="mb-0 fw-medium">{{ application.admission_number }}</h6>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="p-3 border rounded bg-light">
-                            <div class="d-flex align-items-center">
-                                <div class="avatar-sm me-3 flex-shrink-0">
-                                    <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
-                                        <i class="ri-user-line"></i>
-                                    </span>
-                                </div>
-                                <div>
-                                    <p class="text-muted mb-1 small">Full Name</p>
-                                    <h6 class="mb-0 fw-medium">{{ application.full_name }}</h6>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row g-3 mb-4">
-                    <div class="col-md-4">
-                        <div class="p-3 border rounded bg-light">
-                            <div class="d-flex align-items-center">
-                                <div class="avatar-sm me-3 flex-shrink-0">
-                                    <span class="avatar-title bg-info-subtle text-info rounded-circle">
-                                        <i class="ri-cake-2-line"></i>
-                                    </span>
-                                </div>
-                                <div>
-                                    <p class="text-muted mb-1 small">Date of Birth</p>
-                                    <h6 class="mb-0 fw-medium">
-                                        {{ application.date_of_birth|date:"M d, Y" }}
-                                        <span class="badge bg-info-subtle text-info ms-1">{{ application.age }} yrs</span>
-                                    </h6>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="p-3 border rounded bg-light">
-                            <div class="d-flex align-items-center">
-                                <div class="avatar-sm me-3 flex-shrink-0">
-                                    <span class="avatar-title bg-warning-subtle text-warning rounded-circle">
-                                        <i class="ri-school-line"></i>
-                                    </span>
-                                </div>
-                                <div>
-                                    <p class="text-muted mb-1 small">Current School</p>
-                                    <h6 class="mb-0 fw-medium text-truncate" style="max-width: 180px;">
-                                        {{ application.current_school|default:"Not specified" }}
-                                    </h6>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="p-3 border rounded bg-light">
-                            <div class="d-flex align-items-center">
-                                <div class="avatar-sm me-3 flex-shrink-0">
-                                    <span class="avatar-title bg-success-subtle text-success rounded-circle">
-                                        <i class="ri-calendar-line"></i>
-                                    </span>
-                                </div>
-                                <div>
-                                    <p class="text-muted mb-1 small">Applied On</p>
-                                    <h6 class="mb-0 fw-medium">{{ application.created_at|date:"M d, Y" }}</h6>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Guardian Information -->
-                <h6 class="text-uppercase fw-semibold text-muted mb-3 small">
-                    <i class="ri-parent-line me-2"></i>Guardian Information
-                </h6>
-                <div class="row g-3 mb-4">
-                    {% if application.mother_name %}
-                        <div class="col-md-6">
-                            <div class="card border mb-0">
-                                <div class="card-body p-3">
-                                    <div class="d-flex">
-                                        <div class="avatar-sm me-3 flex-shrink-0">
-                                            <span class="avatar-title bg-danger-subtle text-danger rounded-circle">
-                                                <i class="ri-women-line"></i>
-                                            </span>
-                                        </div>
-                                        <div>
-                                            <h6 class="mb-1">{{ application.mother_name }}</h6>
-                                            <span class="badge bg-secondary-subtle text-secondary mb-2">Mother</span>
-                                            <p class="text-muted small mb-1">
-                                                <i class="ri-phone-line me-1"></i>{{ application.mother_contact_number }}
-                                            </p>
-                                            {% if application.mother_occupation %}
-                                                <p class="text-muted small mb-0">
-                                                    <i class="ri-briefcase-line me-1"></i>{{ application.mother_occupation }}
-                                                </p>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    {% endif %}
-                    {% if application.father_name %}
-                        <div class="col-md-6">
-                            <div class="card border mb-0">
-                                <div class="card-body p-3">
-                                    <div class="d-flex">
-                                        <div class="avatar-sm me-3 flex-shrink-0">
-                                            <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
-                                                <i class="ri-men-line"></i>
-                                            </span>
-                                        </div>
-                                        <div>
-                                            <h6 class="mb-1">{{ application.father_name }}</h6>
-                                            <span class="badge bg-secondary-subtle text-secondary mb-2">Father</span>
-                                            <p class="text-muted small mb-1">
-                                                <i class="ri-phone-line me-1"></i>{{ application.father_contact_number }}
-                                            </p>
-                                            {% if application.father_occupation %}
-                                                <p class="text-muted small mb-0">
-                                                    <i class="ri-briefcase-line me-1"></i>{{ application.father_occupation }}
-                                                </p>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    {% endif %}
                 </div>
             </div>
         </div>
 
-        <!-- Enrollment Form Card -->
-        <div class="card">
-            <div class="card-header border-bottom">
-                <h5 class="card-title mb-0">
-                    <i class="ri-user-add-line me-2 text-primary"></i>Enrollment Details
-                </h5>
+        <!-- Progress Stepper -->
+        <nav class="card mb-4 border-0 shadow-sm" aria-label="Form progress">
+            <div class="card-body py-3">
+                <div class="wizard-steps" role="tablist">
+                    <div class="wizard-step active" data-step="1" role="tab" aria-selected="true" aria-controls="step1-panel" tabindex="0">
+                        <div class="wizard-step-icon">
+                            <span class="step-number">1</span>
+                            <i class="ri-check-line step-check"></i>
+                        </div>
+                        <div class="wizard-step-label">
+                            <span class="step-title">Application Summary</span>
+                            <span class="step-subtitle d-none d-md-block">Review Details</span>
+                        </div>
+                    </div>
+                    <div class="wizard-step-connector"></div>
+                    <div class="wizard-step" data-step="2" role="tab" aria-selected="false" aria-controls="step2-panel" tabindex="-1">
+                        <div class="wizard-step-icon">
+                            <span class="step-number">2</span>
+                            <i class="ri-check-line step-check"></i>
+                        </div>
+                        <div class="wizard-step-label">
+                            <span class="step-title">YLE Level</span>
+                            <span class="step-subtitle d-none d-md-block">Select Level</span>
+                        </div>
+                    </div>
+                    <div class="wizard-step-connector"></div>
+                    <div class="wizard-step" data-step="3" role="tab" aria-selected="false" aria-controls="step3-panel" tabindex="-1">
+                        <div class="wizard-step-icon">
+                            <span class="step-number">3</span>
+                            <i class="ri-check-line step-check"></i>
+                        </div>
+                        <div class="wizard-step-label">
+                            <span class="step-title">Account Setup</span>
+                            <span class="step-subtitle d-none d-md-block">Review & Confirm</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Mobile Progress Bar -->
+                <div class="d-md-none mt-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <small class="text-muted">Step <span id="currentStepMobile">1</span> of 3</small>
+                        <small class="text-muted"><span id="progressPercent">33</span>% complete</small>
+                    </div>
+                    <div class="progress" style="height: 6px;" role="progressbar" aria-label="Form progress" aria-valuenow="33" aria-valuemin="0" aria-valuemax="100">
+                        <div class="progress-bar bg-success" id="mobileProgress" style="width: 33%"></div>
+                    </div>
+                </div>
             </div>
-            <div class="card-body">
+        </nav>
+
+        <!-- Alert Messages -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    <i class="ri-{% if message.tags == 'success' %}checkbox-circle{% elif message.tags == 'error' %}error-warning{% else %}information{% endif %}-line me-2"></i>
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Form Error Summary -->
+        <div class="alert alert-danger d-none" id="errorSummary" role="alert" aria-live="polite">
+            <h6 class="alert-heading mb-2">
+                <i class="ri-error-warning-line me-2"></i>Please correct the following errors:
+            </h6>
+            <ul class="mb-0 ps-3" id="errorList"></ul>
+        </div>
+
+        <!-- Main Form Card -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4 p-md-5">
                 <form method="post" action="{% url 'student_enroll' application.id %}" id="enrollForm" novalidate>
                     {% csrf_token %}
 
-                    <!-- YLE Level Selection -->
-                    <fieldset class="mb-4">
-                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
-                            <i class="ri-graduation-cap-line me-2"></i>Cambridge YLE Level
-                        </legend>
+                    <!-- Step 1: Application Summary -->
+                    <div class="wizard-panel active" id="step1-panel" role="tabpanel" aria-labelledby="step1">
+                        <div class="step-header mb-4">
+                            <h5 class="mb-1">
+                                <i class="ri-file-list-3-line text-primary me-2"></i>
+                                Application Summary
+                            </h5>
+                            <p class="text-muted mb-0">Review the approved application details before enrollment</p>
+                        </div>
+
+                        <!-- Student Information -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <div class="p-3 border rounded bg-light">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-sm me-3 flex-shrink-0">
+                                            <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                                <i class="ri-hashtag"></i>
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <p class="text-muted mb-1 small">Admission Number</p>
+                                            <h6 class="mb-0 fw-medium">{{ application.admission_number }}</h6>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="p-3 border rounded bg-light">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-sm me-3 flex-shrink-0">
+                                            <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                                <i class="ri-user-line"></i>
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <p class="text-muted mb-1 small">Full Name</p>
+                                            <h6 class="mb-0 fw-medium">{{ application.full_name }}</h6>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <div class="p-3 border rounded bg-light">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-sm me-3 flex-shrink-0">
+                                            <span class="avatar-title bg-info-subtle text-info rounded-circle">
+                                                <i class="ri-cake-2-line"></i>
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <p class="text-muted mb-1 small">Date of Birth</p>
+                                            <h6 class="mb-0 fw-medium">
+                                                {{ application.date_of_birth|date:"M d, Y" }}
+                                                <span class="badge bg-info-subtle text-info ms-1">{{ application.age }} yrs</span>
+                                            </h6>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="p-3 border rounded bg-light">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-sm me-3 flex-shrink-0">
+                                            <span class="avatar-title bg-warning-subtle text-warning rounded-circle">
+                                                <i class="ri-school-line"></i>
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <p class="text-muted mb-1 small">Current School</p>
+                                            <h6 class="mb-0 fw-medium text-truncate" style="max-width: 180px;">
+                                                {{ application.current_school|default:"Not specified" }}
+                                            </h6>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="p-3 border rounded bg-light">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-sm me-3 flex-shrink-0">
+                                            <span class="avatar-title bg-success-subtle text-success rounded-circle">
+                                                <i class="ri-calendar-line"></i>
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <p class="text-muted mb-1 small">Applied On</p>
+                                            <h6 class="mb-0 fw-medium">{{ application.created_at|date:"M d, Y" }}</h6>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Guardian Information -->
+                        <h6 class="text-uppercase fw-semibold text-muted mb-3 small">
+                            <i class="ri-parent-line me-2"></i>Guardian Information
+                        </h6>
+                        <div class="row g-3 mb-0">
+                            {% if application.mother_name %}
+                                <div class="col-md-6">
+                                    <div class="card border mb-0">
+                                        <div class="card-body p-3">
+                                            <div class="d-flex">
+                                                <div class="avatar-sm me-3 flex-shrink-0">
+                                                    <span class="avatar-title bg-danger-subtle text-danger rounded-circle">
+                                                        <i class="ri-women-line"></i>
+                                                    </span>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-1">{{ application.mother_name }}</h6>
+                                                    <span class="badge bg-secondary-subtle text-secondary mb-2">Mother</span>
+                                                    <p class="text-muted small mb-1">
+                                                        <i class="ri-phone-line me-1"></i>{{ application.mother_contact_number }}
+                                                    </p>
+                                                    {% if application.mother_occupation %}
+                                                        <p class="text-muted small mb-0">
+                                                            <i class="ri-briefcase-line me-1"></i>{{ application.mother_occupation }}
+                                                        </p>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            {% if application.father_name %}
+                                <div class="col-md-6">
+                                    <div class="card border mb-0">
+                                        <div class="card-body p-3">
+                                            <div class="d-flex">
+                                                <div class="avatar-sm me-3 flex-shrink-0">
+                                                    <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                                        <i class="ri-men-line"></i>
+                                                    </span>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-1">{{ application.father_name }}</h6>
+                                                    <span class="badge bg-secondary-subtle text-secondary mb-2">Father</span>
+                                                    <p class="text-muted small mb-1">
+                                                        <i class="ri-phone-line me-1"></i>{{ application.father_contact_number }}
+                                                    </p>
+                                                    {% if application.father_occupation %}
+                                                        <p class="text-muted small mb-0">
+                                                            <i class="ri-briefcase-line me-1"></i>{{ application.father_occupation }}
+                                                        </p>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Step 2: YLE Level Selection -->
+                    <div class="wizard-panel" id="step2-panel" role="tabpanel" aria-labelledby="step2">
+                        <div class="step-header mb-4">
+                            <h5 class="mb-1">
+                                <i class="ri-graduation-cap-line text-primary me-2"></i>
+                                Cambridge YLE Level Selection
+                            </h5>
+                            <p class="text-muted mb-0">Select the initial YLE level for this student</p>
+                        </div>
 
                         <div class="alert alert-info border-0 mb-4">
                             <div class="d-flex">
@@ -204,12 +595,12 @@
                             </div>
                         </div>
 
-                        <label for="current_level" class="form-label mb-3">
+                        <label class="form-label mb-3">
                             Assign Initial Level <span class="text-danger" aria-label="required">*</span>
                         </label>
 
                         <!-- YLE Level Cards -->
-                        <div class="row g-3 mb-4">
+                        <div class="row g-3 mb-0">
                             <div class="col-md-4">
                                 <div class="form-check form-check-card h-100">
                                     <input class="form-check-input yle-level-radio" type="radio" name="current_level" id="level_starters" value="STARTERS" checked>
@@ -280,105 +671,163 @@
                                 </div>
                             </div>
                         </div>
-                    </fieldset>
+                    </div>
 
-                    <!-- Account Setup -->
-                    <fieldset class="mb-4">
-                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
-                            <i class="ri-shield-user-line me-2"></i>Account Setup
-                        </legend>
+                    <!-- Step 3: Account Setup & Review -->
+                    <div class="wizard-panel" id="step3-panel" role="tabpanel" aria-labelledby="step3">
+                        <div class="step-header mb-4">
+                            <h5 class="mb-1">
+                                <i class="ri-shield-user-line text-primary me-2"></i>
+                                Account Setup & Review
+                            </h5>
+                            <p class="text-muted mb-0">Set up credentials and confirm enrollment details</p>
+                        </div>
 
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label for="password" class="form-label">
-                                    Initial Password <span class="text-danger" aria-label="required">*</span>
-                                </label>
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="ri-lock-password-line"></i></span>
-                                    <input type="text"
-                                           class="form-control"
-                                           id="password"
-                                           name="password"
-                                           value="student123"
-                                           
-                                           required>
-                                    <button class="btn btn-outline-secondary" type="button" onclick="generatePassword()">
-                                        <i class="ri-refresh-line"></i>
-                                    </button>
+                        <!-- Password Setup -->
+                        <fieldset class="mb-4">
+                            <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
+                                <i class="ri-lock-password-line me-2"></i>Password Setup
+                            </legend>
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="password" class="form-label">
+                                        Initial Password <span class="text-danger" aria-label="required">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="ri-lock-password-line"></i></span>
+                                        <input type="text"
+                                               class="form-control"
+                                               id="password"
+                                               name="password"
+                                               value="student123"
+                                               required
+                                               aria-describedby="password-help">
+                                        <button class="btn btn-outline-secondary" type="button" id="generatePasswordBtn" aria-label="Generate random password">
+                                            <i class="ri-refresh-line"></i>
+                                        </button>
+                                    </div>
+                                    <div class="form-text" id="password-help">Default password. Student should change after first login.</div>
+                                    <div class="invalid-feedback" id="password-error">Please enter a password.</div>
+                                </div>
+                            </div>
+                        </fieldset>
+
+                        <!-- Account Details Preview -->
+                        <div class="alert alert-warning border-0 mb-4">
+                            <div class="d-flex">
+                                <i class="ri-information-2-line fs-4 me-3"></i>
+                                <div>
+                                    <h6 class="alert-heading mb-2">Account Details Preview</h6>
+                                    <table class="table table-sm table-borderless mb-0" style="width: auto;">
+                                        <tbody>
+                                            <tr>
+                                                <td class="text-muted pe-3">Username:</td>
+                                                <td><code>student_{{ application.admission_number|lower|cut:"-" }}</code></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-muted pe-3">Email:</td>
+                                                <td><code>{{ application.student_email|default:application.primary_contact_email }}</code></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-muted pe-3">User Group:</td>
+                                                <td><span class="badge bg-primary">Students</span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
-                    </fieldset>
 
-                    <!-- Account Details Preview -->
-                    <div class="alert alert-warning border-0 mb-4">
-                        <div class="d-flex">
-                            <i class="ri-information-2-line fs-4 me-3"></i>
-                            <div>
-                                <h6 class="alert-heading mb-2">Account Details Preview</h6>
-                                <table class="table table-sm table-borderless mb-0" style="width: auto;">
-                                    <tbody>
-                                        <tr>
-                                            <td class="text-muted pe-3">Username:</td>
-                                            <td><code>student_{{ application.admission_number|lower|cut:"-" }}</code></td>
-                                        </tr>
-                                        <tr>
-                                            <td class="text-muted pe-3">Email:</td>
-                                            <td><code>{{ application.student_email|default:application.primary_contact_email }}</code></td>
-                                        </tr>
-                                        <tr>
-                                            <td class="text-muted pe-3">User Group:</td>
-                                            <td><span class="badge bg-primary">Students</span></td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                        <!-- What Happens Section -->
+                        <div class="alert alert-success border-0 mb-4">
+                            <div class="d-flex">
+                                <i class="ri-checkbox-circle-line fs-4 me-3"></i>
+                                <div>
+                                    <h6 class="alert-heading mb-2">What happens when you enroll:</h6>
+                                    <ul class="mb-0 ps-3">
+                                        <li class="mb-2">
+                                            <i class="ri-user-add-line text-primary me-2"></i>
+                                            Student user account created with username: <code>student_{{ application.admission_number|lower|cut:"-" }}</code>
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="ri-file-user-line text-primary me-2"></i>
+                                            Student profile created with admission number: <strong>{{ application.admission_number }}</strong>
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="ri-parent-line text-primary me-2"></i>
+                                            Guardian profiles created for mother and father
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="ri-shield-check-line text-primary me-2"></i>
+                                            Student added to "Students" user group with appropriate permissions
+                                        </li>
+                                        <li>
+                                            <i class="ri-book-open-line text-primary me-2"></i>
+                                            Class assignment can be done later from student profile
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Review Summary -->
+                        <div class="card bg-light border-0 mb-0">
+                            <div class="card-header bg-transparent border-bottom">
+                                <h6 class="mb-0">
+                                    <i class="ri-file-list-3-line text-primary me-2"></i>Review Summary
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <small class="text-muted d-block">Student Name</small>
+                                        <strong>{{ application.full_name }}</strong>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <small class="text-muted d-block">Admission Number</small>
+                                        <strong>{{ application.admission_number }}</strong>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <small class="text-muted d-block">Age</small>
+                                        <strong>{{ application.age }} years old</strong>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <small class="text-muted d-block">Selected YLE Level</small>
+                                        <strong id="review-yle-level">Pre A1 Starters</strong>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <small class="text-muted d-block">Initial Password</small>
+                                        <strong id="review-password">student123</strong>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <small class="text-muted d-block">Username</small>
+                                        <strong><code>student_{{ application.admission_number|lower|cut:"-" }}</code></strong>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- What Happens Section -->
-                    <div class="alert alert-success border-0 mb-4">
-                        <div class="d-flex">
-                            <i class="ri-checkbox-circle-line fs-4 me-3"></i>
-                            <div>
-                                <h6 class="alert-heading mb-2">What happens when you enroll:</h6>
-                                <ul class="mb-0 ps-3">
-                                    <li class="mb-2">
-                                        <i class="ri-user-add-line text-primary me-2"></i>
-                                        Student user account created with username: <code>student_{{ application.admission_number|lower|cut:"-" }}</code>
-                                    </li>
-                                    <li class="mb-2">
-                                        <i class="ri-file-user-line text-primary me-2"></i>
-                                        Student profile created with admission number: <strong>{{ application.admission_number }}</strong>
-                                    </li>
-                                    <li class="mb-2">
-                                        <i class="ri-parent-line text-primary me-2"></i>
-                                        Guardian profiles created for mother and father
-                                    </li>
-                                    <li class="mb-2">
-                                        <i class="ri-shield-check-line text-primary me-2"></i>
-                                        Student added to "Students" user group with appropriate permissions
-                                    </li>
-                                    <li>
-                                        <i class="ri-book-open-line text-primary me-2"></i>
-                                        Class assignment can be done later from student profile
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Form Actions -->
-                    <div class="border-top pt-4 mt-4">
+                    <!-- Navigation Buttons -->
+                    <div class="wizard-nav border-top pt-4 mt-4">
                         <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
-                            <a href="{% url 'application_review' application.id %}" class="btn btn-outline-secondary">
-                                <i class="ri-arrow-left-line me-1"></i> Back to Application
-                            </a>
-                            <div class="d-flex flex-wrap gap-2">
-                                <a href="{% url 'application_list' %}" class="btn btn-outline-secondary">
-                                    <i class="ri-close-line me-1"></i> Cancel
+                            <div>
+                                <button type="button" class="btn btn-light" id="prevBtn" disabled>
+                                    <i class="ri-arrow-left-line me-1"></i>Previous
+                                </button>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <a href="{% url 'application_review' application.id %}" class="btn btn-outline-secondary d-none d-sm-inline-block">
+                                    <i class="ri-arrow-left-s-line me-1"></i>Back to Application
                                 </a>
-                                <button type="submit" class="btn btn-success btn-lg" id="submitBtn">
+                                <a href="{% url 'application_list' %}" class="btn btn-outline-secondary">
+                                    <i class="ri-close-line me-1"></i>Cancel
+                                </a>
+                                <button type="button" class="btn btn-primary" id="nextBtn">
+                                    Next<i class="ri-arrow-right-line ms-1"></i>
+                                </button>
+                                <button type="submit" class="btn btn-success d-none" id="submitBtn">
                                     <span class="spinner-border spinner-border-sm d-none me-1" role="status" aria-hidden="true" id="submitSpinner"></span>
                                     <i class="ri-user-add-line me-1" id="submitIcon"></i>
                                     <span id="submitText">Enroll Student</span>
@@ -397,7 +846,34 @@
 {% block extra_js %}
 <script>
 $(document).ready(function() {
+    // ========================================
+    // Wizard State Management
+    // ========================================
+    var currentStep = 1;
+    var totalSteps = 3;
+
+    // ========================================
+    // DOM Elements
+    // ========================================
+    var $form = $('#enrollForm');
+    var $prevBtn = $('#prevBtn');
+    var $nextBtn = $('#nextBtn');
+    var $submitBtn = $('#submitBtn');
+    var $errorSummary = $('#errorSummary');
+    var $errorList = $('#errorList');
+
+    // ========================================
+    // Step Validation Rules
+    // ========================================
+    var stepFields = {
+        1: [], // Application summary - read only, no validation needed
+        2: ['current_level'], // YLE level selection - radio buttons, one is always selected
+        3: ['password'] // Account setup - password required
+    };
+
+    // ========================================
     // YLE Level card selection
+    // ========================================
     $('.yle-level-radio').on('change', function() {
         // Remove all selection styling
         $('.form-check-card label').removeClass('border-info bg-info-subtle border-warning bg-warning-subtle border-success bg-success-subtle');
@@ -413,93 +889,286 @@ $(document).ready(function() {
         } else if (level === 'FLYERS') {
             label.addClass('border-success bg-success-subtle');
         }
+
+        // Update review summary
+        updateReviewSummary();
     });
 
-    // Form submission with loading state
-    var form = document.getElementById('enrollForm');
+    // ========================================
+    // Generate Password
+    // ========================================
+    $('#generatePasswordBtn').on('click', function() {
+        var length = 10;
+        var charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$";
+        var password = "";
+        for (var i = 0; i < length; i++) {
+            password += charset.charAt(Math.floor(Math.random() * charset.length));
+        }
+        $('#password').val(password);
+        updateReviewSummary();
+    });
 
-    form.addEventListener('submit', function(event) {
-        if (!form.checkValidity()) {
-            event.preventDefault();
-            event.stopPropagation();
-        } else {
+    // Update review when password changes
+    $('#password').on('input', function() {
+        updateReviewSummary();
+    });
+
+    // ========================================
+    // Navigation Functions
+    // ========================================
+    function setupNavigation() {
+        $prevBtn.on('click', function() {
+            if (currentStep > 1) {
+                goToStep(currentStep - 1);
+            }
+        });
+
+        $nextBtn.on('click', function() {
+            if (validateStep(currentStep)) {
+                if (currentStep < totalSteps) {
+                    goToStep(currentStep + 1);
+                }
+            }
+        });
+
+        // Form submission
+        $form.on('submit', function(e) {
+            if (!validateStep(currentStep)) {
+                e.preventDefault();
+                return false;
+            }
+
             // Show loading state
-            $('#submitBtn').prop('disabled', true);
+            $submitBtn.prop('disabled', true);
             $('#submitSpinner').removeClass('d-none');
             $('#submitIcon').addClass('d-none');
             $('#submitText').text('Enrolling...');
+        });
+    }
+
+    function setupStepperClicks() {
+        $('.wizard-step').on('click keypress', function(e) {
+            if (e.type === 'keypress' && e.which !== 13 && e.which !== 32) return;
+
+            var targetStep = parseInt($(this).data('step'));
+
+            // Only allow going to completed steps or next uncompleted step
+            if (targetStep < currentStep) {
+                goToStep(targetStep);
+            } else if (targetStep === currentStep + 1 && validateStep(currentStep)) {
+                goToStep(targetStep);
+            }
+        });
+    }
+
+    function goToStep(step) {
+        // Hide current panel
+        $('.wizard-panel').removeClass('active');
+
+        // Show target panel
+        $('#step' + step + '-panel').addClass('active');
+
+        // Update step indicators
+        updateStepIndicators(step);
+
+        // Update current step
+        currentStep = step;
+
+        // Update buttons
+        updateUI();
+
+        // Update review if going to step 3
+        if (step === 3) {
+            updateReviewSummary();
         }
 
-        form.classList.add('was-validated');
-    }, false);
-});
+        // Scroll to top of form
+        $('html, body').animate({
+            scrollTop: $('.wizard-steps').offset().top - 100
+        }, 300);
 
-// Generate random password
-function generatePassword() {
-    var length = 10;
-    var charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$";
-    var password = "";
-    for (var i = 0; i < length; i++) {
-        password += charset.charAt(Math.floor(Math.random() * charset.length));
+        // Focus first input in new step
+        setTimeout(function() {
+            var $firstInput = $('#step' + step + '-panel').find('input, select, textarea').filter(':visible').first();
+            if ($firstInput.length) {
+                $firstInput.focus();
+            }
+        }, 350);
     }
-    $('#password').val(password);
-}
+
+    function updateStepIndicators(step) {
+        $('.wizard-step').each(function() {
+            var stepNum = parseInt($(this).data('step'));
+            var $this = $(this);
+
+            $this.removeClass('active completed');
+            $this.attr('aria-selected', 'false').attr('tabindex', '-1');
+
+            if (stepNum < step) {
+                $this.addClass('completed');
+            } else if (stepNum === step) {
+                $this.addClass('active');
+                $this.attr('aria-selected', 'true').attr('tabindex', '0');
+            }
+        });
+
+        // Update connectors
+        $('.wizard-step-connector').each(function(index) {
+            if (index < step - 1) {
+                $(this).addClass('completed');
+            } else {
+                $(this).removeClass('completed');
+            }
+        });
+
+        // Update mobile progress
+        $('#currentStepMobile').text(step);
+        var percent = Math.round((step / totalSteps) * 100);
+        $('#progressPercent').text(percent);
+        $('#mobileProgress').css('width', percent + '%').attr('aria-valuenow', percent);
+    }
+
+    function updateUI() {
+        // Previous button
+        $prevBtn.prop('disabled', currentStep === 1);
+
+        // Next/Submit buttons
+        if (currentStep === totalSteps) {
+            $nextBtn.addClass('d-none');
+            $submitBtn.removeClass('d-none');
+        } else {
+            $nextBtn.removeClass('d-none');
+            $submitBtn.addClass('d-none');
+        }
+    }
+
+    // ========================================
+    // Validation Functions
+    // ========================================
+    function setupValidation() {
+        // Real-time validation on blur
+        $form.find('input, select, textarea').on('blur', function() {
+            validateField($(this));
+        });
+
+        // Clear error on input
+        $form.find('input, select, textarea').on('input change', function() {
+            var $field = $(this);
+            if ($field.hasClass('is-invalid')) {
+                validateField($field);
+            }
+        });
+    }
+
+    function validateStep(step) {
+        var isValid = true;
+        var errors = [];
+        var fields = stepFields[step];
+
+        // Step 1 and 2 don't require validation - step 1 is read-only, step 2 always has a selection
+        if (step === 1 || step === 2) {
+            return true;
+        }
+
+        fields.forEach(function(fieldId) {
+            var $field = $('#' + fieldId);
+            if (!validateField($field)) {
+                isValid = false;
+                var label = $('label[for="' + fieldId + '"]').text().replace('*', '').trim();
+                errors.push(label + ' is required');
+            }
+        });
+
+        // Show/hide error summary
+        if (!isValid) {
+            showErrorSummary(errors);
+        } else {
+            hideErrorSummary();
+        }
+
+        return isValid;
+    }
+
+    function validateField($field) {
+        var value = $field.val();
+        var fieldId = $field.attr('id');
+        var isRequired = stepFields[currentStep].indexOf(fieldId) > -1;
+        var isValid = true;
+        var errorMsg = '';
+
+        // Check if required field is empty
+        if (isRequired) {
+            if (!value || value.trim() === '') {
+                isValid = false;
+                errorMsg = 'This field is required';
+            }
+        }
+
+        // Update UI
+        if (isValid) {
+            $field.removeClass('is-invalid').addClass('is-valid');
+        } else {
+            $field.removeClass('is-valid').addClass('is-invalid');
+            var $feedback = $field.siblings('.invalid-feedback');
+            if ($feedback.length === 0) {
+                $feedback = $('#' + fieldId + '-error');
+            }
+            if ($feedback.length && errorMsg) {
+                $feedback.text(errorMsg);
+            }
+        }
+
+        return isValid;
+    }
+
+    function showErrorSummary(errors) {
+        $errorList.empty();
+        errors.forEach(function(error) {
+            $errorList.append('<li>' + error + '</li>');
+        });
+        $errorSummary.removeClass('d-none');
+
+        // Scroll to error summary
+        $('html, body').animate({
+            scrollTop: $errorSummary.offset().top - 100
+        }, 300);
+
+        // Focus first invalid field
+        setTimeout(function() {
+            $('.is-invalid').first().focus();
+        }, 350);
+    }
+
+    function hideErrorSummary() {
+        $errorSummary.addClass('d-none');
+        $errorList.empty();
+    }
+
+    // ========================================
+    // Review Summary Functions
+    // ========================================
+    function updateReviewSummary() {
+        // Update YLE Level
+        var selectedLevel = $('input[name="current_level"]:checked').val();
+        var levelDisplayMap = {
+            'STARTERS': 'Pre A1 Starters',
+            'MOVERS': 'A1 Movers',
+            'FLYERS': 'A2 Flyers'
+        };
+        $('#review-yle-level').text(levelDisplayMap[selectedLevel] || '-');
+
+        // Update Password
+        $('#review-password').text($('#password').val() || '-');
+    }
+
+    // ========================================
+    // Initialize
+    // ========================================
+    setupNavigation();
+    setupValidation();
+    setupStepperClicks();
+    updateUI();
+    updateReviewSummary();
+});
 </script>
-
-<style>
-.cursor-pointer {
-    cursor: pointer;
-}
-
-.form-check-card .form-check-input {
-    position: absolute;
-    opacity: 0;
-    pointer-events: none;
-}
-
-.form-check-card .form-check-label {
-    transition: all 0.2s ease;
-}
-
-.form-check-card .form-check-label:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-fieldset {
-    border: none;
-    padding: 0;
-    margin: 0;
-}
-
-legend {
-    border-bottom: 2px solid var(--bs-primary);
-    padding-bottom: 0.5rem;
-    margin-bottom: 1rem;
-}
-
-.avatar-xs {
-    width: 24px;
-    height: 24px;
-}
-
-.avatar-xs .avatar-title {
-    font-size: 12px;
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.avatar-md {
-    width: 60px;
-    height: 60px;
-}
-
-.avatar-md .avatar-title {
-    width: 60px;
-    height: 60px;
-}
-</style>
 {% endblock %}

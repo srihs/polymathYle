@@ -86,17 +86,6 @@
                                     <div class="invalid-feedback">Please select a YLE level.</div>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="ri-user-star-line"></i></span>
-                                    <select class="form-select" id="teacher" name="teacher">
-                                        <option value="" selected>Select Teacher (Optional)</option>
-                                        {% for teacher in teachers %}
-                                        <option value="{{ teacher.id }}">{{ teacher.full_name }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                            </div>
                         </div>
                     </fieldset>
 
@@ -158,11 +147,13 @@
                             <div class="col-md-4">
                                 <div class="input-group has-validation">
                                     <span class="input-group-text"><i class="ri-calendar-check-line"></i></span>
-                                    <input type="date"
-                                           class="form-control"
+                                    <input type="text"
+                                           class="form-control flatpickr-input"
                                            id="start_date"
                                            name="start_date"
-                                           
+                                           placeholder="Start Date *"
+                                           data-provider="flatpickr"
+                                           data-date-format="Y-m-d"
                                            required>
                                     <div class="invalid-feedback">Please select a start date.</div>
                                 </div>
@@ -170,11 +161,13 @@
                             <div class="col-md-6">
                                 <div class="input-group has-validation">
                                     <span class="input-group-text"><i class="ri-calendar-close-line"></i></span>
-                                    <input type="date"
-                                           class="form-control"
+                                    <input type="text"
+                                           class="form-control flatpickr-input"
                                            id="end_date"
                                            name="end_date"
-                                           
+                                           placeholder="End Date *"
+                                           data-provider="flatpickr"
+                                           data-date-format="Y-m-d"
                                            required>
                                     <div class="invalid-feedback">Please select an end date.</div>
                                 </div>
@@ -240,18 +233,52 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<!-- Teacher data for JavaScript -->
+<script type="application/json" id="teacherData">
+[{% for teacher in teachers %}{"id": {{ teacher.id }}, "name": "{{ teacher.full_name|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}]
+</script>
 <script>
 $(document).ready(function() {
+    // Parse teacher data
+    const teachers = JSON.parse(document.getElementById('teacherData').textContent);
+    // Initialize Flatpickr for date inputs
+    const startDatePicker = flatpickr('#start_date', {
+        dateFormat: 'Y-m-d',
+        altInput: true,
+        altFormat: 'F j, Y',
+        minDate: 'today',
+        disableMobile: true,
+        onChange: function(selectedDates, dateStr) {
+            if (selectedDates.length > 0) {
+                endDatePicker.set('minDate', dateStr);
+            }
+        }
+    });
+
+    const endDatePicker = flatpickr('#end_date', {
+        dateFormat: 'Y-m-d',
+        altInput: true,
+        altFormat: 'F j, Y',
+        disableMobile: true
+    });
     let scheduleCount = 0;
 
     // Schedule item template
     function createScheduleItem(index) {
+        // Build teacher options dynamically
+        let teacherOptions = '<option value="">Select Teacher (Optional)</option>';
+        teachers.forEach(function(teacher) {
+            teacherOptions += `<option value="${teacher.id}">${teacher.name}</option>`;
+        });
+
         return `
-            <div class="schedule-item mb-3" data-index="${index}">
+            <div class="schedule-item mb-3 p-3 border rounded bg-light" data-index="${index}">
                 <div class="row g-3">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted mb-1">Day *</label>
                         <select class="form-select schedule-day" name="schedule_day[]" required>
-                            <option value="">Select Day *</option>
+                            <option value="">Select Day</option>
                             <option value="Monday">Monday</option>
                             <option value="Tuesday">Tuesday</option>
                             <option value="Wednesday">Wednesday</option>
@@ -261,25 +288,28 @@ $(document).ready(function() {
                             <option value="Sunday">Sunday</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
-                        <div class="position-relative">
-                            <input type="time" class="form-control schedule-from-time" name="schedule_from_time[]" required>
-                            <small class="text-muted position-absolute" style="font-size: 0.75rem; left: 0; bottom: -18px;">From Time</small>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="position-relative">
-                            <input type="time" class="form-control schedule-to-time" name="schedule_to_time[]" required>
-                            <small class="text-muted position-absolute" style="font-size: 0.75rem; left: 0; bottom: -18px;">To Time</small>
-                        </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-muted mb-1">From *</label>
+                        <input type="time" class="form-control schedule-from-time" name="schedule_from_time[]" required>
                     </div>
                     <div class="col-md-2">
+                        <label class="form-label small text-muted mb-1">To *</label>
+                        <input type="time" class="form-control schedule-to-time" name="schedule_to_time[]" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted mb-1">Teacher</label>
+                        <select class="form-select schedule-teacher" name="schedule_teacher[]">
+                            ${teacherOptions}
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
                         <button type="button" class="btn btn-danger btn-sm remove-schedule w-100" data-index="${index}">
                             <i class="ri-delete-bin-line"></i> Remove
                         </button>
                     </div>
                 </div>
                 <div class="error-message text-danger mt-2 schedule-time-error" style="display: none;"></div>
+                <div class="error-message text-danger mt-1 schedule-teacher-error" style="display: none;"></div>
             </div>
         `;
     }
@@ -379,17 +409,7 @@ $(document).ready(function() {
         }
     });
 
-    // Set minimum start date to today
-    const today = new Date().toISOString().split('T')[0];
-    $('#start_date').attr('min', today);
-
-    // Update end date minimum when start date changes
-    $('#start_date').on('change', function() {
-        const startDate = $(this).val();
-        if (startDate) {
-            $('#end_date').attr('min', startDate);
-        }
-    });
+    // Note: Date min/max validation is handled by flatpickr initialization above
 
     // Form validation
     const form = document.getElementById('classForm');

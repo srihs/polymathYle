@@ -7,23 +7,318 @@
 {% block functionTitle %}{{ teacher.full_name }}{% endblock %}
 
 {% block content %}
+<style>
+/* ========================================
+   Wizard Stepper Styles
+   ======================================== */
+.wizard-steps {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: 0.5rem 0;
+    gap: 0;
+}
+
+.wizard-step {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center;
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    min-width: 100px;
+    transition: all 0.3s ease;
+}
+
+.wizard-step:hover:not(.active) {
+    opacity: 0.8;
+}
+
+.wizard-step:focus {
+    outline: 2px solid var(--bs-primary);
+    outline-offset: 2px;
+    border-radius: 8px;
+}
+
+.wizard-step-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    background: #e9ecef;
+    color: #6c757d;
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.wizard-step-icon .step-check {
+    display: none;
+}
+
+.wizard-step.active .wizard-step-icon {
+    background: linear-gradient(135deg, var(--bs-primary) 0%, #6c63ff 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(var(--bs-primary-rgb), 0.3);
+    transform: scale(1.1);
+}
+
+.wizard-step.completed .wizard-step-icon {
+    background: #198754;
+    color: white;
+}
+
+.wizard-step.completed .wizard-step-icon .step-number {
+    display: none;
+}
+
+.wizard-step.completed .wizard-step-icon .step-check {
+    display: block;
+}
+
+.wizard-step-label {
+    text-align: center;
+}
+
+.step-title {
+    display: block;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #495057;
+}
+
+.wizard-step.active .step-title {
+    color: var(--bs-primary);
+}
+
+.wizard-step.completed .step-title {
+    color: #198754;
+}
+
+.step-subtitle {
+    display: block;
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+
+.wizard-step-connector {
+    flex: 0 0 auto;
+    width: 40px;
+    height: 3px;
+    background: #e9ecef;
+    margin: 0;
+    margin-bottom: 2rem;
+    transition: background 0.3s ease;
+    align-self: flex-start;
+    margin-top: 22px;
+}
+
+.wizard-step-connector.completed {
+    background: #198754;
+}
+
+/* ========================================
+   Wizard Panels
+   ======================================== */
+.wizard-panel {
+    display: none !important;
+}
+
+.wizard-panel.active {
+    display: block !important;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.step-header {
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e9ecef;
+    margin-bottom: 1.5rem;
+}
+
+/* ========================================
+   Form Enhancements
+   ======================================== */
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.15);
+}
+
+.form-control.is-valid,
+.form-select.is-valid {
+    border-color: #198754;
+}
+
+.form-control.is-invalid,
+.form-select.is-invalid {
+    border-color: #dc3545;
+}
+
+/* ========================================
+   Checkbox Card Styling
+   ======================================== */
+.form-check-card {
+    position: relative;
+}
+
+.form-check-card .form-check-input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.form-check-card .form-check-label {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.form-check-card .form-check-label:hover {
+    border-color: var(--bs-primary) !important;
+    background-color: rgba(var(--bs-primary-rgb), 0.05);
+}
+
+.form-check-card .form-check-input:checked + .form-check-label {
+    border-color: var(--bs-primary) !important;
+    background-color: rgba(var(--bs-primary-rgb), 0.1);
+}
+
+.form-check-card .form-check-input:focus + .form-check-label {
+    box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
+}
+
+/* ========================================
+   Avatar Styles
+   ======================================== */
+.avatar-md {
+    width: 56px;
+    height: 56px;
+}
+
+.avatar-sm {
+    width: 32px;
+    height: 32px;
+}
+
+.avatar-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+/* ========================================
+   Section header styling
+   ======================================== */
+.section-header h6 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #495057;
+}
+
+/* Compact form labels */
+.form-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 0.375rem;
+}
+
+/* ========================================
+   Responsive Adjustments
+   ======================================== */
+@media (max-width: 768px) {
+    .wizard-step {
+        min-width: 70px;
+        padding: 0.25rem 0.5rem;
+    }
+
+    .wizard-step-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 0.9rem;
+    }
+
+    .step-title {
+        font-size: 0.7rem;
+    }
+
+    .wizard-step-connector {
+        width: 20px;
+        margin-top: 16px;
+    }
+}
+
+@media (max-width: 576px) {
+    .wizard-step-label {
+        display: none;
+    }
+
+    .wizard-step-icon {
+        margin-bottom: 0;
+    }
+
+    .wizard-step-connector {
+        margin-bottom: 0;
+        margin-top: 16px;
+    }
+
+    .wizard-step {
+        min-width: auto;
+        padding: 0.25rem;
+    }
+}
+
+/* ========================================
+   Print Styles
+   ======================================== */
+@media print {
+    .wizard-nav,
+    .wizard-steps {
+        display: none !important;
+    }
+
+    .wizard-panel {
+        display: block !important;
+        page-break-inside: avoid;
+    }
+}
+</style>
+
 <div class="row">
     <div class="col-lg-8">
-        <div class="card">
-            <div class="card-header border-bottom">
+        <!-- Teacher Header Card -->
+        <div class="card mb-4 border-0 shadow-sm">
+            <div class="card-body py-3">
                 <div class="d-flex align-items-center">
-                    <div class="avatar-sm me-3">
+                    <div class="avatar-md me-3">
                         {% if teacher.profile_picture %}
-                            <img src="{{ teacher.profile_picture.url }}" alt="{{ teacher.full_name }}" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
+                            <img src="{{ teacher.profile_picture.url }}" alt="{{ teacher.full_name }}" class="rounded-circle" style="width: 56px; height: 56px; object-fit: cover;">
                         {% else %}
-                            <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                            <span class="avatar-title bg-primary-subtle text-primary rounded-circle fs-3">
                                 {{ teacher.full_name|first|upper }}
                             </span>
                         {% endif %}
                     </div>
                     <div class="flex-grow-1">
-                        <h5 class="card-title mb-0">Edit Teacher Profile</h5>
-                        <div class="d-flex align-items-center gap-2 mt-1">
+                        <h5 class="mb-1">Edit Teacher Profile</h5>
+                        <div class="d-flex align-items-center gap-2">
                             <span class="badge bg-primary-subtle text-primary">{{ teacher.employee_id }}</span>
                             {% if teacher.is_active %}
                                 <span class="badge bg-success-subtle text-success">Active</span>
@@ -39,260 +334,401 @@
                     </div>
                 </div>
             </div>
-            <div class="card-body">
+        </div>
+
+        <!-- Progress Stepper -->
+        <nav class="card mb-4 border-0 shadow-sm" aria-label="Form progress">
+            <div class="card-body py-3">
+                <div class="wizard-steps" role="tablist">
+                    <div class="wizard-step active" data-step="1" role="tab" aria-selected="true" aria-controls="step1-panel" tabindex="0">
+                        <div class="wizard-step-icon">
+                            <span class="step-number">1</span>
+                            <i class="ri-check-line step-check"></i>
+                        </div>
+                        <div class="wizard-step-label">
+                            <span class="step-title">Basic Info</span>
+                            <span class="step-subtitle d-none d-md-block">Name & ID</span>
+                        </div>
+                    </div>
+                    <div class="wizard-step-connector"></div>
+                    <div class="wizard-step" data-step="2" role="tab" aria-selected="false" aria-controls="step2-panel" tabindex="-1">
+                        <div class="wizard-step-icon">
+                            <span class="step-number">2</span>
+                            <i class="ri-check-line step-check"></i>
+                        </div>
+                        <div class="wizard-step-label">
+                            <span class="step-title">Contact</span>
+                            <span class="step-subtitle d-none d-md-block">Email & Phone</span>
+                        </div>
+                    </div>
+                    <div class="wizard-step-connector"></div>
+                    <div class="wizard-step" data-step="3" role="tab" aria-selected="false" aria-controls="step3-panel" tabindex="-1">
+                        <div class="wizard-step-icon">
+                            <span class="step-number">3</span>
+                            <i class="ri-check-line step-check"></i>
+                        </div>
+                        <div class="wizard-step-label">
+                            <span class="step-title">Login</span>
+                            <span class="step-subtitle d-none d-md-block">Credentials</span>
+                        </div>
+                    </div>
+                    <div class="wizard-step-connector"></div>
+                    <div class="wizard-step" data-step="4" role="tab" aria-selected="false" aria-controls="step4-panel" tabindex="-1">
+                        <div class="wizard-step-icon">
+                            <span class="step-number">4</span>
+                            <i class="ri-check-line step-check"></i>
+                        </div>
+                        <div class="wizard-step-label">
+                            <span class="step-title">Professional</span>
+                            <span class="step-subtitle d-none d-md-block">Experience</span>
+                        </div>
+                    </div>
+                    <div class="wizard-step-connector"></div>
+                    <div class="wizard-step" data-step="5" role="tab" aria-selected="false" aria-controls="step5-panel" tabindex="-1">
+                        <div class="wizard-step-icon">
+                            <span class="step-number">5</span>
+                            <i class="ri-check-line step-check"></i>
+                        </div>
+                        <div class="wizard-step-label">
+                            <span class="step-title">YLE & Status</span>
+                            <span class="step-subtitle d-none d-md-block">Certifications</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Mobile Progress Bar -->
+                <div class="d-md-none mt-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <small class="text-muted">Step <span id="currentStepMobile">1</span> of 5</small>
+                        <small class="text-muted"><span id="progressPercent">20</span>% complete</small>
+                    </div>
+                    <div class="progress" style="height: 6px;" role="progressbar" aria-label="Form progress" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100">
+                        <div class="progress-bar bg-primary" id="mobileProgress" style="width: 20%"></div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Alert Messages -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    <i class="ri-{% if message.tags == 'success' %}checkbox-circle{% elif message.tags == 'error' %}error-warning{% else %}information{% endif %}-line me-2"></i>
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Form Error Summary -->
+        <div class="alert alert-danger d-none" id="errorSummary" role="alert" aria-live="polite">
+            <h6 class="alert-heading mb-2">
+                <i class="ri-error-warning-line me-2"></i>Please correct the following errors:
+            </h6>
+            <ul class="mb-0 ps-3" id="errorList"></ul>
+        </div>
+
+        <!-- Main Form Card -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
                 <form method="post" enctype="multipart/form-data" action="{% url 'teacher_edit' teacher.id %}" id="teacherEditForm" novalidate>
                     {% csrf_token %}
 
-                    <!-- Basic Information Section -->
-                    <fieldset class="mb-4">
-                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
-                            <i class="ri-user-line me-2"></i>Basic Information
-                        </legend>
+                    <!-- Step 1: Basic Information -->
+                    <div class="wizard-panel active" id="step1-panel" role="tabpanel" aria-labelledby="step1">
+                        <div class="step-header mb-4">
+                            <h5 class="mb-1">
+                                <i class="ri-user-line text-primary me-2"></i>
+                                Basic Information
+                            </h5>
+                            <p class="text-muted mb-0">Update the teacher's name and employee identification</p>
+                        </div>
+
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label for="full_name" class="form-label">
-                                    Full Name <span class="text-danger" aria-label="required">*</span>
+                                    Full Name <span class="text-danger">*</span>
                                 </label>
-                                <div class="input-group has-validation">
-                                    <span class="input-group-text"><i class="ri-user-line"></i></span>
-                                    <input type="text"
-                                           class="form-control"
-                                           id="full_name"
-                                           name="full_name"
-                                           value="{{ teacher.full_name }}"
-                                           placeholder="e.g., John Michael Smith"
-                                           
-                                           autocomplete="name"
-                                           required>
-                                    <div class="invalid-feedback">Please enter the teacher's full name.</div>
-                                </div>
+                                <input type="text"
+                                       class="form-control"
+                                       id="full_name"
+                                       name="full_name"
+                                       value="{{ teacher.full_name }}"
+                                       placeholder="e.g., John Michael Smith"
+                                       autocomplete="name"
+                                       required>
+                                <div class="invalid-feedback" id="full_name-error">Please enter the teacher's full name.</div>
                             </div>
                             <div class="col-md-6">
                                 <label for="employee_id" class="form-label">
-                                    Employee ID <span class="text-danger" aria-label="required">*</span>
+                                    Employee ID <span class="text-danger">*</span>
                                 </label>
-                                <div class="input-group has-validation">
-                                    <span class="input-group-text"><i class="ri-hashtag"></i></span>
-                                    <input type="text"
-                                           class="form-control"
-                                           id="employee_id"
-                                           name="employee_id"
-                                           value="{{ teacher.employee_id }}"
-                                           placeholder="e.g., EMP001"
-                                           
-                                           pattern="[A-Za-z0-9]+"
-                                           required>
-                                    <div class="invalid-feedback">Please enter a unique employee ID.</div>
+                                <input type="text"
+                                       class="form-control"
+                                       id="employee_id"
+                                       name="employee_id"
+                                       value="{{ teacher.employee_id }}"
+                                       placeholder="e.g., EMP001"
+                                       pattern="[A-Za-z0-9]+"
+                                       required>
+                                <div class="invalid-feedback" id="employee_id-error">Please enter a unique employee ID.</div>
+                            </div>
+                        </div>
+
+                        <!-- Step 1 Helpful Info -->
+                        <div class="alert alert-light border mt-4 mb-0" role="note">
+                            <div class="d-flex">
+                                <div class="flex-shrink-0">
+                                    <i class="ri-information-line fs-4 text-primary"></i>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="mb-1">Employee ID Format</h6>
+                                    <p class="mb-0 small text-muted">
+                                        The Employee ID should be unique and follow your organization's naming convention.
+                                        For example: EMP001, TCH-2024-001, etc.
+                                    </p>
                                 </div>
                             </div>
                         </div>
-                    </fieldset>
+                    </div>
 
-                    <!-- Contact Information Section -->
-                    <fieldset class="mb-4">
-                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
-                            <i class="ri-contacts-line me-2"></i>Contact Information
-                        </legend>
+                    <!-- Step 2: Contact Information -->
+                    <div class="wizard-panel" id="step2-panel" role="tabpanel" aria-labelledby="step2">
+                        <div class="step-header mb-4">
+                            <h5 class="mb-1">
+                                <i class="ri-contacts-line text-primary me-2"></i>
+                                Contact Information
+                            </h5>
+                            <p class="text-muted mb-0">How can we reach this teacher?</p>
+                        </div>
+
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label for="email" class="form-label">
-                                    Email Address <span class="text-danger" aria-label="required">*</span>
+                                    Email Address <span class="text-danger">*</span>
                                 </label>
-                                <div class="input-group has-validation">
-                                    <span class="input-group-text"><i class="ri-mail-line"></i></span>
-                                    <input type="email"
-                                           class="form-control"
-                                           id="email"
-                                           name="email"
-                                           value="{{ teacher.email }}"
-                                           placeholder="e.g., john.smith@example.com"
-                                           
-                                           autocomplete="email"
-                                           required>
-                                    <div class="invalid-feedback">Please enter a valid email address.</div>
-                                </div>
+                                <input type="email"
+                                       class="form-control"
+                                       id="email"
+                                       name="email"
+                                       value="{{ teacher.email }}"
+                                       placeholder="e.g., john.smith@example.com"
+                                       autocomplete="email"
+                                       required>
+                                <div class="invalid-feedback" id="email-error">Please enter a valid email address.</div>
                             </div>
                             <div class="col-md-6">
                                 <label for="contact_number" class="form-label">
-                                    Contact Number <span class="text-danger" aria-label="required">*</span>
+                                    Contact Number <span class="text-danger">*</span>
                                 </label>
-                                <div class="input-group has-validation">
-                                    <span class="input-group-text"><i class="ri-phone-line"></i></span>
-                                    <input type="tel"
-                                           class="form-control"
-                                           id="contact_number"
-                                           name="contact_number"
-                                           value="{{ teacher.contact_number }}"
-                                           placeholder="e.g., +94 77 123 4567"
-                                           
-                                           autocomplete="tel"
-                                           required>
-                                    <div class="invalid-feedback">Please enter a valid contact number.</div>
+                                <input type="tel"
+                                       class="form-control"
+                                       id="contact_number"
+                                       name="contact_number"
+                                       value="{{ teacher.contact_number }}"
+                                       placeholder="e.g., +94 77 123 4567"
+                                       autocomplete="tel"
+                                       required>
+                                <div class="invalid-feedback" id="contact_number-error">Please enter a valid contact number.</div>
+                            </div>
+                        </div>
+
+                        <!-- Step 2 Note -->
+                        <div class="alert alert-light border mt-4 mb-0" role="note">
+                            <div class="d-flex">
+                                <div class="flex-shrink-0">
+                                    <i class="ri-shield-check-line fs-4 text-success"></i>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="mb-1">Contact Privacy</h6>
+                                    <p class="mb-0 small text-muted">
+                                        This contact information will be used for system notifications and
+                                        administrative purposes only.
+                                    </p>
                                 </div>
                             </div>
                         </div>
-                    </fieldset>
+                    </div>
 
-                    <!-- Account Information Section -->
-                    <fieldset class="mb-4">
-                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
-                            <i class="ri-lock-line me-2"></i>Login Credentials
-                        </legend>
+                    <!-- Step 3: Login Credentials -->
+                    <div class="wizard-panel" id="step3-panel" role="tabpanel" aria-labelledby="step3">
+                        <div class="step-header mb-4">
+                            <h5 class="mb-1">
+                                <i class="ri-lock-line text-primary me-2"></i>
+                                Login Credentials
+                            </h5>
+                            <p class="text-muted mb-0">Update the teacher's system access credentials</p>
+                        </div>
+
+                        <div class="alert alert-light border mb-4" role="note">
+                            <div class="d-flex align-items-center">
+                                <i class="ri-information-line text-info me-2"></i>
+                                <small class="text-muted">Leave the password field blank to keep the current password.</small>
+                            </div>
+                        </div>
+
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label for="username" class="form-label">
-                                    Username <span class="text-danger" aria-label="required">*</span>
+                                    Username <span class="text-danger">*</span>
                                 </label>
-                                <div class="input-group has-validation">
-                                    <span class="input-group-text"><i class="ri-at-line"></i></span>
-                                    <input type="text"
-                                           class="form-control"
-                                           id="username"
-                                           name="username"
-                                           value="{{ teacher.user.username }}"
-                                           placeholder="e.g., john.smith"
-                                           
-                                           autocomplete="username"
-                                           pattern="[a-zA-Z0-9._]+"
-                                           required>
-                                    <div class="invalid-feedback">Username can only contain letters, numbers, dots, and underscores.</div>
-                                </div>
+                                <input type="text"
+                                       class="form-control"
+                                       id="username"
+                                       name="username"
+                                       value="{{ teacher.user.username }}"
+                                       placeholder="e.g., john.smith"
+                                       autocomplete="username"
+                                       pattern="[a-zA-Z0-9._]+"
+                                       required>
+                                <div class="invalid-feedback" id="username-error">Username can only contain letters, numbers, dots, and underscores.</div>
                             </div>
                             <div class="col-md-6">
-                                <label for="password" class="form-label">New Password</label>
+                                <label for="password" class="form-label">
+                                    New Password <span class="text-muted fw-normal">(optional)</span>
+                                </label>
                                 <div class="input-group">
-                                    <span class="input-group-text"><i class="ri-key-line"></i></span>
                                     <input type="password"
                                            class="form-control"
                                            id="password"
                                            name="password"
                                            placeholder="Leave blank to keep current"
-                                           
                                            autocomplete="new-password">
                                     <button class="btn btn-outline-secondary" type="button" id="togglePassword" aria-label="Toggle password visibility">
                                         <i class="ri-eye-line" id="passwordIcon"></i>
                                     </button>
                                 </div>
+                                <div class="form-text">Enter a new password only if you want to change it.</div>
                             </div>
                         </div>
-                    </fieldset>
 
-                    <!-- Professional Details Section -->
-                    <fieldset class="mb-4">
-                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
-                            <i class="ri-briefcase-line me-2"></i>Professional Details
-                        </legend>
-                        <div class="row g-3">
+                        <!-- Step 3 Note -->
+                        <div class="alert alert-warning border-0 mt-4 mb-0" role="note">
+                            <div class="d-flex">
+                                <div class="flex-shrink-0">
+                                    <i class="ri-key-2-line fs-4 text-warning"></i>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="mb-1">Password Security</h6>
+                                    <p class="mb-0 small">
+                                        If you change the password, make sure to communicate the new password securely to the teacher.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 4: Professional Details -->
+                    <div class="wizard-panel" id="step4-panel" role="tabpanel" aria-labelledby="step4">
+                        <div class="step-header mb-4">
+                            <h5 class="mb-1">
+                                <i class="ri-briefcase-line text-primary me-2"></i>
+                                Professional Details
+                            </h5>
+                            <p class="text-muted mb-0">Update teaching experience and qualifications</p>
+                        </div>
+
+                        <div class="row g-3 mb-3">
                             <div class="col-md-4">
                                 <label for="years_of_experience" class="form-label">Years of Experience</label>
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="ri-time-line"></i></span>
-                                    <input type="number"
-                                           class="form-control"
-                                           id="years_of_experience"
-                                           name="years_of_experience"
-                                           value="{{ teacher.years_of_experience }}"
-                                           min="0"
-                                           max="50"
-                                           >
-                                    <span class="input-group-text">years</span>
-                                </div>
+                                <input type="number"
+                                       class="form-control"
+                                       id="years_of_experience"
+                                       name="years_of_experience"
+                                       value="{{ teacher.years_of_experience }}"
+                                       min="0"
+                                       max="50"
+                                       placeholder="e.g., 5">
                             </div>
                             <div class="col-md-4">
                                 <label for="date_joined" class="form-label">
-                                    Date Joined <span class="text-danger" aria-label="required">*</span>
+                                    Date Joined <span class="text-danger">*</span>
                                 </label>
-                                <div class="input-group has-validation">
-                                    <span class="input-group-text"><i class="ri-calendar-line"></i></span>
-                                    <input type="date"
-                                           class="form-control"
-                                           id="date_joined"
-                                           name="date_joined"
-                                           value="{{ teacher.date_joined|date:'Y-m-d' }}"
-                                           
-                                           required>
-                                    <div class="invalid-feedback">Please select the joining date.</div>
-                                </div>
+                                <input type="text"
+                                       class="form-control flatpickr-input"
+                                       id="date_joined"
+                                       name="date_joined"
+                                       value="{{ teacher.date_joined|date:'Y-m-d' }}"
+                                       placeholder="Select date"
+                                       data-provider="flatpickr"
+                                       data-date-format="Y-m-d"
+                                       required>
+                                <div class="invalid-feedback" id="date_joined-error">Please select the joining date.</div>
                             </div>
                             <div class="col-md-4">
                                 <label for="employment_type" class="form-label">Employment Type</label>
-                                <select class="form-select" id="employment_type" name="employment_type" >
+                                <select class="form-select" id="employment_type" name="employment_type">
                                     <option value="FULL_TIME" {% if teacher.employment_type == 'FULL_TIME' %}selected{% endif %}>Full Time</option>
                                     <option value="PART_TIME" {% if teacher.employment_type == 'PART_TIME' %}selected{% endif %}>Part Time</option>
                                     <option value="CONTRACT" {% if teacher.employment_type == 'CONTRACT' %}selected{% endif %}>Contract</option>
                                 </select>
                             </div>
                         </div>
-
-                        <div class="row g-3 mt-2">
+                        <div class="row g-3 mb-3">
                             <div class="col-md-6">
                                 <label for="qualifications" class="form-label">Qualifications</label>
                                 <textarea class="form-control"
                                           id="qualifications"
                                           name="qualifications"
-                                          rows="3"
-                                          placeholder="e.g., CELTA, TESOL, B.Ed in English, MA in Applied Linguistics"
-                                          >{{ teacher.qualifications }}</textarea>
+                                          rows="2"
+                                          placeholder="e.g., CELTA, TESOL, B.Ed in English">{{ teacher.qualifications }}</textarea>
                             </div>
                             <div class="col-md-6">
                                 <label for="bio" class="form-label">Biography</label>
                                 <textarea class="form-control"
                                           id="bio"
                                           name="bio"
-                                          rows="3"
-                                          placeholder="Brief introduction about the teacher's background and teaching style..."
-                                          >{{ teacher.bio }}</textarea>
+                                          rows="2"
+                                          placeholder="Brief introduction about teaching style...">{{ teacher.bio }}</textarea>
                             </div>
                         </div>
-
-                        <div class="row g-3 mt-2">
+                        <div class="row g-3 mb-0">
                             <div class="col-md-6">
                                 <label for="profile_picture" class="form-label">Profile Picture</label>
                                 <input type="file"
                                        class="form-control"
                                        id="profile_picture"
                                        name="profile_picture"
-                                       accept="image/jpeg,image/png,image/webp"
-                                       >
+                                       accept="image/jpeg,image/png,image/webp">
+                                <div class="form-text">JPG, PNG, or WebP format. Leave empty to keep current photo.</div>
                             </div>
                             <div class="col-md-6">
                                 <div id="imagePreview" class="{% if not teacher.profile_picture %}d-none{% endif %}">
                                     <label class="form-label">Current Photo</label>
-                                    <div class="border rounded p-2 bg-light text-center">
+                                    <div class="d-flex align-items-center">
                                         {% if teacher.profile_picture %}
-                                            <img id="previewImg" src="{{ teacher.profile_picture.url }}" alt="{{ teacher.full_name }}" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
+                                            <img id="previewImg" src="{{ teacher.profile_picture.url }}" alt="{{ teacher.full_name }}" class="rounded-circle border" style="width: 64px; height: 64px; object-fit: cover;">
                                         {% else %}
-                                            <img id="previewImg" src="" alt="Profile preview" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
+                                            <img id="previewImg" src="" alt="Profile preview" class="rounded-circle border" style="width: 64px; height: 64px; object-fit: cover;">
                                         {% endif %}
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </fieldset>
+                    </div>
 
-                    <!-- YLE Level Specializations Section -->
-                    <fieldset class="mb-4">
-                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
-                            <i class="ri-graduation-cap-line me-2"></i>YLE Level Certifications
-                        </legend>
-                        <p class="text-muted mb-3">
-                            Select which Cambridge YLE levels this teacher is qualified to teach.
-                            <strong>Note:</strong> All teachers teach all four skills (Listening, Reading, Writing, Speaking).
-                        </p>
-                        <div class="row g-3">
+                    <!-- Step 5: YLE Level Certifications & Account Status -->
+                    <div class="wizard-panel" id="step5-panel" role="tabpanel" aria-labelledby="step5">
+                        <div class="step-header mb-4">
+                            <h5 class="mb-1">
+                                <i class="ri-graduation-cap-line text-primary me-2"></i>
+                                YLE Level Certifications & Account Status
+                            </h5>
+                            <p class="text-muted mb-0">Select which Cambridge YLE levels this teacher is qualified to teach and manage account status</p>
+                        </div>
+
+                        <!-- YLE Levels -->
+                        <div class="row g-3 mb-4">
                             <div class="col-md-4">
                                 <div class="form-check form-check-card h-100">
                                     <input class="form-check-input" type="checkbox" id="teaches_starters" name="teaches_starters" {% if teacher.teaches_starters %}checked{% endif %}>
-                                    <label class="form-check-label d-block p-3 border rounded cursor-pointer {% if teacher.teaches_starters %}border-primary bg-primary-subtle{% endif %}" for="teaches_starters">
+                                    <label class="form-check-label d-block p-3 border rounded {% if teacher.teaches_starters %}border-primary{% endif %}" for="teaches_starters">
                                         <div class="d-flex align-items-center">
-                                            <div class="avatar-sm me-3 flex-shrink-0">
-                                                <span class="avatar-title bg-info-subtle text-info rounded">
-                                                    <i class="ri-seedling-line fs-4"></i>
-                                                </span>
-                                            </div>
+                                            <span class="avatar-title bg-info-subtle text-info rounded me-2" style="width: 40px; height: 40px;">
+                                                <i class="ri-seedling-line fs-5"></i>
+                                            </span>
                                             <div>
-                                                <h6 class="mb-1">Pre A1 Starters</h6>
-                                                <p class="text-muted mb-0 small">Beginner level (Ages 6-8)</p>
+                                                <div class="fw-medium">Pre A1 Starters</div>
+                                                <div class="text-muted small">Ages 6-8</div>
                                             </div>
                                         </div>
                                     </label>
@@ -301,16 +737,14 @@
                             <div class="col-md-4">
                                 <div class="form-check form-check-card h-100">
                                     <input class="form-check-input" type="checkbox" id="teaches_movers" name="teaches_movers" {% if teacher.teaches_movers %}checked{% endif %}>
-                                    <label class="form-check-label d-block p-3 border rounded cursor-pointer {% if teacher.teaches_movers %}border-primary bg-primary-subtle{% endif %}" for="teaches_movers">
+                                    <label class="form-check-label d-block p-3 border rounded {% if teacher.teaches_movers %}border-primary{% endif %}" for="teaches_movers">
                                         <div class="d-flex align-items-center">
-                                            <div class="avatar-sm me-3 flex-shrink-0">
-                                                <span class="avatar-title bg-warning-subtle text-warning rounded">
-                                                    <i class="ri-run-line fs-4"></i>
-                                                </span>
-                                            </div>
+                                            <span class="avatar-title bg-warning-subtle text-warning rounded me-2" style="width: 40px; height: 40px;">
+                                                <i class="ri-run-line fs-5"></i>
+                                            </span>
                                             <div>
-                                                <h6 class="mb-1">A1 Movers</h6>
-                                                <p class="text-muted mb-0 small">Elementary level (Ages 8-10)</p>
+                                                <div class="fw-medium">A1 Movers</div>
+                                                <div class="text-muted small">Ages 8-10</div>
                                             </div>
                                         </div>
                                     </label>
@@ -319,30 +753,23 @@
                             <div class="col-md-4">
                                 <div class="form-check form-check-card h-100">
                                     <input class="form-check-input" type="checkbox" id="teaches_flyers" name="teaches_flyers" {% if teacher.teaches_flyers %}checked{% endif %}>
-                                    <label class="form-check-label d-block p-3 border rounded cursor-pointer {% if teacher.teaches_flyers %}border-primary bg-primary-subtle{% endif %}" for="teaches_flyers">
+                                    <label class="form-check-label d-block p-3 border rounded {% if teacher.teaches_flyers %}border-primary{% endif %}" for="teaches_flyers">
                                         <div class="d-flex align-items-center">
-                                            <div class="avatar-sm me-3 flex-shrink-0">
-                                                <span class="avatar-title bg-success-subtle text-success rounded">
-                                                    <i class="ri-rocket-line fs-4"></i>
-                                                </span>
-                                            </div>
+                                            <span class="avatar-title bg-success-subtle text-success rounded me-2" style="width: 40px; height: 40px;">
+                                                <i class="ri-rocket-line fs-5"></i>
+                                            </span>
                                             <div>
-                                                <h6 class="mb-1">A2 Flyers</h6>
-                                                <p class="text-muted mb-0 small">Pre-Intermediate (Ages 10-12)</p>
+                                                <div class="fw-medium">A2 Flyers</div>
+                                                <div class="text-muted small">Ages 10-12</div>
                                             </div>
                                         </div>
                                     </label>
                                 </div>
                             </div>
                         </div>
-                    </fieldset>
 
-                    <!-- Account Status Section -->
-                    <fieldset class="mb-4">
-                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
-                            <i class="ri-shield-user-line me-2"></i>Account Status
-                        </legend>
-                        <div class="row g-3">
+                        <!-- Account Status -->
+                        <div class="row g-3 mb-4">
                             <div class="col-md-6">
                                 <div class="card bg-light border-0">
                                     <div class="card-body p-3">
@@ -371,19 +798,94 @@
                                 </div>
                             </div>
                         </div>
-                    </fieldset>
 
-                    <!-- Form Actions -->
-                    <div class="border-top pt-4 mt-4">
-                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
-                            <div class="text-muted small">
-                                <span class="text-danger">*</span> indicates required fields
+                        <!-- Review Summary -->
+                        <div class="card bg-light border-0 mb-4">
+                            <div class="card-header bg-transparent border-bottom">
+                                <h6 class="mb-0">
+                                    <i class="ri-file-list-3-line text-primary me-2"></i>Review Summary
+                                </h6>
                             </div>
-                            <div class="d-flex flex-wrap gap-2">
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <small class="text-muted d-block">Full Name</small>
+                                        <strong id="review-full-name">{{ teacher.full_name }}</strong>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <small class="text-muted d-block">Employee ID</small>
+                                        <strong id="review-employee-id">{{ teacher.employee_id }}</strong>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <small class="text-muted d-block">Email</small>
+                                        <strong id="review-email">{{ teacher.email }}</strong>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <small class="text-muted d-block">Contact Number</small>
+                                        <strong id="review-contact">{{ teacher.contact_number }}</strong>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <small class="text-muted d-block">Username</small>
+                                        <strong id="review-username">{{ teacher.user.username }}</strong>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <small class="text-muted d-block">Date Joined</small>
+                                        <strong id="review-date-joined">{{ teacher.date_joined|date:"F d, Y" }}</strong>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <small class="text-muted d-block">Employment Type</small>
+                                        <strong id="review-employment-type">{{ teacher.get_employment_type_display }}</strong>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <small class="text-muted d-block">Account Status</small>
+                                        <strong id="review-status">
+                                            {% if teacher.is_active %}
+                                                <span class="text-success">Active</span>
+                                            {% else %}
+                                                <span class="text-danger">Inactive</span>
+                                            {% endif %}
+                                        </strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 5 Note -->
+                        <div class="alert alert-info-subtle border-0 mb-0" role="note">
+                            <div class="d-flex">
+                                <div class="flex-shrink-0">
+                                    <i class="ri-lightbulb-line fs-4 text-info"></i>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="mb-1">YLE Certification</h6>
+                                    <p class="mb-0 small">
+                                        Select all levels this teacher is certified to teach. This determines which classes
+                                        can be assigned to them in the system.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Navigation Buttons -->
+                    <div class="wizard-nav border-top pt-4 mt-4">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                            <div>
+                                <button type="button" class="btn btn-light" id="prevBtn" disabled>
+                                    <i class="ri-arrow-left-line me-1"></i>Previous
+                                </button>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <small class="text-muted d-none d-sm-block">
+                                    <span class="text-danger">*</span> Required fields
+                                </small>
                                 <a href="{% url 'teacher_detail' teacher.id %}" class="btn btn-outline-secondary">
-                                    <i class="ri-close-line me-1"></i> Cancel
+                                    <i class="ri-close-line me-1"></i>Cancel
                                 </a>
-                                <button type="submit" class="btn btn-success" id="submitBtn">
+                                <button type="button" class="btn btn-primary" id="nextBtn">
+                                    Next<i class="ri-arrow-right-line ms-1"></i>
+                                </button>
+                                <button type="submit" class="btn btn-success d-none" id="submitBtn">
                                     <span class="spinner-border spinner-border-sm d-none me-1" role="status" aria-hidden="true" id="submitSpinner"></span>
                                     <i class="ri-save-line me-1" id="submitIcon"></i>
                                     <span id="submitText">Save Changes</span>
@@ -516,13 +1018,54 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script>
 $(document).ready(function() {
+    // ========================================
+    // Wizard State Management
+    // ========================================
+    var currentStep = 1;
+    var totalSteps = 5;
+
+    // ========================================
+    // DOM Elements
+    // ========================================
+    var $form = $('#teacherEditForm');
+    var $prevBtn = $('#prevBtn');
+    var $nextBtn = $('#nextBtn');
+    var $submitBtn = $('#submitBtn');
+    var $errorSummary = $('#errorSummary');
+    var $errorList = $('#errorList');
+
+    // ========================================
+    // Step Validation Rules
+    // Note: Password is NOT required for edit (optional)
+    // ========================================
+    var stepFields = {
+        1: ['full_name', 'employee_id'],
+        2: ['email', 'contact_number'],
+        3: ['username'], // Password is optional for edit
+        4: ['date_joined'],
+        5: [] // YLE certifications and status are optional
+    };
+
+    // ========================================
+    // Initialize Flatpickr
+    // ========================================
+    flatpickr('#date_joined', {
+        dateFormat: 'Y-m-d',
+        altInput: true,
+        altFormat: 'F j, Y',
+        disableMobile: true
+    });
+
+    // ========================================
     // Password visibility toggle
+    // ========================================
     $('#togglePassword').on('click', function() {
         var passwordField = $('#password');
         var icon = $('#passwordIcon');
-
         if (passwordField.attr('type') === 'password') {
             passwordField.attr('type', 'text');
             icon.removeClass('ri-eye-line').addClass('ri-eye-off-line');
@@ -532,7 +1075,9 @@ $(document).ready(function() {
         }
     });
 
+    // ========================================
     // Profile picture preview
+    // ========================================
     $('#profile_picture').on('change', function(e) {
         var file = e.target.files[0];
         if (file) {
@@ -545,37 +1090,324 @@ $(document).ready(function() {
         }
     });
 
-    // Form validation with Bootstrap
-    var form = document.getElementById('teacherEditForm');
-
-    form.addEventListener('submit', function(event) {
-        if (!form.checkValidity()) {
-            event.preventDefault();
-            event.stopPropagation();
-        } else {
-            // Show loading state
-            $('#submitBtn').prop('disabled', true);
-            $('#submitSpinner').removeClass('d-none');
-            $('#submitIcon').addClass('d-none');
-            $('#submitText').text('Saving...');
-        }
-
-        form.classList.add('was-validated');
-    }, false);
-
+    // ========================================
     // Style checkbox cards on selection
+    // ========================================
     $('input[type="checkbox"]').on('change', function() {
         var label = $(this).siblings('label');
         if ($(this).is(':checked')) {
-            label.addClass('border-primary bg-primary-subtle');
+            label.addClass('border-primary');
         } else {
-            label.removeClass('border-primary bg-primary-subtle');
+            label.removeClass('border-primary');
         }
     });
 
-    // Track form changes
+    // ========================================
+    // Navigation Functions
+    // ========================================
+    function setupNavigation() {
+        $prevBtn.on('click', function() {
+            if (currentStep > 1) {
+                goToStep(currentStep - 1);
+            }
+        });
+
+        $nextBtn.on('click', function() {
+            if (validateStep(currentStep)) {
+                if (currentStep < totalSteps) {
+                    goToStep(currentStep + 1);
+                }
+            }
+        });
+
+        // Form submission
+        $form.on('submit', function(e) {
+            if (!validateStep(currentStep)) {
+                e.preventDefault();
+                return false;
+            }
+
+            // Show loading state
+            $submitBtn.prop('disabled', true);
+            $('#submitSpinner').removeClass('d-none');
+            $('#submitIcon').addClass('d-none');
+            $('#submitText').text('Saving Changes...');
+        });
+    }
+
+    function setupStepperClicks() {
+        $('.wizard-step').on('click keypress', function(e) {
+            if (e.type === 'keypress' && e.which !== 13 && e.which !== 32) return;
+
+            var targetStep = parseInt($(this).data('step'));
+
+            // Only allow going to completed steps or next uncompleted step
+            if (targetStep < currentStep) {
+                goToStep(targetStep);
+            } else if (targetStep === currentStep + 1 && validateStep(currentStep)) {
+                goToStep(targetStep);
+            }
+        });
+    }
+
+    function goToStep(step) {
+        // Hide current panel
+        $('.wizard-panel').removeClass('active');
+
+        // Show target panel
+        $('#step' + step + '-panel').addClass('active');
+
+        // Update step indicators
+        updateStepIndicators(step);
+
+        // Update current step
+        currentStep = step;
+
+        // Update buttons
+        updateUI();
+
+        // Update review if going to step 5
+        if (step === 5) {
+            updateReviewSummary();
+        }
+
+        // Scroll to top of form
+        $('html, body').animate({
+            scrollTop: $('.wizard-steps').offset().top - 100
+        }, 300);
+
+        // Focus first input in new step
+        setTimeout(function() {
+            var $firstInput = $('#step' + step + '-panel').find('input, select, textarea').filter(':visible').first();
+            if ($firstInput.length) {
+                $firstInput.focus();
+            }
+        }, 350);
+    }
+
+    function updateStepIndicators(step) {
+        $('.wizard-step').each(function() {
+            var stepNum = parseInt($(this).data('step'));
+            var $this = $(this);
+
+            $this.removeClass('active completed');
+            $this.attr('aria-selected', 'false').attr('tabindex', '-1');
+
+            if (stepNum < step) {
+                $this.addClass('completed');
+            } else if (stepNum === step) {
+                $this.addClass('active');
+                $this.attr('aria-selected', 'true').attr('tabindex', '0');
+            }
+        });
+
+        // Update connectors
+        $('.wizard-step-connector').each(function(index) {
+            if (index < step - 1) {
+                $(this).addClass('completed');
+            } else {
+                $(this).removeClass('completed');
+            }
+        });
+
+        // Update mobile progress
+        $('#currentStepMobile').text(step);
+        var percent = Math.round((step / totalSteps) * 100);
+        $('#progressPercent').text(percent);
+        $('#mobileProgress').css('width', percent + '%').attr('aria-valuenow', percent);
+    }
+
+    function updateUI() {
+        // Previous button
+        $prevBtn.prop('disabled', currentStep === 1);
+
+        // Next/Submit buttons
+        if (currentStep === totalSteps) {
+            $nextBtn.addClass('d-none');
+            $submitBtn.removeClass('d-none');
+        } else {
+            $nextBtn.removeClass('d-none');
+            $submitBtn.addClass('d-none');
+        }
+    }
+
+    // ========================================
+    // Validation Functions
+    // ========================================
+    function setupValidation() {
+        // Real-time validation on blur
+        $form.find('input, select, textarea').on('blur', function() {
+            validateField($(this));
+        });
+
+        // Clear error on input
+        $form.find('input, select, textarea').on('input change', function() {
+            var $field = $(this);
+            if ($field.hasClass('is-invalid')) {
+                validateField($field);
+            }
+        });
+    }
+
+    function validateStep(step) {
+        var isValid = true;
+        var errors = [];
+        var fields = stepFields[step];
+
+        fields.forEach(function(fieldId) {
+            var $field = $('#' + fieldId);
+            if (!validateField($field)) {
+                isValid = false;
+                var label = $('label[for="' + fieldId + '"]').text().replace('*', '').replace('(optional)', '').trim();
+                errors.push(label + ' is required');
+            }
+        });
+
+        // Show/hide error summary
+        if (!isValid) {
+            showErrorSummary(errors);
+        } else {
+            hideErrorSummary();
+        }
+
+        return isValid;
+    }
+
+    function validateField($field) {
+        var value = $field.val();
+        var fieldId = $field.attr('id');
+        var isRequired = stepFields[currentStep].indexOf(fieldId) > -1;
+        var isValid = true;
+        var errorMsg = '';
+
+        // Check if required field is empty
+        if (isRequired) {
+            if (!value || value.trim() === '') {
+                isValid = false;
+                errorMsg = 'This field is required';
+            }
+        }
+
+        // Email validation
+        if (value && $field.attr('type') === 'email') {
+            var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(value)) {
+                isValid = false;
+                errorMsg = 'Please enter a valid email address';
+            }
+        }
+
+        // Phone validation
+        if (value && fieldId === 'contact_number') {
+            var phoneRegex = /^(\+94|0)?[0-9]{9,10}$/;
+            var cleanPhone = value.replace(/[\s-]/g, '');
+            if (!phoneRegex.test(cleanPhone)) {
+                isValid = false;
+                errorMsg = 'Please enter a valid phone number';
+            }
+        }
+
+        // Username validation
+        if (value && fieldId === 'username') {
+            var usernameRegex = /^[a-zA-Z0-9._]+$/;
+            if (!usernameRegex.test(value)) {
+                isValid = false;
+                errorMsg = 'Username can only contain letters, numbers, dots, and underscores';
+            }
+        }
+
+        // Employee ID validation
+        if (value && fieldId === 'employee_id') {
+            var empIdRegex = /^[A-Za-z0-9-]+$/;
+            if (!empIdRegex.test(value)) {
+                isValid = false;
+                errorMsg = 'Employee ID can only contain letters, numbers, and hyphens';
+            }
+        }
+
+        // Update UI
+        if (isValid) {
+            $field.removeClass('is-invalid').addClass('is-valid');
+        } else {
+            $field.removeClass('is-valid').addClass('is-invalid');
+            var $feedback = $field.siblings('.invalid-feedback');
+            if ($feedback.length === 0) {
+                $feedback = $('#' + fieldId + '-error');
+            }
+            if ($feedback.length && errorMsg) {
+                $feedback.text(errorMsg);
+            }
+        }
+
+        return isValid;
+    }
+
+    function showErrorSummary(errors) {
+        $errorList.empty();
+        errors.forEach(function(error) {
+            $errorList.append('<li>' + error + '</li>');
+        });
+        $errorSummary.removeClass('d-none');
+
+        // Scroll to error summary
+        $('html, body').animate({
+            scrollTop: $errorSummary.offset().top - 100
+        }, 300);
+
+        // Focus first invalid field
+        setTimeout(function() {
+            $('.is-invalid').first().focus();
+        }, 350);
+    }
+
+    function hideErrorSummary() {
+        $errorSummary.addClass('d-none');
+        $errorList.empty();
+    }
+
+    // ========================================
+    // Review Summary Functions
+    // ========================================
+    function updateReviewSummary() {
+        $('#review-full-name').text($('#full_name').val() || '-');
+        $('#review-employee-id').text($('#employee_id').val() || '-');
+        $('#review-email').text($('#email').val() || '-');
+        $('#review-contact').text($('#contact_number').val() || '-');
+        $('#review-username').text($('#username').val() || '-');
+        $('#review-date-joined').text(formatDate($('#date_joined').val()));
+
+        // Update employment type
+        var empType = $('#employment_type option:selected').text();
+        $('#review-employment-type').text(empType || '-');
+
+        // Update status
+        var isActive = $('#is_active').is(':checked');
+        if (isActive) {
+            $('#review-status').html('<span class="text-success">Active</span>');
+        } else {
+            $('#review-status').html('<span class="text-danger">Inactive</span>');
+        }
+    }
+
+    function formatDate(dateStr) {
+        if (!dateStr) return '-';
+        try {
+            var date = new Date(dateStr);
+            return date.toLocaleDateString('en-GB', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            });
+        } catch (e) {
+            return dateStr;
+        }
+    }
+
+    // ========================================
+    // Track form changes for unsaved warning
+    // ========================================
     var formChanged = false;
-    $('#teacherEditForm input, #teacherEditForm textarea, #teacherEditForm select').on('change input', function() {
+    $form.find('input, textarea, select').on('change input', function() {
         formChanged = true;
     });
 
@@ -589,51 +1421,17 @@ $(document).ready(function() {
     });
 
     // Remove warning when form is submitted
-    $('#teacherEditForm').on('submit', function() {
+    $form.on('submit', function() {
         formChanged = false;
     });
+
+    // ========================================
+    // Initialize
+    // ========================================
+    setupNavigation();
+    setupValidation();
+    setupStepperClicks();
+    updateUI();
 });
 </script>
-
-<style>
-.cursor-pointer {
-    cursor: pointer;
-}
-
-.form-check-card .form-check-input {
-    position: absolute;
-    opacity: 0;
-    pointer-events: none;
-}
-
-.form-check-card .form-check-label {
-    transition: all 0.2s ease;
-}
-
-.form-check-card .form-check-label:hover {
-    border-color: var(--bs-primary) !important;
-    background-color: var(--bs-primary-bg-subtle);
-}
-
-.form-check-card .form-check-input:checked + .form-check-label {
-    border-color: var(--bs-primary) !important;
-    background-color: var(--bs-primary-bg-subtle);
-}
-
-.form-check-card .form-check-input:focus + .form-check-label {
-    box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
-}
-
-fieldset {
-    border: none;
-    padding: 0;
-    margin: 0;
-}
-
-legend {
-    border-bottom: 2px solid var(--bs-primary);
-    padding-bottom: 0.5rem;
-    margin-bottom: 1rem;
-}
-</style>
 {% endblock %}

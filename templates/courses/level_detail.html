@@ -396,11 +396,22 @@
                                     </div>
                                 </td>
                                 <td>
-                                    {% if class.teacher %}
-                                    <span class="text-dark">{{ class.teacher.full_name }}</span>
+                                    {% with class.schedule as schedules %}
+                                    {% if schedules %}
+                                        {% for session in schedules|slice:":1" %}
+                                            {% if session.teacher_name %}
+                                            <span class="text-dark">{{ session.teacher_name }}</span>
+                                            {% endif %}
+                                        {% empty %}
+                                            <span class="text-muted">Per-schedule</span>
+                                        {% endfor %}
+                                        {% if schedules|length > 1 %}
+                                        <span class="badge bg-light text-dark">+more</span>
+                                        {% endif %}
                                     {% else %}
                                     <span class="text-muted">Not assigned</span>
                                     {% endif %}
+                                    {% endwith %}
                                 </td>
                                 <td class="text-center">
                                     <span class="badge {% if class.is_full %}bg-danger{% else %}bg-primary{% endif %}">
@@ -412,7 +423,12 @@
                                     <small class="text-muted">
                                         <i class="ri-time-line me-1"></i>
                                         {% for s in class.schedule|slice:":1" %}
-                                            {{ s.day }} {{ s.time }}
+                                            {{ s.day }}
+                                            {% if s.from_time and s.to_time %}
+                                            {{ s.from_time }}-{{ s.to_time }}
+                                            {% elif s.time %}
+                                            {{ s.time }}
+                                            {% endif %}
                                         {% endfor %}
                                         {% if class.schedule|length > 1 %}
                                             <span class="badge bg-light text-dark">+{{ class.schedule|length|add:"-1" }} more</span>

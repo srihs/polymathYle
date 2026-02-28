@@ -272,8 +272,9 @@ def class_detail_view(request, class_id):
     units = Unit.objects.filter(level=class_obj.level, is_active=True).order_by('order')
 
     context = {
-        'class_obj': class_obj,
+        'class': class_obj,
         'enrolled_students': enrolled_students,
+        'students': enrolled_students,  # Alias for template compatibility
         'schedule': schedule,
         'available_seats': available_seats,
         'capacity_percentage': round(capacity_percentage),
@@ -283,18 +284,61 @@ def class_detail_view(request, class_id):
     return render(request, 'courses/class_detail.html', context)
 
 
+def check_teacher_schedule_overlap(teacher_id, day, from_time, to_time, start_date, end_date, exclude_class_id=None):
+    """
+    Check if a teacher has overlapping schedules with the proposed schedule.
+
+    Args:
+        teacher_id: ID of the teacher to check
+        day: Day of the week (e.g., 'Monday')
+        from_time: Start time (e.g., '09:00')
+        to_time: End time (e.g., '10:30')
+        start_date: Class start date
+        end_date: Class end date
+        exclude_class_id: Optional class ID to exclude (for editing)
+
+    Returns:
+        tuple: (has_overlap: bool, overlapping_class: Class or None)
+    """
+    if not teacher_id:
+        return False, None
+
+    # Get all active classes that have schedules with this teacher
+    classes_query = Class.objects.filter(is_active=True)
+    if exclude_class_id:
+        classes_query = classes_query.exclude(id=exclude_class_id)
+
+    for cls in classes_query:
+        # Check if date ranges overlap
+        if not (cls.end_date < datetime.strptime(start_date, '%Y-%m-%d').date() or
+                cls.start_date > datetime.strptime(end_date, '%Y-%m-%d').date()):
+            # Date ranges overlap, check schedule
+            for sched in cls.schedule or []:
+                # Check if this schedule has the same teacher
+                if str(sched.get('teacher_id')) == str(teacher_id) and sched.get('day') == day:
+                    sched_from = sched.get('from_time')
+                    sched_to = sched.get('to_time')
+
+                    # Check time overlap: NOT (new_end <= existing_start OR new_start >= existing_end)
+                    if not (to_time <= sched_from or from_time >= sched_to):
+                        return True, cls
+
+    return False, None
+
+
 @login_required
 @staff_member_required
 def class_add_view(request):
     """
     Add a new class (staff only).
+    Each schedule slot can have its own teacher assignment.
+    Validates that teachers do not have overlapping schedules.
     """
     if request.method == 'POST':
         # Get form data
         level_id = request.POST.get('level')
         class_name = request.POST.get('class_name')
         class_code = request.POST.get('class_code')
-        teacher_id = request.POST.get('teacher')
         max_students = request.POST.get('max_students', 25)
         room_number = request.POST.get('room_number', '')
         start_date = request.POST.get('start_date')
@@ -312,20 +356,20 @@ def class_add_view(request):
 
         # Get related objects
         level = get_object_or_404(YLELevel, id=level_id)
-        teacher = None
-        if teacher_id:
-            teacher = get_object_or_404(Teacher, id=teacher_id)
 
-        # Parse schedule from form
+        # Parse schedule from form (now includes per-schedule teacher)
         schedule = []
-        schedule_days = request.POST.getlist('schedule_day')
-        schedule_from_times = request.POST.getlist('schedule_from_time')
-        schedule_to_times = request.POST.getlist('schedule_to_time')
+        schedule_days = request.POST.getlist('schedule_day[]')
+        schedule_from_times = request.POST.getlist('schedule_from_time[]')
+        schedule_to_times = request.POST.getlist('schedule_to_time[]')
+        schedule_teachers = request.POST.getlist('schedule_teacher[]')
 
+        # Build schedule entries and validate
         for i in range(len(schedule_days)):
             if schedule_days[i] and i < len(schedule_from_times) and i < len(schedule_to_times):
                 from_time = schedule_from_times[i]
                 to_time = schedule_to_times[i]
+                teacher_id = schedule_teachers[i] if i < len(schedule_teachers) else ''
 
                 # Validate time range
                 if from_time and to_time:
@@ -333,18 +377,38 @@ def class_add_view(request):
                         messages.error(request, f'Invalid time range for {schedule_days[i]}: End time must be after start time.')
                         return redirect('class_add')
 
-                    schedule.append({
+                    # Check for teacher schedule overlap
+                    if teacher_id:
+                        has_overlap, overlapping_class = check_teacher_schedule_overlap(
+                            teacher_id, schedule_days[i], from_time, to_time, start_date, end_date
+                        )
+                        if has_overlap:
+                            teacher = Teacher.objects.get(id=teacher_id)
+                            messages.error(
+                                request,
+                                f'Teacher "{teacher.full_name}" has a schedule conflict on {schedule_days[i]} '
+                                f'({from_time}-{to_time}) with class "{overlapping_class.class_name}".'
+                            )
+                            return redirect('class_add')
+
+                    schedule_entry = {
                         'day': schedule_days[i],
                         'from_time': from_time,
                         'to_time': to_time
-                    })
+                    }
+                    if teacher_id:
+                        schedule_entry['teacher_id'] = int(teacher_id)
+                        # Also store teacher name for display purposes
+                        teacher = Teacher.objects.get(id=teacher_id)
+                        schedule_entry['teacher_name'] = teacher.full_name
 
-        # Create class
+                    schedule.append(schedule_entry)
+
+        # Create class (teacher field no longer used - teachers are per-schedule)
         new_class = Class.objects.create(
             level=level,
             class_name=class_name,
             class_code=class_code.upper(),
-            teacher=teacher,
             schedule=schedule,
             max_students=int(max_students),
             room_number=room_number,
@@ -373,6 +437,8 @@ def class_add_view(request):
 def class_edit_view(request, class_id):
     """
     Edit class details (staff only).
+    Each schedule slot can have its own teacher assignment.
+    Validates that teachers do not have overlapping schedules.
     """
     class_obj = get_object_or_404(Class, id=class_id)
 
@@ -393,13 +459,6 @@ def class_edit_view(request, class_id):
         if level_id:
             class_obj.level = get_object_or_404(YLELevel, id=level_id)
 
-        # Update teacher
-        teacher_id = request.POST.get('teacher')
-        if teacher_id:
-            class_obj.teacher = get_object_or_404(Teacher, id=teacher_id)
-        else:
-            class_obj.teacher = None
-
         # Update other fields
         class_obj.max_students = int(request.POST.get('max_students', class_obj.max_students))
         class_obj.room_number = request.POST.get('room_number', class_obj.room_number)
@@ -413,16 +472,18 @@ def class_edit_view(request, class_id):
         if end_date:
             class_obj.end_date = end_date
 
-        # Parse schedule from form
+        # Parse schedule from form (now includes per-schedule teacher)
         schedule = []
-        schedule_days = request.POST.getlist('schedule_day')
-        schedule_from_times = request.POST.getlist('schedule_from_time')
-        schedule_to_times = request.POST.getlist('schedule_to_time')
+        schedule_days = request.POST.getlist('schedule_day[]')
+        schedule_from_times = request.POST.getlist('schedule_from_time[]')
+        schedule_to_times = request.POST.getlist('schedule_to_time[]')
+        schedule_teachers = request.POST.getlist('schedule_teacher[]')
 
         for i in range(len(schedule_days)):
             if schedule_days[i] and i < len(schedule_from_times) and i < len(schedule_to_times):
                 from_time = schedule_from_times[i]
                 to_time = schedule_to_times[i]
+                teacher_id = schedule_teachers[i] if i < len(schedule_teachers) else ''
 
                 # Validate time range
                 if from_time and to_time:
@@ -430,15 +491,40 @@ def class_edit_view(request, class_id):
                         messages.error(request, f'Invalid time range for {schedule_days[i]}: End time must be after start time.')
                         return redirect('class_edit', class_id=class_id)
 
-                    schedule.append({
+                    # Check for teacher schedule overlap (exclude current class)
+                    if teacher_id:
+                        has_overlap, overlapping_class = check_teacher_schedule_overlap(
+                            teacher_id, schedule_days[i], from_time, to_time,
+                            str(start_date or class_obj.start_date),
+                            str(end_date or class_obj.end_date),
+                            exclude_class_id=class_id
+                        )
+                        if has_overlap:
+                            teacher = Teacher.objects.get(id=teacher_id)
+                            messages.error(
+                                request,
+                                f'Teacher "{teacher.full_name}" has a schedule conflict on {schedule_days[i]} '
+                                f'({from_time}-{to_time}) with class "{overlapping_class.class_name}".'
+                            )
+                            return redirect('class_edit', class_id=class_id)
+
+                    schedule_entry = {
                         'day': schedule_days[i],
                         'from_time': from_time,
                         'to_time': to_time
-                    })
+                    }
+                    if teacher_id:
+                        schedule_entry['teacher_id'] = int(teacher_id)
+                        # Also store teacher name for display purposes
+                        teacher = Teacher.objects.get(id=teacher_id)
+                        schedule_entry['teacher_name'] = teacher.full_name
+
+                    schedule.append(schedule_entry)
 
         class_obj.schedule = schedule
 
-        class_obj.save()
+        class_obj.save(update_fields=['class_name', 'class_code', 'level', 'max_students',
+                                       'room_number', 'is_active', 'start_date', 'end_date', 'schedule'])
         messages.success(request, f'Class "{class_obj.class_name}" updated successfully!')
         return redirect('class_detail', class_id=class_obj.id)
 
@@ -447,12 +533,12 @@ def class_edit_view(request, class_id):
     teachers = Teacher.objects.filter(is_active=True)
 
     context = {
-        'class_obj': class_obj,
+        'class': class_obj,
         'levels': levels,
         'teachers': teachers,
     }
 
-    return render(request, 'courses/class_edit.html', context)
+    return render(request, 'courses/class_form.html', context)
 
 
 # ============== UNIT VIEWS ==============
