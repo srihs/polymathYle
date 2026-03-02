@@ -1,0 +1,423 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block PageTitle %}Add Unit - Polymath School of English{% endblock %}
+{% block pageTitle %}Add New Unit{% endblock %}
+{% block Title %}Courses{% endblock %}
+{% block functionTitle %}Add Unit{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header border-bottom">
+                <div class="d-flex align-items-center">
+                    <div class="avatar-sm me-3">
+                        <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                            <i class="ri-book-2-line fs-4"></i>
+                        </span>
+                    </div>
+                    <div>
+                        <h5 class="card-title mb-0">Add New Unit</h5>
+                        <p class="text-muted mb-0 small">Create a new learning unit for a YLE level</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Form Progress Indicator -->
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="badge bg-primary-subtle text-primary">Step 1: Basic Info</span>
+                        <span class="badge bg-light text-muted">Step 2: Content</span>
+                        <span class="badge bg-light text-muted">Step 3: Settings</span>
+                    </div>
+                    <div class="progress" style="height: 4px;" role="progressbar" aria-label="Form progress" aria-valuenow="33" aria-valuemin="0" aria-valuemax="100">
+                        <div class="progress-bar" style="width: 33%"></div>
+                    </div>
+                </div>
+
+                <form method="post" action="{% url 'unit_add' %}" id="unitForm" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+
+                    <!-- Basic Information Section -->
+                    <fieldset class="mb-4">
+                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
+                            <i class="ri-information-line me-2"></i>Basic Information
+                        </legend>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text"><i class="ri-stack-line"></i></span>
+                                    <select class="form-select" id="level" name="level" required>
+                                        <option value="" disabled {% if not preselected_level %}selected{% endif %}>Select YLE Level *</option>
+                                        {% for level in levels %}
+                                        <option value="{{ level.id }}"
+                                                data-color="{{ level.color_theme }}"
+                                                data-icon="{{ level.icon }}"
+                                                {% if preselected_level and preselected_level.id == level.id %}selected{% endif %}>
+                                            {{ level.name }}{% if level.cefr_level %} ({{ level.cefr_level }}){% endif %}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="invalid-feedback">Please select a YLE level.</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text"><i class="ri-sort-number-asc"></i></span>
+                                    <input type="number"
+                                           class="form-control"
+                                           id="order"
+                                           name="order"
+                                           placeholder="Display Order *"
+                                           value="{{ suggested_order }}"
+                                           min="0"
+                                           max="100"
+                                           required>
+                                    <div class="invalid-feedback">Please enter a display order (0-100).</div>
+                                </div>
+                                <small class="text-muted">Order determines the sequence of units within the level</small>
+                            </div>
+                            <div class="col-12">
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text"><i class="ri-text"></i></span>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="title"
+                                           name="title"
+                                           placeholder="Unit Title (e.g., Family, School, Animals) *"
+                                           autocomplete="off"
+                                           required>
+                                    <div class="invalid-feedback">Please enter the unit title.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Content Section -->
+                    <fieldset class="mb-4">
+                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
+                            <i class="ri-file-text-line me-2"></i>Content
+                        </legend>
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <textarea class="form-control"
+                                          id="description"
+                                          name="description"
+                                          rows="4"
+                                          placeholder="Describe what students will learn in this unit *"
+                                          required></textarea>
+                                <div class="invalid-feedback">Please enter a description.</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Unit Thumbnail (Optional)</label>
+                                <input type="file"
+                                       class="form-control"
+                                       id="thumbnail"
+                                       name="thumbnail"
+                                       accept="image/*">
+                                <small class="text-muted">Recommended: 400x300 pixels, JPG or PNG</small>
+                            </div>
+                            <div class="col-md-6">
+                                <div id="thumbnailPreview" class="border rounded p-3 text-center" style="min-height: 150px; display: none;">
+                                    <img id="thumbnailImg" src="" alt="Thumbnail preview" class="img-fluid" style="max-height: 150px;">
+                                </div>
+                                <div id="thumbnailPlaceholder" class="border rounded p-3 text-center bg-light" style="min-height: 150px;">
+                                    <i class="ri-image-line fs-1 text-muted"></i>
+                                    <p class="text-muted mb-0 small mt-2">Thumbnail preview</p>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Settings Section -->
+                    <fieldset class="mb-4">
+                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
+                            <i class="ri-settings-3-line me-2"></i>Settings
+                        </legend>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Prerequisite Unit (Optional)</label>
+                                <select class="form-select" id="requires_completion_of" name="requires_completion_of">
+                                    <option value="">No prerequisite - Students can start immediately</option>
+                                    {% for unit in all_units %}
+                                    <option value="{{ unit.id }}" data-level="{{ unit.level.id }}">
+                                        {{ unit.level.short_code }} - {{ unit.title }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <small class="text-muted">Students must complete the prerequisite before accessing this unit</small>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check form-switch form-switch-lg mt-4">
+                                    <input class="form-check-input"
+                                           type="checkbox"
+                                           id="is_active"
+                                           name="is_active"
+                                           checked>
+                                    <label class="form-check-label" for="is_active">
+                                        <strong>Active Unit</strong>
+                                        <p class="text-muted mb-0 small">Active units are visible to students</p>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Preview Section -->
+                    <fieldset class="mb-4">
+                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
+                            <i class="ri-eye-line me-2"></i>Preview
+                        </legend>
+                        <div class="border rounded p-3" id="unitPreview" style="background: linear-gradient(135deg, #660066 0%, #66006699 100%); min-height: 100px;">
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-lg me-3">
+                                    <span class="avatar-title bg-white bg-opacity-25 rounded-circle" style="width: 70px; height: 70px;">
+                                        <span id="previewOrder" class="text-white fs-3 fw-bold">0</span>
+                                    </span>
+                                </div>
+                                <div class="text-white flex-grow-1">
+                                    <h4 class="mb-1 text-white" id="previewTitle">Unit Title</h4>
+                                    <div class="d-flex flex-wrap gap-2 mb-2">
+                                        <span class="badge bg-white bg-opacity-25 text-white" id="previewLevel">Select Level</span>
+                                        <span class="badge bg-white bg-opacity-25 text-white" id="previewStatus">
+                                            <i class="ri-check-line me-1"></i>Active
+                                        </span>
+                                    </div>
+                                    <p class="text-white-50 small mb-0" id="previewDescription">Unit description will appear here...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Form Actions -->
+                    <div class="border-top pt-4 mt-4">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                            <div class="text-muted small">
+                                <span class="text-danger">*</span> indicates required fields
+                            </div>
+                            <div class="d-flex flex-wrap gap-2">
+                                {% if preselected_level %}
+                                <a href="{% url 'level_detail' preselected_level.id %}" class="btn btn-outline-secondary">
+                                    <i class="ri-close-line me-1"></i> Cancel
+                                </a>
+                                {% else %}
+                                <a href="{% url 'level_list' %}" class="btn btn-outline-secondary">
+                                    <i class="ri-close-line me-1"></i> Cancel
+                                </a>
+                                {% endif %}
+                                <button type="reset" class="btn btn-light" id="resetBtn">
+                                    <i class="ri-refresh-line me-1"></i> Reset Form
+                                </button>
+                                <button type="submit" class="btn btn-success" id="submitBtn">
+                                    <span class="spinner-border spinner-border-sm d-none me-1" role="status" aria-hidden="true" id="submitSpinner"></span>
+                                    <i class="ri-add-line me-1" id="submitIcon"></i>
+                                    <span id="submitText">Create Unit</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Live preview updates
+    function updatePreview() {
+        const title = $('#title').val() || 'Unit Title';
+        const description = $('#description').val() || 'Unit description will appear here...';
+        const order = $('#order').val() || '0';
+        const isActive = $('#is_active').is(':checked');
+
+        const levelSelect = $('#level');
+        const selectedOption = levelSelect.find('option:selected');
+        const levelText = selectedOption.val() ? selectedOption.text() : 'Select Level';
+        const levelColor = selectedOption.data('color') || '#660066';
+
+        $('#previewTitle').text(title);
+        $('#previewDescription').text(description.substring(0, 100) + (description.length > 100 ? '...' : ''));
+        $('#previewOrder').text(order);
+        $('#previewLevel').text(levelText);
+
+        if (isActive) {
+            $('#previewStatus').html('<i class="ri-check-line me-1"></i>Active');
+            $('#previewStatus').removeClass('bg-danger-subtle').addClass('bg-white bg-opacity-25');
+        } else {
+            $('#previewStatus').html('<i class="ri-close-line me-1"></i>Inactive');
+            $('#previewStatus').removeClass('bg-white bg-opacity-25').addClass('bg-danger-subtle');
+        }
+
+        // Update preview color based on selected level
+        $('#unitPreview').css('background', 'linear-gradient(135deg, ' + levelColor + ' 0%, ' + levelColor + '99 100%)');
+    }
+
+    // Bind preview updates to input changes
+    $('#title, #description, #order, #level, #is_active').on('input change', updatePreview);
+
+    // Thumbnail preview
+    $('#thumbnail').on('change', function() {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                $('#thumbnailImg').attr('src', e.target.result);
+                $('#thumbnailPreview').show();
+                $('#thumbnailPlaceholder').hide();
+            };
+            reader.readAsDataURL(file);
+        } else {
+            $('#thumbnailPreview').hide();
+            $('#thumbnailPlaceholder').show();
+        }
+    });
+
+    // Update suggested order when level changes
+    $('#level').on('change', function() {
+        const levelId = $(this).val();
+        if (levelId) {
+            // Fetch units for this level to suggest next order
+            $.ajax({
+                url: '{% url "api_level_units" 0 %}'.replace('0', levelId),
+                method: 'GET',
+                success: function(data) {
+                    if (data.units && data.units.length > 0) {
+                        const maxOrder = Math.max(...data.units.map(u => u.order));
+                        $('#order').val(maxOrder + 1);
+                    } else {
+                        $('#order').val(0);
+                    }
+                    updatePreview();
+                    updateProgress();
+                }
+            });
+        }
+        updatePreview();
+    });
+
+    // Filter prerequisite units based on selected level (optional enhancement)
+    // For now, we show all units as potential prerequisites
+
+    // Form validation
+    const form = document.getElementById('unitForm');
+    if (form) {
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            } else {
+                // Show loading state
+                $('#submitBtn').prop('disabled', true);
+                $('#submitSpinner').removeClass('d-none');
+                $('#submitIcon').addClass('d-none');
+                $('#submitText').text('Creating Unit...');
+            }
+            form.classList.add('was-validated');
+        }, false);
+    }
+
+    // Reset button handler
+    $('#resetBtn').on('click', function() {
+        setTimeout(function() {
+            $('#thumbnailPreview').hide();
+            $('#thumbnailPlaceholder').show();
+            updatePreview();
+            updateProgress();
+            form.classList.remove('was-validated');
+        }, 100);
+    });
+
+    // Update progress bar based on filled sections
+    function updateProgress() {
+        let progress = 0;
+        const sections = 3;
+
+        // Check Basic Info (level, title, order)
+        if ($('#level').val() && $('#title').val() && $('#order').val() !== '') {
+            progress += 1;
+            $('.badge').eq(0).removeClass('bg-primary-subtle text-primary').addClass('bg-success text-white');
+        } else {
+            $('.badge').eq(0).removeClass('bg-success text-white').addClass('bg-primary-subtle text-primary');
+        }
+
+        // Check Content (description)
+        if ($('#description').val()) {
+            progress += 1;
+            $('.badge').eq(1).removeClass('bg-light text-muted').addClass('bg-success text-white');
+        } else {
+            $('.badge').eq(1).removeClass('bg-success text-white').addClass('bg-light text-muted');
+        }
+
+        // Settings section is always considered complete (has defaults)
+        progress += 1;
+        $('.badge').eq(2).removeClass('bg-light text-muted').addClass('bg-success text-white');
+
+        const percentage = (progress / sections) * 100;
+        $('.progress-bar').css('width', percentage + '%').attr('aria-valuenow', percentage);
+    }
+
+    // Bind progress update to input changes
+    $('#level, #title, #order, #description').on('input change', updateProgress);
+
+    // Initial updates
+    updateProgress();
+    updatePreview();
+});
+</script>
+
+<style>
+.avatar-xs {
+    width: 24px;
+    height: 24px;
+}
+
+.avatar-xs .avatar-title {
+    font-size: 12px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.avatar-lg {
+    width: 70px;
+    height: 70px;
+}
+
+fieldset {
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+legend {
+    border-bottom: 2px solid var(--bs-primary);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.form-switch-lg .form-check-input {
+    width: 3em;
+    height: 1.5em;
+}
+
+.avatar-sm {
+    width: 2rem;
+    height: 2rem;
+}
+
+.avatar-sm .avatar-title {
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+</style>
+{% endblock %}

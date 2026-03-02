@@ -8,7 +8,7 @@ class YLELevel(models.Model):
     """
     name = models.CharField(max_length=50)  # e.g., "Pre A1 Starters"
     short_code = models.CharField(max_length=20, unique=True)  # e.g., "STARTERS"
-    cefr_level = models.CharField(max_length=10)  # e.g., "Pre A1", "A1", "A2"
+    cefr_level = models.CharField(max_length=10, blank=True)  # e.g., "Pre A1", "A1", "A2" - Optional field
     description = models.TextField()
     age_range_min = models.IntegerField()  # Minimum age
     age_range_max = models.IntegerField()  # Maximum age
@@ -26,7 +26,9 @@ class YLELevel(models.Model):
         ordering = ['order']
 
     def __str__(self):
-        return f"{self.name} ({self.cefr_level})"
+        if self.cefr_level:
+            return f"{self.name} ({self.cefr_level})"
+        return self.name
 
 
 class Class(models.Model):

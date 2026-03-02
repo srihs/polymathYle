@@ -74,17 +74,16 @@
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <div class="input-group has-validation">
+                                <div class="input-group">
                                     <span class="input-group-text"><i class="ri-bar-chart-line"></i></span>
-                                    <select class="form-select" id="cefr_level" name="cefr_level" required>
-                                        <option value="" disabled selected>Select CEFR Level *</option>
+                                    <select class="form-select" id="cefr_level" name="cefr_level">
+                                        <option value="" selected>Select CEFR Level (Optional)</option>
                                         <option value="Pre A1">Pre A1</option>
                                         <option value="A1">A1</option>
                                         <option value="A2">A2</option>
                                         <option value="B1">B1</option>
                                         <option value="B2">B2</option>
                                     </select>
-                                    <div class="invalid-feedback">Please select the CEFR level.</div>
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -315,8 +314,8 @@ $(document).ready(function() {
         var progress = 0;
         var sections = 2;
 
-        // Check Basic Info (name, short_code, cefr_level, description)
-        if ($('#name').val() && $('#short_code').val() && $('#cefr_level').val() && $('#description').val()) {
+        // Check Basic Info (name, short_code, description - cefr_level is optional)
+        if ($('#name').val() && $('#short_code').val() && $('#description').val()) {
             progress += 1;
             $('.badge').eq(0).removeClass('bg-primary-subtle text-primary').addClass('bg-success text-white');
         } else {

@@ -59,8 +59,8 @@ def yle_level_add_view(request):
         color_theme = request.POST.get('color_theme', '#660066').strip()
         is_active = request.POST.get('is_active') == 'on'
 
-        # Validate required fields
-        if not all([name, short_code, cefr_level, description, icon, color_theme]):
+        # Validate required fields (cefr_level is optional)
+        if not all([name, short_code, description, icon, color_theme]):
             messages.error(request, 'Please fill in all required fields.')
             return redirect('yle_level_add')
 
@@ -517,6 +517,100 @@ def class_edit_view(request, class_id):
 
 
 # ============== UNIT VIEWS ==============
+
+@login_required
+@permission_required('courses.add_unit', raise_exception=True)
+def unit_add_view(request):
+    """
+    Add a new unit to a YLE level (staff only).
+    Units are learning modules that contain lessons.
+    """
+    if request.method == 'POST':
+        # Get form data
+        level_id = request.POST.get('level')
+        title = request.POST.get('title', '').strip()
+        description = request.POST.get('description', '').strip()
+        order = request.POST.get('order', '0')
+        requires_completion_of_id = request.POST.get('requires_completion_of', '')
+        is_active = request.POST.get('is_active') == 'on'
+
+        # Validate required fields
+        if not all([level_id, title, description]):
+            messages.error(request, 'Please fill in all required fields.')
+            return redirect('unit_add')
+
+        # Get the level
+        level = get_object_or_404(YLELevel, id=level_id)
+
+        try:
+            unit_order = int(order)
+
+            # Check if order already exists for this level
+            if Unit.objects.filter(level=level, order=unit_order).exists():
+                messages.error(request, f'A unit with order {unit_order} already exists for this level. Please choose a different order.')
+                return redirect('unit_add')
+
+            # Get prerequisite unit if specified
+            requires_completion_of = None
+            if requires_completion_of_id:
+                requires_completion_of = get_object_or_404(Unit, id=requires_completion_of_id)
+
+            # Create the unit
+            new_unit = Unit.objects.create(
+                level=level,
+                title=title,
+                description=description,
+                order=unit_order,
+                requires_completion_of=requires_completion_of,
+                is_active=is_active,
+            )
+
+            # Handle thumbnail upload
+            if 'thumbnail' in request.FILES:
+                new_unit.thumbnail = request.FILES['thumbnail']
+                new_unit.save(update_fields=['thumbnail'])
+
+            messages.success(request, f'Unit "{new_unit.title}" created successfully!')
+            return redirect('unit_detail', unit_id=new_unit.id)
+
+        except ValueError as e:
+            messages.error(request, f'Invalid data provided: {str(e)}')
+            return redirect('unit_add')
+        except Exception as e:
+            messages.error(request, f'An error occurred while creating the unit: {str(e)}')
+            return redirect('unit_add')
+
+    # GET request - show form
+    levels = YLELevel.objects.filter(is_active=True).order_by('order')
+
+    # Get level_id from query parameter if provided (for pre-selection)
+    preselected_level_id = request.GET.get('level', '')
+    preselected_level = None
+    if preselected_level_id:
+        try:
+            preselected_level = YLELevel.objects.get(id=preselected_level_id)
+        except YLELevel.DoesNotExist:
+            pass
+
+    # Get all units for prerequisite selection (grouped by level)
+    all_units = Unit.objects.filter(is_active=True).select_related('level').order_by('level__order', 'order')
+
+    # Get suggested order for preselected level
+    suggested_order = 0
+    if preselected_level:
+        max_order = Unit.objects.filter(level=preselected_level).order_by('-order').first()
+        suggested_order = (max_order.order + 1) if max_order else 0
+
+    context = {
+        'levels': levels,
+        'preselected_level': preselected_level,
+        'preselected_level_id': preselected_level_id,
+        'all_units': all_units,
+        'suggested_order': suggested_order,
+    }
+
+    return render(request, 'courses/unit_add.html', context)
+
 
 @login_required
 def unit_list_view(request, level_id):

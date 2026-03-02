@@ -20,6 +20,7 @@ urlpatterns = [
 
     # ============== UNIT URLs ==============
     path('levels/<int:level_id>/units/', views.unit_list_view, name='unit_list'),
+    path('units/add/', views.unit_add_view, name='unit_add'),
     path('units/<int:unit_id>/', views.unit_detail_view, name='unit_detail'),
 
     # ============== LESSON URLs ==============
