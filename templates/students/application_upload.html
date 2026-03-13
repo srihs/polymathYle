@@ -852,14 +852,16 @@ $(document).ready(function() {
     const $previewImage = $('#previewImage');
 
     // Browse button click
-    $browseBtn.on('click', function() {
-        $fileInput.click();
+    $browseBtn.on('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        $fileInput[0].click();
     });
 
     // Upload zone click
     $uploadZone.on('click', function(e) {
-        if (e.target !== $browseBtn[0]) {
-            $fileInput.click();
+        if (!$(e.target).closest('#browseBtn').length) {
+            $fileInput[0].click();
         }
     });
 
