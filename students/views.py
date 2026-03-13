@@ -637,3 +637,25 @@ def attendance_report_view(request):
 
     return render(request, 'students/attendance_report.html', context)
 
+
+@login_required
+@permission_required('students.add_application', raise_exception=True)
+def application_upload_view(request):
+    """
+    Upload and process scanned application forms
+    """
+    if request.method == 'POST':
+        form = ApplicationForm(request.POST, request.FILES)
+        if form.is_valid():
+            application = form.save()
+            messages.success(request, f'Application {application.reference_number} saved successfully!')
+            return redirect('application_review', application_id=application.id)
+        else:
+            messages.error(request, 'Please correct the errors in the form.')
+    else:
+        form = ApplicationForm()
+
+    return render(request, 'students/application_upload.html', {
+        'form': form
+    })
+

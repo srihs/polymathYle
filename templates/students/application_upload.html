@@ -1,0 +1,1122 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block PageTitle %}Upload Scanned Application - Polymath School of English{% endblock %}
+{% block pageTitle %}Upload Scanned Application{% endblock %}
+{% block Title %}Applications{% endblock %}
+{% block functionTitle %}Upload & Process Application{% endblock %}
+
+{% block content %}
+<style>
+/* ========================================
+   Upload Page Layout
+   ======================================== */
+.upload-container {
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-start;
+}
+
+/* ========================================
+   Preview Panel (Left - 40%)
+   ======================================== */
+.preview-panel {
+    position: sticky;
+    top: 100px;
+    width: 40%;
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.preview-header {
+    background: linear-gradient(135deg, #660066 0%, #993399 100%);
+    color: white;
+    padding: 1rem 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.preview-controls {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.preview-controls .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+.preview-body {
+    position: relative;
+    background: #f8f9fa;
+    min-height: 600px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.preview-image-container {
+    width: 100%;
+    height: 600px;
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.preview-image {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    transition: transform 0.2s ease;
+    cursor: zoom-in;
+}
+
+.preview-image.zoomed {
+    cursor: zoom-out;
+}
+
+.upload-zone {
+    border: 2px dashed #dee2e6;
+    border-radius: 8px;
+    padding: 3rem 2rem;
+    text-align: center;
+    background: white;
+    margin: 2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.upload-zone:hover {
+    border-color: #660066;
+    background: #f8f9fa;
+}
+
+.upload-zone.dragover {
+    border-color: #660066;
+    background: rgba(102, 0, 102, 0.05);
+}
+
+.upload-icon {
+    font-size: 3rem;
+    color: #6c757d;
+    margin-bottom: 1rem;
+}
+
+.page-toggle {
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 0.5rem 1rem;
+    position: absolute;
+    bottom: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 20px;
+    font-size: 0.875rem;
+    z-index: 10;
+}
+
+/* ========================================
+   Form Panel (Right - 60%)
+   ======================================== */
+.form-panel {
+    width: 60%;
+}
+
+.form-section {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.form-section-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.25rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.form-section-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.75rem;
+    font-size: 1.25rem;
+}
+
+.form-section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0;
+    color: #212529;
+}
+
+/* Section color themes */
+.section-office .form-section-icon {
+    background: rgba(108, 117, 125, 0.1);
+    color: #6c757d;
+}
+
+.section-student .form-section-icon {
+    background: rgba(102, 0, 102, 0.1);
+    color: #660066;
+}
+
+.section-mother .form-section-icon {
+    background: rgba(255, 105, 180, 0.15);
+    color: #e91e8c;
+}
+
+.section-father .form-section-icon {
+    background: rgba(13, 202, 240, 0.1);
+    color: #0dcaf0;
+}
+
+.section-contact .form-section-icon {
+    background: rgba(25, 135, 84, 0.1);
+    color: #198754;
+}
+
+.section-schedule .form-section-icon {
+    background: rgba(255, 193, 7, 0.1);
+    color: #ffc107;
+}
+
+/* Schedule Table */
+.schedule-table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.schedule-table th,
+.schedule-table td {
+    border: 1px solid #dee2e6;
+    vertical-align: middle;
+}
+
+.schedule-table thead th {
+    background: #f8f9fa;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.schedule-btn {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px !important;
+    transition: all 0.2s ease;
+    margin: auto;
+}
+
+.schedule-btn i {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.btn-check:checked + .schedule-btn {
+    background: #660066 !important;
+    border-color: #660066 !important;
+    color: white !important;
+}
+
+.btn-check:checked + .schedule-btn i {
+    opacity: 1;
+}
+
+.btn-check:checked + .btn-outline-warning {
+    background: #ffc107 !important;
+    border-color: #ffc107 !important;
+    color: #000 !important;
+}
+
+.table-warning-subtle {
+    background-color: rgba(255, 193, 7, 0.08) !important;
+}
+
+/* Action Buttons */
+.action-buttons {
+    position: sticky;
+    bottom: 0;
+    background: white;
+    border-top: 2px solid #e9ecef;
+    padding: 1.25rem;
+    margin: 0 -1.5rem -1.5rem;
+    border-radius: 0 0 12px 12px;
+}
+
+/* Form Enhancements */
+.form-control:focus,
+.form-select:focus {
+    border-color: #660066;
+    box-shadow: 0 0 0 0.2rem rgba(102, 0, 102, 0.15);
+}
+
+/* Required field indicator */
+.required-indicator {
+    color: #dc3545;
+    margin-left: 2px;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .upload-container {
+        flex-direction: column;
+    }
+
+    .preview-panel,
+    .form-panel {
+        width: 100%;
+    }
+
+    .preview-panel {
+        position: relative;
+        top: 0;
+    }
+
+    .preview-image-container {
+        height: 400px;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .preview-panel,
+    .action-buttons,
+    .preview-controls,
+    .page-toggle {
+        display: none !important;
+    }
+
+    .form-panel {
+        width: 100%;
+    }
+}
+</style>
+
+<div class="row">
+    <div class="col-12">
+        <!-- Page Header -->
+        <div class="card mb-4 border-0 shadow-sm">
+            <div class="card-body py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-1">
+                            <i class="ri-upload-cloud-line me-2 text-primary"></i>
+                            Upload Scanned Application Form
+                        </h5>
+                        <p class="text-muted mb-0 small">
+                            Upload the scanned application and manually verify/correct the extracted data
+                        </p>
+                    </div>
+                    <a href="{% url 'application_list' %}" class="btn btn-light">
+                        <i class="ri-arrow-left-line me-1"></i>Back to Applications
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alert Messages -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    <i class="ri-{% if message.tags == 'success' %}checkbox-circle{% elif message.tags == 'error' %}error-warning{% else %}information{% endif %}-line me-2"></i>
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Main Upload Container -->
+        <div class="upload-container">
+            <!-- LEFT: Preview Panel (40%) -->
+            <div class="preview-panel">
+                <div class="preview-header">
+                    <h6 class="mb-0">
+                        <i class="ri-file-text-line me-2"></i>
+                        Scanned Application Preview
+                    </h6>
+                    <div class="preview-controls">
+                        <button type="button" class="btn btn-sm btn-light" id="zoomOutBtn" title="Zoom Out" style="display: none;">
+                            <i class="ri-zoom-out-line"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-light" id="zoomInBtn" title="Zoom In" style="display: none;">
+                            <i class="ri-zoom-in-line"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-light" id="fitBtn" title="Fit to Screen" style="display: none;">
+                            <i class="ri-fullscreen-line"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="preview-body" id="previewBody">
+                    <!-- Upload Zone (shown when no file) -->
+                    <div class="upload-zone" id="uploadZone">
+                        <div class="upload-icon">
+                            <i class="ri-upload-cloud-2-line"></i>
+                        </div>
+                        <h5 class="mb-2">Upload Scanned Application</h5>
+                        <p class="text-muted mb-3">
+                            Drag and drop a scanned application form here, or click to browse
+                        </p>
+                        <input type="file" id="fileInput" accept="image/*,.pdf" style="display: none;">
+                        <button type="button" class="btn btn-primary" id="browseBtn">
+                            <i class="ri-folder-open-line me-2"></i>Browse Files
+                        </button>
+                        <p class="text-muted small mt-3 mb-0">
+                            Supported formats: JPG, PNG, PDF (max 10MB)
+                        </p>
+                    </div>
+
+                    <!-- Image Container (shown when file uploaded) -->
+                    <div class="preview-image-container" id="imageContainer" style="display: none;">
+                        <img src="" alt="Application Preview" class="preview-image" id="previewImage">
+                    </div>
+
+                    <!-- Page Toggle (for multi-page PDFs or images) -->
+                    <div class="page-toggle" id="pageToggle" style="display: none;">
+                        <button type="button" class="btn btn-sm btn-light me-2" id="prevPageBtn">
+                            <i class="ri-arrow-left-s-line"></i>
+                        </button>
+                        <span id="pageInfo">Page 1 of 2</span>
+                        <button type="button" class="btn btn-sm btn-light ms-2" id="nextPageBtn">
+                            <i class="ri-arrow-right-s-line"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: Manual Entry Form (60%) -->
+            <div class="form-panel">
+                <form method="post" enctype="multipart/form-data" id="uploadForm" novalidate>
+                    {% csrf_token %}
+
+                    <!-- Hidden fields -->
+                    <input type="file" name="application_form_scan" id="scannedFileInput" style="display: none;">
+                    <input type="hidden" name="schedule_preferences" id="schedulePreferencesInput">
+                    <input type="hidden" name="application_type" value="OFFLINE">
+
+                    <!-- Office Use Section -->
+                    <div class="form-section section-office">
+                        <div class="form-section-header">
+                            <div class="form-section-icon">
+                                <i class="ri-admin-line"></i>
+                            </div>
+                            <div>
+                                <h6 class="form-section-title">Office Use Only</h6>
+                                <small class="text-muted">Optional administrative information</small>
+                            </div>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="admission_number" class="form-label">
+                                    Admission Number
+                                    <small class="text-muted">(If already assigned)</small>
+                                </label>
+                                <input type="text" class="form-control" id="admission_number" name="admission_number" placeholder="e.g., YLE-2021-0001">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="receipt_number" class="form-label">
+                                    Receipt Number
+                                    <small class="text-muted">(If payment received)</small>
+                                </label>
+                                <input type="text" class="form-control" id="receipt_number" name="receipt_number" placeholder="e.g., REC-001">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Student Information Section -->
+                    <div class="form-section section-student">
+                        <div class="form-section-header">
+                            <div class="form-section-icon">
+                                <i class="ri-user-smile-line"></i>
+                            </div>
+                            <div>
+                                <h6 class="form-section-title">Student Information</h6>
+                                <small class="text-muted">Child's personal details</small>
+                            </div>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="name_with_initials" class="form-label">
+                                    Name with Initials<span class="required-indicator">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="name_with_initials" name="name_with_initials" required
+                                       placeholder="e.g., K.D.S. Perera">
+                                <div class="invalid-feedback">Please enter name with initials</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="full_name" class="form-label">
+                                    Full Name<span class="required-indicator">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="full_name" name="full_name" required
+                                       placeholder="e.g., Kamal Dilshan Sampath Perera">
+                                <div class="invalid-feedback">Please enter full name</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="date_of_birth" class="form-label">
+                                    Date of Birth<span class="required-indicator">*</span>
+                                </label>
+                                <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" required>
+                                <div class="invalid-feedback">Please select date of birth</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="gender" class="form-label">
+                                    Gender<span class="required-indicator">*</span>
+                                </label>
+                                <select class="form-select" id="gender" name="gender" required>
+                                    <option value="">Select Gender</option>
+                                    <option value="MALE">Male</option>
+                                    <option value="FEMALE">Female</option>
+                                </select>
+                                <div class="invalid-feedback">Please select gender</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="nationality" class="form-label">
+                                    Nationality
+                                </label>
+                                <input type="text" class="form-control" id="nationality" name="nationality" placeholder="e.g., Sri Lankan">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="current_school" class="form-label">
+                                    Current School
+                                </label>
+                                <input type="text" class="form-control" id="current_school" name="current_school" placeholder="e.g., Royal College">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="student_email" class="form-label">
+                                    Student Email <small class="text-muted">(Optional)</small>
+                                </label>
+                                <input type="email" class="form-control" id="student_email" name="student_email" placeholder="student@example.com">
+                                <div class="invalid-feedback">Please enter a valid email</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="student_nic" class="form-label">
+                                    Student NIC <small class="text-muted">(If applicable)</small>
+                                </label>
+                                <input type="text" class="form-control" id="student_nic" name="student_nic" placeholder="e.g., 200512345678">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="siblings_info" class="form-label">
+                                    Siblings Information
+                                </label>
+                                <input type="text" class="form-control" id="siblings_info" name="siblings_info" placeholder="Names and ages of siblings">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mother's Information Section -->
+                    <div class="form-section section-mother">
+                        <div class="form-section-header">
+                            <div class="form-section-icon">
+                                <i class="ri-women-line"></i>
+                            </div>
+                            <div>
+                                <h6 class="form-section-title">Mother's Information</h6>
+                                <small class="text-muted">Mother or female guardian details</small>
+                            </div>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label for="mother_name" class="form-label">
+                                    Mother's Name<span class="required-indicator">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="mother_name" name="mother_name" required placeholder="Full name">
+                                <div class="invalid-feedback">Please enter mother's name</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="mother_contact_number" class="form-label">
+                                    Contact Number<span class="required-indicator">*</span>
+                                </label>
+                                <input type="tel" class="form-control" id="mother_contact_number" name="mother_contact_number" required
+                                       placeholder="e.g., 0771234567">
+                                <div class="invalid-feedback">Please enter a valid phone number</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="mother_occupation" class="form-label">
+                                    Occupation
+                                </label>
+                                <input type="text" class="form-control" id="mother_occupation" name="mother_occupation" placeholder="e.g., Teacher">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Father's Information Section -->
+                    <div class="form-section section-father">
+                        <div class="form-section-header">
+                            <div class="form-section-icon">
+                                <i class="ri-men-line"></i>
+                            </div>
+                            <div>
+                                <h6 class="form-section-title">Father's Information</h6>
+                                <small class="text-muted">Father or male guardian details</small>
+                            </div>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label for="father_name" class="form-label">
+                                    Father's Name<span class="required-indicator">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="father_name" name="father_name" required placeholder="Full name">
+                                <div class="invalid-feedback">Please enter father's name</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="father_contact_number" class="form-label">
+                                    Contact Number<span class="required-indicator">*</span>
+                                </label>
+                                <input type="tel" class="form-control" id="father_contact_number" name="father_contact_number" required
+                                       placeholder="e.g., 0771234567">
+                                <div class="invalid-feedback">Please enter a valid phone number</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="father_occupation" class="form-label">
+                                    Occupation
+                                </label>
+                                <input type="text" class="form-control" id="father_occupation" name="father_occupation" placeholder="e.g., Engineer">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Information Section -->
+                    <div class="form-section section-contact">
+                        <div class="form-section-header">
+                            <div class="form-section-icon">
+                                <i class="ri-map-pin-line"></i>
+                            </div>
+                            <div>
+                                <h6 class="form-section-title">Contact Information</h6>
+                                <small class="text-muted">Address and communication details</small>
+                            </div>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label for="home_address" class="form-label">
+                                    Home Address<span class="required-indicator">*</span>
+                                </label>
+                                <textarea class="form-control" id="home_address" name="home_address" rows="2" required
+                                          placeholder="Complete residential address"></textarea>
+                                <div class="invalid-feedback">Please enter home address</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="whatsapp_number" class="form-label">
+                                    WhatsApp Number<span class="required-indicator">*</span>
+                                </label>
+                                <input type="tel" class="form-control" id="whatsapp_number" name="whatsapp_number" required
+                                       placeholder="e.g., 0771234567">
+                                <div class="invalid-feedback">Please enter WhatsApp number</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="primary_contact_email" class="form-label">
+                                    Primary Email<span class="required-indicator">*</span>
+                                </label>
+                                <input type="email" class="form-control" id="primary_contact_email" name="primary_contact_email" required
+                                       placeholder="parent@example.com">
+                                <div class="invalid-feedback">Please enter a valid email</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Class Schedule Preferences Section -->
+                    <div class="form-section section-schedule">
+                        <div class="form-section-header">
+                            <div class="form-section-icon">
+                                <i class="ri-calendar-schedule-line"></i>
+                            </div>
+                            <div>
+                                <h6 class="form-section-title">Class Schedule Preferences</h6>
+                                <small class="text-muted">Preferred days and times for classes</small>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info border-0 mb-3" role="note">
+                            <i class="ri-information-line me-2"></i>
+                            Select the days and time slots that work best. Multiple selections help us find the best class.
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-bordered schedule-table mb-3">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th scope="col" class="text-center" style="width: 100px;">Day</th>
+                                        <th scope="col" class="text-center">
+                                            <i class="ri-sun-line text-warning me-1"></i>Morning
+                                            <small class="d-block text-muted fw-normal">8:00 AM - 12:00 PM</small>
+                                        </th>
+                                        <th scope="col" class="text-center">
+                                            <i class="ri-sun-cloudy-line text-info me-1"></i>Afternoon
+                                            <small class="d-block text-muted fw-normal">1:00 PM - 5:30 PM</small>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Weekdays: Only Afternoon available -->
+                                    <tr>
+                                        <th scope="row" class="align-middle text-center">
+                                            <span class="badge bg-secondary-subtle text-secondary">Mon</span>
+                                        </th>
+                                        <td class="text-center p-2 bg-light">
+                                            <small class="text-muted">-</small>
+                                        </td>
+                                        <td class="text-center p-2">
+                                            <div class="schedule-slot" data-day="monday" data-slot="afternoon">
+                                                <input type="checkbox" class="btn-check schedule-check" id="mon_afternoon" name="schedule_monday_afternoon" autocomplete="off">
+                                                <label class="btn btn-outline-primary btn-sm schedule-btn" for="mon_afternoon">
+                                                    <i class="ri-check-line"></i>
+                                                </label>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row" class="align-middle text-center">
+                                            <span class="badge bg-secondary-subtle text-secondary">Tue</span>
+                                        </th>
+                                        <td class="text-center p-2 bg-light">
+                                            <small class="text-muted">-</small>
+                                        </td>
+                                        <td class="text-center p-2">
+                                            <div class="schedule-slot" data-day="tuesday" data-slot="afternoon">
+                                                <input type="checkbox" class="btn-check schedule-check" id="tue_afternoon" name="schedule_tuesday_afternoon" autocomplete="off">
+                                                <label class="btn btn-outline-primary btn-sm schedule-btn" for="tue_afternoon">
+                                                    <i class="ri-check-line"></i>
+                                                </label>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row" class="align-middle text-center">
+                                            <span class="badge bg-secondary-subtle text-secondary">Wed</span>
+                                        </th>
+                                        <td class="text-center p-2 bg-light">
+                                            <small class="text-muted">-</small>
+                                        </td>
+                                        <td class="text-center p-2">
+                                            <div class="schedule-slot" data-day="wednesday" data-slot="afternoon">
+                                                <input type="checkbox" class="btn-check schedule-check" id="wed_afternoon" name="schedule_wednesday_afternoon" autocomplete="off">
+                                                <label class="btn btn-outline-primary btn-sm schedule-btn" for="wed_afternoon">
+                                                    <i class="ri-check-line"></i>
+                                                </label>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row" class="align-middle text-center">
+                                            <span class="badge bg-secondary-subtle text-secondary">Thu</span>
+                                        </th>
+                                        <td class="text-center p-2 bg-light">
+                                            <small class="text-muted">-</small>
+                                        </td>
+                                        <td class="text-center p-2">
+                                            <div class="schedule-slot" data-day="thursday" data-slot="afternoon">
+                                                <input type="checkbox" class="btn-check schedule-check" id="thu_afternoon" name="schedule_thursday_afternoon" autocomplete="off">
+                                                <label class="btn btn-outline-primary btn-sm schedule-btn" for="thu_afternoon">
+                                                    <i class="ri-check-line"></i>
+                                                </label>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row" class="align-middle text-center">
+                                            <span class="badge bg-secondary-subtle text-secondary">Fri</span>
+                                        </th>
+                                        <td class="text-center p-2 bg-light">
+                                            <small class="text-muted">-</small>
+                                        </td>
+                                        <td class="text-center p-2">
+                                            <div class="schedule-slot" data-day="friday" data-slot="afternoon">
+                                                <input type="checkbox" class="btn-check schedule-check" id="fri_afternoon" name="schedule_friday_afternoon" autocomplete="off">
+                                                <label class="btn btn-outline-primary btn-sm schedule-btn" for="fri_afternoon">
+                                                    <i class="ri-check-line"></i>
+                                                </label>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <!-- Weekend: Both Morning and Afternoon available -->
+                                    <tr class="table-warning-subtle">
+                                        <th scope="row" class="align-middle text-center">
+                                            <span class="badge bg-warning-subtle text-warning">Sat</span>
+                                        </th>
+                                        <td class="text-center p-2">
+                                            <div class="schedule-slot" data-day="saturday" data-slot="morning">
+                                                <input type="checkbox" class="btn-check schedule-check" id="sat_morning" name="schedule_saturday_morning" autocomplete="off">
+                                                <label class="btn btn-outline-warning btn-sm schedule-btn" for="sat_morning">
+                                                    <i class="ri-check-line"></i>
+                                                </label>
+                                            </div>
+                                        </td>
+                                        <td class="text-center p-2">
+                                            <div class="schedule-slot" data-day="saturday" data-slot="afternoon">
+                                                <input type="checkbox" class="btn-check schedule-check" id="sat_afternoon" name="schedule_saturday_afternoon" autocomplete="off">
+                                                <label class="btn btn-outline-warning btn-sm schedule-btn" for="sat_afternoon">
+                                                    <i class="ri-check-line"></i>
+                                                </label>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr class="table-warning-subtle">
+                                        <th scope="row" class="align-middle text-center">
+                                            <span class="badge bg-warning-subtle text-warning">Sun</span>
+                                        </th>
+                                        <td class="text-center p-2">
+                                            <div class="schedule-slot" data-day="sunday" data-slot="morning">
+                                                <input type="checkbox" class="btn-check schedule-check" id="sun_morning" name="schedule_sunday_morning" autocomplete="off">
+                                                <label class="btn btn-outline-warning btn-sm schedule-btn" for="sun_morning">
+                                                    <i class="ri-check-line"></i>
+                                                </label>
+                                            </div>
+                                        </td>
+                                        <td class="text-center p-2">
+                                            <div class="schedule-slot" data-day="sunday" data-slot="afternoon">
+                                                <input type="checkbox" class="btn-check schedule-check" id="sun_afternoon" name="schedule_sunday_afternoon" autocomplete="off">
+                                                <label class="btn btn-outline-warning btn-sm schedule-btn" for="sun_afternoon">
+                                                    <i class="ri-check-line"></i>
+                                                </label>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    <span id="selectedCount">0</span> time slots selected
+                                </small>
+                                <button type="button" class="btn btn-link btn-sm text-muted p-0" id="clearSchedule">
+                                    <i class="ri-delete-bin-line me-1"></i>Clear all
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <label for="special_comments" class="form-label">
+                                Special Comments or Requirements
+                            </label>
+                            <textarea class="form-control" id="special_comments" name="special_comments" rows="3"
+                                      placeholder="Any special requests, medical conditions, or additional information"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="action-buttons">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <div>
+                                <small class="text-muted">
+                                    <span class="required-indicator">*</span> Required fields
+                                </small>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-light" id="cancelBtn">
+                                    <i class="ri-close-line me-1"></i>Cancel
+                                </button>
+                                <button type="submit" class="btn btn-success" id="submitBtn">
+                                    <span class="spinner-border spinner-border-sm d-none me-2" role="status" aria-hidden="true" id="submitSpinner"></span>
+                                    <i class="ri-save-line me-1" id="submitIcon"></i>
+                                    <span id="submitText">Save Application</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // ========================================
+    // State Variables
+    // ========================================
+    let uploadedFile = null;
+    let currentPage = 1;
+    let totalPages = 2; // For demo - would be dynamic for PDFs
+    let zoomLevel = 1;
+
+    // ========================================
+    // File Upload Handling
+    // ========================================
+    const $uploadZone = $('#uploadZone');
+    const $fileInput = $('#fileInput');
+    const $scannedFileInput = $('#scannedFileInput');
+    const $browseBtn = $('#browseBtn');
+    const $imageContainer = $('#imageContainer');
+    const $previewImage = $('#previewImage');
+
+    // Browse button click
+    $browseBtn.on('click', function() {
+        $fileInput.click();
+    });
+
+    // Upload zone click
+    $uploadZone.on('click', function(e) {
+        if (e.target !== $browseBtn[0]) {
+            $fileInput.click();
+        }
+    });
+
+    // File input change
+    $fileInput.on('change', function(e) {
+        handleFileSelect(e.target.files);
+    });
+
+    // Drag and drop
+    $uploadZone.on('dragover', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        $(this).addClass('dragover');
+    });
+
+    $uploadZone.on('dragleave', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        $(this).removeClass('dragover');
+    });
+
+    $uploadZone.on('drop', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        $(this).removeClass('dragover');
+        handleFileSelect(e.originalEvent.dataTransfer.files);
+    });
+
+    function handleFileSelect(files) {
+        if (files.length === 0) return;
+
+        const file = files[0];
+
+        // Validate file type
+        const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
+        if (!validTypes.includes(file.type)) {
+            alert('Please upload a valid image (JPG, PNG) or PDF file.');
+            return;
+        }
+
+        // Validate file size (max 10MB)
+        if (file.size > 10 * 1024 * 1024) {
+            alert('File size must be less than 10MB.');
+            return;
+        }
+
+        uploadedFile = file;
+        displayPreview(file);
+
+        // Transfer to hidden form input
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        $scannedFileInput[0].files = dataTransfer.files;
+    }
+
+    function displayPreview(file) {
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+            $previewImage.attr('src', e.target.result);
+            $uploadZone.hide();
+            $imageContainer.show();
+
+            // Show controls
+            $('#zoomOutBtn, #zoomInBtn, #fitBtn').show();
+
+            // Show page toggle for multi-page (mock - would need PDF.js for real PDFs)
+            if (file.type === 'application/pdf') {
+                $('#pageToggle').show();
+            }
+        };
+
+        reader.readAsDataURL(file);
+    }
+
+    // ========================================
+    // Image Controls
+    // ========================================
+    $('#zoomInBtn').on('click', function() {
+        zoomLevel = Math.min(zoomLevel + 0.25, 3);
+        $previewImage.css('transform', 'scale(' + zoomLevel + ')');
+    });
+
+    $('#zoomOutBtn').on('click', function() {
+        zoomLevel = Math.max(zoomLevel - 0.25, 0.5);
+        $previewImage.css('transform', 'scale(' + zoomLevel + ')');
+    });
+
+    $('#fitBtn').on('click', function() {
+        zoomLevel = 1;
+        $previewImage.css('transform', 'scale(1)');
+    });
+
+    // Image click to toggle zoom
+    $previewImage.on('click', function() {
+        if ($(this).hasClass('zoomed')) {
+            $(this).removeClass('zoomed');
+            zoomLevel = 1;
+            $(this).css('transform', 'scale(1)');
+        } else {
+            $(this).addClass('zoomed');
+            zoomLevel = 1.5;
+            $(this).css('transform', 'scale(1.5)');
+        }
+    });
+
+    // ========================================
+    // Page Navigation (for multi-page documents)
+    // ========================================
+    $('#prevPageBtn').on('click', function() {
+        if (currentPage > 1) {
+            currentPage--;
+            updatePageInfo();
+            // In real implementation, would load different page from PDF
+        }
+    });
+
+    $('#nextPageBtn').on('click', function() {
+        if (currentPage < totalPages) {
+            currentPage++;
+            updatePageInfo();
+            // In real implementation, would load different page from PDF
+        }
+    });
+
+    function updatePageInfo() {
+        $('#pageInfo').text('Page ' + currentPage + ' of ' + totalPages);
+    }
+
+    // ========================================
+    // Schedule Preferences
+    // ========================================
+    $('.schedule-check').on('change', function() {
+        updateSelectedCount();
+    });
+
+    $('#clearSchedule').on('click', function() {
+        $('.schedule-check').prop('checked', false);
+        updateSelectedCount();
+    });
+
+    function updateSelectedCount() {
+        const count = $('.schedule-check:checked').length;
+        $('#selectedCount').text(count);
+    }
+
+    // ========================================
+    // Form Validation
+    // ========================================
+    const $form = $('#uploadForm');
+
+    $form.on('submit', function(e) {
+        e.preventDefault();
+
+        // Reset validation states
+        $('.is-invalid').removeClass('is-invalid');
+
+        let isValid = true;
+
+        // Check if file uploaded
+        if (!uploadedFile) {
+            alert('Please upload a scanned application form first.');
+            return false;
+        }
+
+        // Validate required fields
+        $form.find('[required]').each(function() {
+            const $field = $(this);
+            if (!$field.val() || $field.val().trim() === '') {
+                $field.addClass('is-invalid');
+                isValid = false;
+            }
+        });
+
+        // Email validation
+        $('input[type="email"]').each(function() {
+            const $field = $(this);
+            const value = $field.val();
+            if (value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                $field.addClass('is-invalid');
+                isValid = false;
+            }
+        });
+
+        // Phone validation
+        $('input[type="tel"]').each(function() {
+            const $field = $(this);
+            const value = $field.val();
+            if (value) {
+                const cleanPhone = value.replace(/[\s-]/g, '');
+                if (!/^(\+94|0)?[0-9]{9,10}$/.test(cleanPhone)) {
+                    $field.addClass('is-invalid');
+                    isValid = false;
+                }
+            }
+        });
+
+        if (!isValid) {
+            // Scroll to first error
+            $('html, body').animate({
+                scrollTop: $('.is-invalid').first().offset().top - 100
+            }, 300);
+            return false;
+        }
+
+        // Collect schedule preferences
+        const schedulePreferences = {};
+        $('.schedule-check:checked').each(function() {
+            const $slot = $(this).closest('.schedule-slot');
+            const day = $slot.data('day');
+            const slot = $slot.data('slot');
+
+            if (!schedulePreferences[day]) {
+                schedulePreferences[day] = {};
+            }
+            schedulePreferences[day][slot] = 'regular';
+        });
+        $('#schedulePreferencesInput').val(JSON.stringify(schedulePreferences));
+
+        // Show loading state
+        $('#submitBtn').prop('disabled', true);
+        $('#submitSpinner').removeClass('d-none');
+        $('#submitIcon').addClass('d-none');
+        $('#submitText').text('Saving...');
+
+        // Submit the form
+        this.submit();
+    });
+
+    // Real-time validation
+    $form.find('input, select, textarea').on('blur', function() {
+        const $field = $(this);
+        if ($field.prop('required') && (!$field.val() || $field.val().trim() === '')) {
+            $field.addClass('is-invalid');
+        } else {
+            $field.removeClass('is-invalid');
+        }
+    });
+
+    // Clear invalid state on input
+    $form.find('input, select, textarea').on('input', function() {
+        $(this).removeClass('is-invalid');
+    });
+
+    // ========================================
+    // Cancel Button
+    // ========================================
+    $('#cancelBtn').on('click', function() {
+        if (confirm('Are you sure you want to cancel? All entered data will be lost.')) {
+            window.location.href = "{% url 'application_list' %}";
+        }
+    });
+});
+</script>
+{% endblock %}

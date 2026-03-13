@@ -20,6 +20,7 @@ urlpatterns = [
 
     # Application Management (Staff/Admin)
     path('applications/', views.application_list_view, name='application_list'),
+    path('applications/upload/', views.application_upload_view, name='application_upload'),
     path('applications/<int:application_id>/review/', views.application_review_view, name='application_review'),
     path('applications/<int:application_id>/enroll/', views.student_enroll_view, name='student_enroll'),
 
