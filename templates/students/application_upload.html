@@ -352,6 +352,9 @@
                         Scanned Application Preview
                     </h6>
                     <div class="preview-controls">
+                        <button type="button" class="btn btn-sm btn-warning" id="extractDataBtn" title="Extract Data using OCR" style="display: none;">
+                            <i class="ri-scan-line me-1"></i>Extract Data
+                        </button>
                         <button type="button" class="btn btn-sm btn-light" id="zoomOutBtn" title="Zoom Out" style="display: none;">
                             <i class="ri-zoom-out-line"></i>
                         </button>
@@ -925,8 +928,8 @@ $(document).ready(function() {
             $uploadZone.hide();
             $imageContainer.show();
 
-            // Show controls
-            $('#zoomOutBtn, #zoomInBtn, #fitBtn').show();
+            // Show controls including Extract Data button
+            $('#extractDataBtn, #zoomOutBtn, #zoomInBtn, #fitBtn').show();
 
             // Show page toggle for multi-page (mock - would need PDF.js for real PDFs)
             if (file.type === 'application/pdf') {
@@ -1114,6 +1117,190 @@ $(document).ready(function() {
             window.location.href = "{% url 'application_list' %}";
         }
     });
+
+    // ========================================
+    // OCR Extract Data
+    // ========================================
+    $('#extractDataBtn').on('click', function() {
+        if (!uploadedFile) {
+            showAlert('warning', 'Please upload an image first.');
+            return;
+        }
+
+        const $btn = $(this);
+        const originalHtml = $btn.html();
+
+        // Show loading state
+        $btn.prop('disabled', true).html(
+            '<span class="spinner-border spinner-border-sm me-1" role="status"></span>Extracting...'
+        );
+
+        // Read file as base64
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const imageData = e.target.result;
+
+            // Send to OCR endpoint
+            $.ajax({
+                url: "{% url 'ocr_extract' %}",
+                method: 'POST',
+                contentType: 'application/json',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                data: JSON.stringify({
+                    image_data: imageData
+                }),
+                success: function(response) {
+                    if (response.success) {
+                        populateFormFields(response.fields);
+                        showAlert('success', 'Data extracted successfully! Please verify and correct if needed.');
+                    } else {
+                        showAlert('danger', response.error || 'Failed to extract data.');
+                        if (response.setup_instructions) {
+                            console.log('OCR Setup Instructions:', response.setup_instructions);
+                        }
+                    }
+                },
+                error: function(xhr) {
+                    let errorMsg = 'Failed to extract data.';
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        errorMsg = response.error || errorMsg;
+                        if (response.setup_instructions) {
+                            console.log('OCR Setup Instructions:', response.setup_instructions);
+                        }
+                    } catch (e) {
+                        // Use default error message
+                    }
+                    showAlert('danger', errorMsg);
+                },
+                complete: function() {
+                    $btn.prop('disabled', false).html(originalHtml);
+                }
+            });
+        };
+        reader.readAsDataURL(uploadedFile);
+    });
+
+    /**
+     * Populate form fields with extracted OCR data
+     */
+    function populateFormFields(fields) {
+        // Field mappings: OCR field name -> form input ID
+        const fieldMappings = {
+            // Office Use
+            'admission_number': '#admission_number',
+
+            // Student Information
+            'name_with_initials': '#name_with_initials',
+            'full_name': '#full_name',
+            'date_of_birth': '#date_of_birth',
+            'gender': '#gender',
+            'nationality': '#nationality',
+            'current_school': '#current_school',
+            'siblings_info': '#siblings_info',
+
+            // Mother's Information
+            'mother_name': '#mother_name',
+            'mother_contact_number': '#mother_contact_number',
+            'mother_occupation': '#mother_occupation',
+
+            // Father's Information
+            'father_name': '#father_name',
+            'father_contact_number': '#father_contact_number',
+            'father_occupation': '#father_occupation',
+
+            // Contact Information
+            'home_address': '#home_address',
+            'whatsapp_number': '#whatsapp_number'
+        };
+
+        let fieldsPopulated = 0;
+
+        for (const [ocrField, selector] of Object.entries(fieldMappings)) {
+            if (fields[ocrField]) {
+                const $input = $(selector);
+                if ($input.length) {
+                    const value = fields[ocrField];
+
+                    // Handle select elements (like gender)
+                    if ($input.is('select')) {
+                        // Try to find matching option
+                        const normalizedValue = value.toUpperCase();
+                        $input.find('option').each(function() {
+                            if ($(this).val().toUpperCase() === normalizedValue ||
+                                $(this).text().toUpperCase() === normalizedValue) {
+                                $input.val($(this).val());
+                                fieldsPopulated++;
+                                return false; // break
+                            }
+                        });
+                    } else {
+                        $input.val(value);
+                        fieldsPopulated++;
+                    }
+
+                    // Highlight filled fields briefly
+                    highlightField($input);
+                }
+            }
+        }
+
+        console.log(`Populated ${fieldsPopulated} fields from OCR data`);
+    }
+
+    /**
+     * Highlight a field to show it was auto-filled
+     */
+    function highlightField($field) {
+        $field.addClass('border-success');
+        setTimeout(function() {
+            $field.removeClass('border-success');
+        }, 3000);
+    }
+
+    /**
+     * Show an alert message
+     */
+    function showAlert(type, message) {
+        // Map type to icon
+        const icons = {
+            'success': 'ri-checkbox-circle-line',
+            'danger': 'ri-error-warning-line',
+            'warning': 'ri-alert-line',
+            'info': 'ri-information-line'
+        };
+
+        const icon = icons[type] || icons['info'];
+
+        // Create alert element
+        const $alert = $(`
+            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                <i class="${icon} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `);
+
+        // Insert after page header card
+        const $existingAlerts = $('.upload-container').prev('.alert');
+        if ($existingAlerts.length) {
+            $existingAlerts.remove();
+        }
+
+        $('.upload-container').before($alert);
+
+        // Auto-dismiss after 5 seconds
+        setTimeout(function() {
+            $alert.alert('close');
+        }, 5000);
+
+        // Scroll to alert
+        $('html, body').animate({
+            scrollTop: $alert.offset().top - 100
+        }, 300);
+    }
 });
 </script>
 {% endblock %}

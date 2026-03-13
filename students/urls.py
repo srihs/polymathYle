@@ -24,6 +24,9 @@ urlpatterns = [
     path('applications/<int:application_id>/review/', views.application_review_view, name='application_review'),
     path('applications/<int:application_id>/enroll/', views.student_enroll_view, name='student_enroll'),
 
+    # OCR API (Staff/Admin)
+    path('api/ocr/extract/', views.ocr_extract_view, name='ocr_extract'),
+
     # Attendance Management (Teachers/Staff)
     path('attendance/mark/', views.attendance_mark_view, name='attendance_mark'),
     path('attendance/report/', views.attendance_report_view, name='attendance_report'),

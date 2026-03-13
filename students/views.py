@@ -7,6 +7,12 @@ from .models import Application, Student, Guardian, Attendance, StudentBadge
 from .forms import ApplicationForm
 from django.core.paginator import Paginator
 from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
+import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def apply_view(request):
@@ -658,4 +664,88 @@ def application_upload_view(request):
     return render(request, 'students/application_upload.html', {
         'form': form
     })
+
+
+@login_required
+@permission_required('students.add_application', raise_exception=True)
+@require_POST
+def ocr_extract_view(request):
+    """
+    OCR API endpoint to extract text from scanned application forms.
+    Accepts POST request with image data (base64 or file upload).
+
+    Request body (JSON):
+        - image_data: Base64-encoded image data (data URL format)
+
+    OR multipart form data:
+        - image: Uploaded image file
+
+    Returns:
+        JSON response with extracted fields or error message
+    """
+    from .ocr_service import extract_application_data
+
+    try:
+        # Check content type
+        content_type = request.content_type
+
+        if 'application/json' in content_type:
+            # JSON request with base64 image
+            try:
+                data = json.loads(request.body)
+                image_data = data.get('image_data')
+
+                if not image_data:
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'No image data provided'
+                    }, status=400)
+
+            except json.JSONDecodeError:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Invalid JSON data'
+                }, status=400)
+
+        elif 'multipart/form-data' in content_type:
+            # File upload
+            image_file = request.FILES.get('image')
+
+            if not image_file:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'No image file provided'
+                }, status=400)
+
+            # Read file content
+            image_data = image_file.read()
+
+        else:
+            return JsonResponse({
+                'success': False,
+                'error': 'Unsupported content type. Use application/json or multipart/form-data'
+            }, status=400)
+
+        # Extract data using OCR service
+        result = extract_application_data(image_data)
+
+        if result.get('success'):
+            return JsonResponse({
+                'success': True,
+                'fields': result.get('fields', {}),
+                'message': 'Data extracted successfully. Please verify and correct if needed.'
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'error': result.get('error', 'OCR extraction failed'),
+                'setup_instructions': result.get('setup_instructions')
+            }, status=500 if 'not configured' in result.get('error', '') else 400)
+
+    except Exception as e:
+        logger.exception("OCR extraction error")
+        return JsonResponse({
+            'success': False,
+            'error': f'Server error: {str(e)}'
+        }, status=500)
 
