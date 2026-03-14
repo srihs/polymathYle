@@ -425,19 +425,25 @@
                             </div>
                         </div>
                         <div class="row g-3">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label for="admission_number" class="form-label">
                                     Admission Number
                                     <small class="text-muted">(If already assigned)</small>
                                 </label>
                                 <input type="text" class="form-control" id="admission_number" name="admission_number" placeholder="e.g., YLE-2021-0001">
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label for="receipt_number" class="form-label">
                                     Receipt Number
                                     <small class="text-muted">(If payment received)</small>
                                 </label>
                                 <input type="text" class="form-control" id="receipt_number" name="receipt_number" placeholder="e.g., REC-001">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="application_date" class="form-label">
+                                    Application Date
+                                </label>
+                                <input type="date" class="form-control" id="application_date" name="application_date">
                             </div>
                         </div>
                     </div>
@@ -470,14 +476,21 @@
                                        placeholder="e.g., Kamal Dilshan Sampath Perera">
                                 <div class="invalid-feedback">Please enter full name</div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <label for="date_of_birth" class="form-label">
                                     Date of Birth<span class="required-indicator">*</span>
                                 </label>
                                 <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" required>
                                 <div class="invalid-feedback">Please select date of birth</div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
+                                <label for="age" class="form-label">
+                                    Age
+                                </label>
+                                <input type="number" class="form-control" id="age" name="age" readonly>
+                                <small class="form-text text-muted">(Auto-calculated from Date of Birth)</small>
+                            </div>
+                            <div class="col-md-3">
                                 <label for="gender" class="form-label">
                                     Gender<span class="required-indicator">*</span>
                                 </label>
@@ -488,7 +501,7 @@
                                 </select>
                                 <div class="invalid-feedback">Please select gender</div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <label for="nationality" class="form-label">
                                     Nationality
                                 </label>
@@ -624,9 +637,9 @@
                             </div>
                             <div class="col-md-6">
                                 <label for="primary_contact_email" class="form-label">
-                                    Primary Email<span class="required-indicator">*</span>
+                                    Primary Email (Optional)
                                 </label>
-                                <input type="email" class="form-control" id="primary_contact_email" name="primary_contact_email" required
+                                <input type="email" class="form-control" id="primary_contact_email" name="primary_contact_email"
                                        placeholder="parent@example.com">
                                 <div class="invalid-feedback">Please enter a valid email</div>
                             </div>
@@ -843,6 +856,49 @@ $(document).ready(function() {
     let currentPage = 1;
     let totalPages = 2; // For demo - would be dynamic for PDFs
     let zoomLevel = 1;
+
+    // ========================================
+    // Application Date Auto-fill
+    // ========================================
+    // Set application date to today on page load
+    const today = new Date().toISOString().split('T')[0];
+    $('#application_date').val(today);
+
+    // ========================================
+    // Age Calculation
+    // ========================================
+    /**
+     * Calculate age from date of birth
+     */
+    function calculateAge(dateOfBirth) {
+        if (!dateOfBirth) return '';
+
+        const today = new Date();
+        const birthDate = new Date(dateOfBirth);
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+
+        // Adjust if birthday hasn't occurred this year yet
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+
+        return age;
+    }
+
+    // Apply age calculation to DOB field
+    $('#date_of_birth').on('change blur', function() {
+        const dob = $(this).val();
+        const age = calculateAge(dob);
+        $('#age').val(age);
+    });
+
+    // Calculate age on page load if DOB already filled (from OCR)
+    const dobValue = $('#date_of_birth').val();
+    if (dobValue) {
+        const age = calculateAge(dobValue);
+        $('#age').val(age);
+    }
 
     // ========================================
     // File Upload Handling
@@ -1243,6 +1299,12 @@ $(document).ready(function() {
 
                     // Highlight filled fields briefly
                     highlightField($input);
+
+                    // Trigger age calculation if date of birth was populated
+                    if (ocrField === 'date_of_birth') {
+                        const age = calculateAge(value);
+                        $('#age').val(age);
+                    }
                 }
             }
         }

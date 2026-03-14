@@ -87,7 +87,8 @@
       "Bash(\"c:\\\\Users\\\\srima\\\\source\\\\repos\\\\polymathYle\\\\env\\\\Scripts\\\\python.exe\" -c \"from students.views import apply_view; print\\(''View OK''\\); from students.forms import ApplicationForm; print\\(''Form OK''\\)\")",
       "Bash(\"c:\\\\Users\\\\srima\\\\source\\\\repos\\\\polymathYle\\\\env\\\\Scripts\\\\python.exe\" manage.py shell:*)",
       "Bash(\"c:\\\\Users\\\\srima\\\\source\\\\repos\\\\polymathYle\\\\env\\\\Scripts\\\\python.exe\" manage.py shell -c \"from django.urls import reverse; print\\(reverse\\(''apply''\\)\\)\")",
-      "Bash(git reset:*)"
+      "Bash(git reset:*)",
+      "Bash(git show:*)"
     ],
     "deny": []
   },

@@ -46,6 +46,12 @@ class OCRService:
             'ADMISSION NUMBER', 'ADMISSION NO', 'ADM NO', 'ADM.NO',
             'YLE-', 'FCE-'
         ],
+        'receipt_number': [
+            'RECEIPT NUMBER', 'RECEIPT NO', 'RECEIPT', 'REC NO'
+        ],
+        'application_date': [
+            'DATE', 'APPLICATION DATE', 'OFFICE DATE'
+        ],
 
         # Student Personal Information
         'name_with_initials': [
@@ -72,33 +78,37 @@ class OCRService:
         ],
         'siblings_info': [
             'SIBLINGS', 'BROTHER', 'SISTER', 'SIBLINGS INFO',
-            'SIBLING INFORMATION'
+            'SIBLING INFORMATION', 'SIBLINGS DETAILS'
         ],
 
         # Mother's Information
         'mother_name': [
             "MOTHER'S FULL NAME", "MOTHER'S NAME", 'MOTHER NAME',
-            'MOTHER FULL NAME'
+            'MOTHER FULL NAME', 'MOTHER:'
         ],
         'mother_contact_number': [
-            "MOTHER'S CONTACT", "MOTHER'S TEL", "MOTHER'S PHONE",
-            'MOTHER CONTACT', 'MOTHER TEL', 'MOTHER PHONE', 'MOTHER NO'
+            "MOTHER'S CONTACT NUMBER", "MOTHER'S CONTACT", "MOTHER'S TEL",
+            "MOTHER'S PHONE", 'MOTHER CONTACT NUMBER', 'MOTHER CONTACT',
+            'MOTHER TEL', 'MOTHER PHONE', 'MOTHER NO', 'MOTHER MOBILE',
+            'CONTACT NUMBER'  # Generic pattern for parent sections
         ],
         'mother_occupation': [
-            "MOTHER'S OCCUPATION", 'MOTHER OCCUPATION'
+            "MOTHER'S OCCUPATION", 'MOTHER OCCUPATION', 'OCCUPATION'
         ],
 
         # Father's Information
         'father_name': [
             "FATHER'S FULL NAME", "FATHER'S NAME", 'FATHER NAME',
-            'FATHER FULL NAME'
+            'FATHER FULL NAME', 'FATHER:'
         ],
         'father_contact_number': [
-            "FATHER'S CONTACT", "FATHER'S TEL", "FATHER'S PHONE",
-            'FATHER CONTACT', 'FATHER TEL', 'FATHER PHONE', 'FATHER NO'
+            "FATHER'S CONTACT NUMBER", "FATHER'S CONTACT", "FATHER'S TEL",
+            "FATHER'S PHONE", 'FATHER CONTACT NUMBER', 'FATHER CONTACT',
+            'FATHER TEL', 'FATHER PHONE', 'FATHER NO', 'FATHER MOBILE',
+            'CONTACT NUMBER'  # Generic pattern for parent sections
         ],
         'father_occupation': [
-            "FATHER'S OCCUPATION", 'FATHER OCCUPATION'
+            "FATHER'S OCCUPATION", 'FATHER OCCUPATION', 'OCCUPATION'
         ],
 
         # Contact Information
@@ -107,7 +117,8 @@ class OCRService:
             'ADDRESS'
         ],
         'whatsapp_number': [
-            'WHATSAPP NUMBER', 'WHATSAPP', 'WHATS APP', 'WA NUMBER'
+            'WHATSAPP NUMBER', 'WHATSAPP NO', 'WHATS APP NUMBER', 'WHATS APP NO',
+            'WHATSAPP', 'WHATS APP', 'WA NUMBER', 'WA NO', 'W/A NUMBER'
         ],
     }
 
@@ -315,6 +326,10 @@ class OCRService:
 
         # Extract each field using multiple strategies
         for field_name, labels in self.FIELD_LABELS.items():
+            # Add extra logging for critical fields
+            if field_name in ['whatsapp_number', 'application_date', 'receipt_number']:
+                logger.info(f"Starting extraction for {field_name} with labels: {labels}")
+
             # Strategy 1: Spatial extraction (most accurate for forms)
             value = self._extract_field_value_spatial(words, labels, field_name)
 
@@ -326,7 +341,13 @@ class OCRService:
 
             if value:
                 extracted_fields[field_name] = value
-                logger.debug(f"Extracted {field_name}: {value}")
+                if field_name in ['whatsapp_number', 'application_date', 'receipt_number']:
+                    logger.info(f"Successfully extracted {field_name}: {value}")
+                else:
+                    logger.debug(f"Extracted {field_name}: {value}")
+            else:
+                if field_name in ['whatsapp_number', 'application_date', 'receipt_number']:
+                    logger.warning(f"Failed to extract {field_name}")
 
         # Post-process specific fields
         extracted_fields = self._post_process_fields(extracted_fields)
@@ -362,6 +383,7 @@ class OCRService:
         """
         # Find label word(s) in the document
         label_words = []
+        matched_label = None
 
         for label in labels:
             label_upper = label.upper()
@@ -390,27 +412,96 @@ class OCRService:
 
                     if matched and len(matches) >= len(label_tokens) * 0.7:  # Allow partial matches
                         label_words.extend(matches)
+                        matched_label = label
                         break
 
             if label_words:
                 break
 
         if not label_words:
+            logger.debug(f"No label words found for {field_name} with labels: {labels}")
             return None
+
+        logger.debug(f"Found label '{matched_label}' for {field_name} at position {label_words[0]['bounds']}")
 
         # Calculate label bounding box
         label_bounds = self._calculate_combined_bounds(label_words)
 
         # Strategy 1: Look for words on the same horizontal line (right of label)
-        value_words = self._find_words_right_of(words, label_bounds, same_line=True)
+        # Use larger gap tolerance for fields that may have multiple words with spaces
+        gap_multiplier = 2.5 if field_name in ['siblings_info', 'full_name'] else 1.0
+        value_words = self._find_words_right_of(words, label_bounds, same_line=True,
+                                                 max_gap_multiplier=gap_multiplier)
+        logger.debug(f"{field_name}: Found {len(value_words)} words right of label: {[w['text'] for w in value_words]}")
 
-        # Strategy 2: Look for words below the label (next line)
+        # Strategy 2: For full_name specifically, also check words below and combine them
+        # This handles names that span multiple rows (e.g., "Kamburugamuwe Gam Acharige" on row 1,
+        # "Leon Nimshan" on row 2)
+        if field_name == 'full_name' and value_words:
+            # Get the rightmost word from the first row to determine where the name field ends horizontally
+            rightmost_x_end = max(w['bounds']['x_end'] for w in value_words)
+            label_bottom = label_bounds['y_end']
+
+            # Look for continuation words in the next row (below the label, but within the name field area)
+            continuation_words = []
+            for word in words:
+                word_y = word['bounds']['y']
+                word_x = word['bounds']['x']
+
+                # Check if word is below the label's bottom
+                if word_y > label_bottom:
+                    # Check if word is horizontally aligned with the name field (not the label)
+                    # Name field typically starts to the right of the label
+                    if word_x >= label_bounds['x_end'] - 50:  # Allow small tolerance
+                        # Check it's not too far below (within 2 line heights)
+                        if word_y < label_bottom + label_bounds['height'] * 2:
+                            continuation_words.append(word)
+
+            # Sort continuation words and add them to value_words
+            if continuation_words:
+                continuation_words.sort(key=lambda w: (w['bounds']['y'], w['bounds']['x']))
+                logger.debug(f"{field_name}: Found {len(continuation_words)} continuation words: {[w['text'] for w in continuation_words]}")
+
+                # Stop at the first word that looks like a new field label
+                filtered_continuation = []
+                for word in continuation_words:
+                    if not self._is_label_text(word['text']):
+                        filtered_continuation.append(word)
+                    else:
+                        logger.debug(f"{field_name}: Stopped at label word: {word['text']}")
+                        break
+
+                value_words.extend(filtered_continuation)
+                logger.debug(f"{field_name}: Combined total of {len(value_words)} words: {[w['text'] for w in value_words]}")
+
+        # Strategy 3: Look for words below the label (next line) - for when nothing is on the same line
         if not value_words or self._is_label_text(' '.join(w['text'] for w in value_words)):
-            value_words = self._find_words_below(words, label_bounds)
+            # For multi-line fields like siblings or address, look further down and allow multiline
+            max_lines = 5 if field_name in ['siblings_info', 'home_address', 'full_name'] else 3
+            allow_multiline = field_name in ['siblings_info', 'home_address', 'full_name']
+            value_words = self._find_words_below(words, label_bounds, max_lines=max_lines,
+                                                 allow_multiline=allow_multiline)
+            logger.debug(f"{field_name}: Found {len(value_words)} words below label: {[w['text'] for w in value_words]}")
 
-        # Strategy 3: For checkboxes/gender, look for checked indicators
+        # Strategy 4: For checkboxes/gender, look for checked indicators
         if field_name == 'gender' and not value_words:
             value_words = self._extract_checkbox_value(words, label_bounds)
+
+        # Strategy 5: For context-sensitive fields (occupation, contact in parent sections)
+        # Look for parent section context
+        if field_name in ['mother_occupation', 'father_occupation', 'mother_contact_number', 'father_contact_number']:
+            if not value_words or len(value_words) == 0:
+                # Try to find the parent section first
+                parent_prefix = 'MOTHER' if 'mother' in field_name else 'FATHER'
+                value_words = self._find_in_parent_section(words, label_bounds, parent_prefix, field_name)
+                logger.debug(f"{field_name}: Found {len(value_words)} words in {parent_prefix} section")
+
+        # Strategy 6: For WhatsApp number in Contact Information section
+        # WhatsApp often appears under HOME ADDRESS section
+        if field_name == 'whatsapp_number':
+            if not value_words or len(value_words) == 0:
+                value_words = self._find_in_contact_section(words, label_bounds, field_name)
+                logger.info(f"{field_name}: Found {len(value_words)} words in Contact Information section: {[w['text'] for w in value_words]}")
 
         # Filter out words that are labels themselves
         filtered_words = []
@@ -418,11 +509,19 @@ class OCRService:
             word_text = word['text'].upper()
             is_label = False
 
+            # Special handling for short words - don't filter age numbers
+            if field_name == 'age' and word_text.isdigit():
+                filtered_words.append(word)
+                continue
+
             # Check if this word is part of any label
             for label_list in self.FIELD_LABELS.values():
                 for label in label_list:
-                    if word_text in label.upper() or label.upper() in word_text:
-                        if len(word_text) > 3:  # Avoid filtering short words like "NO"
+                    label_tokens = label.upper().split()
+                    # Only filter if word matches a complete label token (not partial)
+                    if word_text in label_tokens:
+                        # Avoid filtering short generic words that might be values
+                        if len(word_text) > 3 or word_text in ['NAME', 'DATE', 'NUMBER', 'TEL', 'NO']:
                             is_label = True
                             break
                 if is_label:
@@ -430,6 +529,8 @@ class OCRService:
 
             if not is_label:
                 filtered_words.append(word)
+
+        logger.debug(f"{field_name}: {len(filtered_words)} words after filtering: {[w['text'] for w in filtered_words]}")
 
         if filtered_words:
             # Combine words into value, respecting spatial order
@@ -457,7 +558,8 @@ class OCRService:
             'height': y_max - y_min
         }
 
-    def _find_words_right_of(self, words: List[Dict], label_bounds: Dict, same_line: bool = True) -> List[Dict]:
+    def _find_words_right_of(self, words: List[Dict], label_bounds: Dict, same_line: bool = True,
+                             max_gap_multiplier: float = 1.0) -> List[Dict]:
         """Find words to the right of a label (same horizontal line)."""
         result_words = []
         label_right = label_bounds['x_end']
@@ -493,7 +595,9 @@ class OCRService:
                 gap = curr_x - prev_x_end
 
                 # If gap is too large, stop (new field)
-                if gap > label_bounds['width']:
+                # Use dynamic gap threshold based on label width
+                max_gap = label_bounds['width'] * max_gap_multiplier
+                if gap > max_gap:
                     break
                 consecutive.append(result_words[i])
 
@@ -501,7 +605,8 @@ class OCRService:
 
         return []
 
-    def _find_words_below(self, words: List[Dict], label_bounds: Dict) -> List[Dict]:
+    def _find_words_below(self, words: List[Dict], label_bounds: Dict, max_lines: int = 3,
+                          allow_multiline: bool = False) -> List[Dict]:
         """Find words below a label (next line in form)."""
         result_words = []
         label_bottom = label_bounds['y_end']
@@ -510,7 +615,7 @@ class OCRService:
         label_height = label_bounds['height']
 
         # Look in the area below the label
-        search_height = label_height * 3  # Look up to 3 lines below
+        search_height = label_height * max_lines  # Look up to N lines below
 
         for word in words:
             word_y = word['bounds']['y']
@@ -523,11 +628,41 @@ class OCRService:
                 horizontal_distance = abs(word_x_center - label_x_center)
 
                 # Allow some horizontal deviation but not too much
-                if horizontal_distance < label_width * 2:
+                # Be more lenient for horizontally offset content
+                if horizontal_distance < label_width * 3:
                     result_words.append(word)
 
         # Sort words by vertical position, then horizontal
         result_words.sort(key=lambda w: (w['bounds']['y'], w['bounds']['x']))
+
+        # For multiline fields, take all consecutive lines
+        if allow_multiline and result_words:
+            all_lines = []
+            current_line = [result_words[0]]
+            current_y = result_words[0]['bounds']['y']
+
+            for i in range(1, len(result_words)):
+                word = result_words[i]
+                # If this word is on a new line
+                if abs(word['bounds']['y'] - current_y) > label_height * 0.5:
+                    # Check if there's a big vertical gap (indicates new section)
+                    if len(current_line) > 0:
+                        prev_y_end = max(w['bounds']['y_end'] for w in current_line)
+                        if word['bounds']['y'] - prev_y_end > label_height * 2:
+                            break  # Stop at large vertical gap
+                    # Start new line
+                    all_lines.extend(current_line)
+                    current_line = [word]
+                    current_y = word['bounds']['y']
+                else:
+                    # Same line
+                    current_line.append(word)
+
+            # Add the last line
+            all_lines.extend(current_line)
+            # Sort horizontally within the combined result
+            all_lines.sort(key=lambda w: (w['bounds']['y'], w['bounds']['x']))
+            return all_lines
 
         # Take only the first line below
         if result_words:
@@ -545,6 +680,256 @@ class OCRService:
             return first_line
 
         return []
+
+    def _find_in_parent_section(self, words: List[Dict], label_bounds: Dict,
+                                 parent_prefix: str, field_name: str) -> List[Dict]:
+        """
+        Find field value within a parent section (e.g., Mother's or Father's section).
+        This is useful when generic labels like "CONTACT NUMBER" or "OCCUPATION" appear
+        multiple times in the form.
+
+        Args:
+            words: List of all words in the document
+            label_bounds: Bounding box of the label
+            parent_prefix: 'MOTHER' or 'FATHER'
+            field_name: The field being extracted
+
+        Returns:
+            List of words that are the field value
+        """
+        # Find the parent section header (e.g., "MOTHER'S INFORMATION")
+        parent_words = []
+        for i, word in enumerate(words):
+            if parent_prefix in word['text'].upper():
+                parent_words.append(word)
+                # Look for nearby words that might complete the section header
+                for j in range(i+1, min(i+3, len(words))):
+                    if any(keyword in words[j]['text'].upper()
+                          for keyword in ['INFORMATION', 'DETAILS', 'INFO', 'PARTICULARS']):
+                        parent_words.append(words[j])
+                        break
+                break
+
+        if not parent_words:
+            logger.debug(f"No {parent_prefix} section header found")
+            return []
+
+        parent_section_bounds = self._calculate_combined_bounds(parent_words)
+        logger.debug(f"Found {parent_prefix} section at y={parent_section_bounds['y']}")
+
+        # Determine the section boundaries
+        # Section starts at the parent header and extends down until next major section
+        section_start_y = parent_section_bounds['y']
+        section_end_y = section_start_y + 500  # Default: 500px down
+
+        # Try to find the end of this section (next parent section or major header)
+        other_parent = 'FATHER' if parent_prefix == 'MOTHER' else 'MOTHER'
+        for word in words:
+            if (word['bounds']['y'] > section_start_y and
+                (other_parent in word['text'].upper() or
+                 any(header in word['text'].upper() for header in
+                     ['CONTACT INFORMATION', 'STUDENT INFORMATION', 'ADDRESS']))):
+                section_end_y = min(section_end_y, word['bounds']['y'])
+                logger.debug(f"Section ends at y={section_end_y}")
+                break
+
+        # Now look for the specific field label within this section
+        field_type = 'CONTACT' if 'contact' in field_name else 'OCCUPATION'
+        label_in_section = None
+
+        for i, word in enumerate(words):
+            word_y = word['bounds']['y']
+            if section_start_y <= word_y <= section_end_y:
+                word_text = word['text'].upper()
+                if field_type in word_text:
+                    label_in_section = word
+                    logger.debug(f"Found '{field_type}' label in {parent_prefix} section at y={word_y}")
+                    break
+
+        if not label_in_section:
+            logger.debug(f"No '{field_type}' label found in {parent_prefix} section")
+            return []
+
+        # Extract value relative to this label
+        field_label_bounds = label_in_section['bounds']
+
+        # Try right of label first
+        value_words = self._find_words_right_of(words, field_label_bounds, same_line=True,
+                                                max_gap_multiplier=1.5)
+
+        # Then try below
+        if not value_words:
+            value_words = self._find_words_below(words, field_label_bounds, max_lines=2,
+                                                 allow_multiline=False)
+
+        # Filter to only include words within the section
+        filtered = [w for w in value_words
+                   if section_start_y <= w['bounds']['y'] <= section_end_y]
+
+        logger.debug(f"Found {len(filtered)} value words in section: {[w['text'] for w in filtered]}")
+        return filtered
+
+    def _find_in_contact_section(self, words: List[Dict], label_bounds: Dict,
+                                   field_name: str) -> List[Dict]:
+        """
+        Find field value within the Contact Information section.
+        WhatsApp number typically appears under HOME ADDRESS section.
+
+        Args:
+            words: List of all words in the document
+            label_bounds: Bounding box of the label
+            field_name: The field being extracted
+
+        Returns:
+            List of words that are the field value
+        """
+        # Find the Contact Information or Home Address section header
+        section_keywords = ['CONTACT INFORMATION', 'HOME ADDRESS', 'CONTACT DETAILS', 'ADDRESS']
+        section_words = []
+
+        for i, word in enumerate(words):
+            word_text = word['text'].upper()
+            for keyword in section_keywords:
+                if keyword in word_text or any(part in word_text for part in keyword.split()):
+                    section_words.append(word)
+                    # Look for nearby words that might complete the section header
+                    for j in range(i+1, min(i+3, len(words))):
+                        next_text = words[j]['text'].upper()
+                        if any(kw in next_text for kw in ['INFORMATION', 'DETAILS', 'ADDRESS']):
+                            section_words.append(words[j])
+                    break
+            if section_words:
+                break
+
+        if not section_words:
+            logger.debug(f"No Contact Information section header found")
+            # Try without section - look in the general area
+            return self._find_whatsapp_anywhere(words, label_bounds, field_name)
+
+        section_bounds = self._calculate_combined_bounds(section_words)
+        logger.debug(f"Found Contact Information section at y={section_bounds['y']}")
+
+        # Determine the section boundaries
+        # Section starts at the header and extends down until next major section
+        section_start_y = section_bounds['y']
+        section_end_y = section_start_y + 600  # Default: 600px down (larger for address section)
+
+        # Try to find the end of this section
+        end_markers = ['MOTHER', 'FATHER', 'PARENT', 'GUARDIAN', 'STUDENT INFORMATION', 'OFFICE USE']
+        for word in words:
+            if word['bounds']['y'] > section_start_y:
+                if any(marker in word['text'].upper() for marker in end_markers):
+                    section_end_y = min(section_end_y, word['bounds']['y'])
+                    logger.debug(f"Contact section ends at y={section_end_y}")
+                    break
+
+        # Now look for the WhatsApp label within this section
+        whatsapp_label = None
+        for i, word in enumerate(words):
+            word_y = word['bounds']['y']
+            if section_start_y <= word_y <= section_end_y:
+                word_text = word['text'].upper()
+                if 'WHATSAPP' in word_text or 'W/A' in word_text or 'WA' == word_text:
+                    whatsapp_label = word
+                    logger.info(f"Found WHATSAPP label in Contact section at y={word_y}: '{word['text']}'")
+                    break
+
+        if not whatsapp_label:
+            logger.debug(f"No WHATSAPP label found in Contact section, trying general search")
+            # Fall back to general search
+            return self._find_whatsapp_anywhere(words, label_bounds, field_name)
+
+        # Extract value relative to this label
+        field_label_bounds = whatsapp_label['bounds']
+
+        # Try right of label first (same line)
+        value_words = self._find_words_right_of(words, field_label_bounds, same_line=True,
+                                                max_gap_multiplier=1.5)
+        logger.info(f"WhatsApp - right of label: {[w['text'] for w in value_words]}")
+
+        # Then try below (next line)
+        if not value_words:
+            value_words = self._find_words_below(words, field_label_bounds, max_lines=2,
+                                                 allow_multiline=False)
+            logger.info(f"WhatsApp - below label: {[w['text'] for w in value_words]}")
+
+        # Filter to only include words within the section
+        filtered = [w for w in value_words
+                   if section_start_y <= w['bounds']['y'] <= section_end_y]
+
+        # Additional filter: WhatsApp numbers should look like phone numbers
+        phone_filtered = []
+        for w in filtered:
+            # Check if word looks like a phone number (digits, possibly with spaces/dashes)
+            if re.match(r'^[\d\s\-\+]+$', w['text']):
+                phone_filtered.append(w)
+            # Also accept if it starts with 0 or +94 (Sri Lankan numbers)
+            elif w['text'].startswith('0') or w['text'].startswith('+94'):
+                phone_filtered.append(w)
+
+        if phone_filtered:
+            logger.info(f"WhatsApp - after phone filtering: {[w['text'] for w in phone_filtered]}")
+            return phone_filtered
+
+        logger.info(f"WhatsApp - found {len(filtered)} value words in section: {[w['text'] for w in filtered]}")
+        return filtered
+
+    def _find_whatsapp_anywhere(self, words: List[Dict], label_bounds: Dict,
+                                 field_name: str) -> List[Dict]:
+        """
+        Find WhatsApp number anywhere in the document when section-based search fails.
+        This is a fallback method.
+
+        Args:
+            words: List of all words in the document
+            label_bounds: Bounding box of the label (if found)
+            field_name: The field being extracted
+
+        Returns:
+            List of words that are the field value
+        """
+        logger.debug("Attempting fallback WhatsApp search across entire document")
+
+        # Look for any word that contains "WHATSAPP" or similar
+        whatsapp_labels = []
+        for i, word in enumerate(words):
+            word_text = word['text'].upper()
+            if any(pattern in word_text for pattern in ['WHATSAPP', 'WHATS', 'W/A']):
+                whatsapp_labels.append((i, word))
+
+        if not whatsapp_labels:
+            logger.debug("No WhatsApp label found anywhere in document")
+            return []
+
+        # Use the first WhatsApp label found
+        label_idx, label_word = whatsapp_labels[0]
+        logger.info(f"Found WhatsApp label at word index {label_idx}: '{label_word['text']}'")
+
+        # Look for phone number pattern nearby (within next 10 words)
+        for i in range(label_idx + 1, min(label_idx + 10, len(words))):
+            word_text = words[i]['text']
+            # Check if this looks like a phone number
+            if re.match(r'^0\d{9}$', re.sub(r'[\s\-]', '', word_text)):
+                logger.info(f"Found phone number near WhatsApp label: {word_text}")
+                # Return all consecutive words that look like phone number parts
+                phone_words = [words[i]]
+                # Check if next words are also phone digits (in case it's split)
+                for j in range(i + 1, min(i + 5, len(words))):
+                    if re.match(r'^\d+$', words[j]['text']):
+                        phone_words.append(words[j])
+                    else:
+                        break
+                return phone_words
+
+        # Try spatial extraction from the label
+        value_words = self._find_words_right_of(words, label_word['bounds'], same_line=True,
+                                                max_gap_multiplier=2.0)
+        if not value_words:
+            value_words = self._find_words_below(words, label_word['bounds'], max_lines=2,
+                                                 allow_multiline=False)
+
+        logger.info(f"Fallback WhatsApp search found: {[w['text'] for w in value_words]}")
+        return value_words
 
     def _extract_checkbox_value(self, words: List[Dict], label_bounds: Dict) -> List[Dict]:
         """Extract gender from checkbox indicators."""
