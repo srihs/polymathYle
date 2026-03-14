@@ -381,12 +381,17 @@ class OCRService:
         Returns:
             str: Extracted value or None
         """
-        # Extra debugging for parent fields
+        # Extra debugging for critical fields
         is_parent_field = 'mother' in field_name or 'father' in field_name
         is_father_field = 'father' in field_name
+        is_office_use_field = field_name in ['admission_number', 'receipt_number', 'application_date']
 
         if is_father_field:
             logger.info(f"=== EXTRACTING FATHER FIELD: {field_name} ===")
+            logger.info(f"Labels to search: {labels}")
+
+        if is_office_use_field:
+            logger.info(f"=== EXTRACTING OFFICE USE FIELD: {field_name} ===")
             logger.info(f"Labels to search: {labels}")
 
         # CRITICAL FIX: For parent contact/occupation fields, SKIP generic strategies
@@ -492,6 +497,59 @@ class OCRService:
                 logger.info(f"{'=' * 60}\n")
                 return None
 
+        # OFFICE USE ONLY section boundary detection
+        # These fields (admission_number, receipt_number, application_date) are in the
+        # "OFFICE USE ONLY" section at the top of the form. We need to ensure we don't
+        # extract text from other sections like "PERSONAL INFORMATION: STUDENT" which
+        # appears immediately below.
+        if is_office_use_field:
+            logger.info(f"Applying section boundary detection for Office Use field")
+
+            # Find the "OFFICE USE ONLY" section header
+            office_section_y = None
+            for i, word in enumerate(words):
+                word_text = word['text'].upper()
+                if 'OFFICE' in word_text or 'USE' in word_text:
+                    # Check if nearby words complete "OFFICE USE ONLY"
+                    nearby_text = ' '.join([words[j]['text'].upper()
+                                           for j in range(max(0, i-2), min(len(words), i+4))])
+                    if 'OFFICE' in nearby_text and 'USE' in nearby_text:
+                        office_section_y = word['bounds']['y']
+                        logger.info(f"Found OFFICE USE section at y={office_section_y}")
+                        break
+
+            # Find where Office Use section ends (PERSONAL INFORMATION section starts)
+            office_section_end_y = None
+            if office_section_y is not None:
+                for word in words:
+                    word_y = word['bounds']['y']
+                    if word_y > office_section_y:
+                        word_text = word['text'].upper()
+                        # Look for section headers that come after Office Use
+                        if any(marker in word_text for marker in
+                              ['PERSONAL', 'STUDENT', 'FAMILY', 'INFORMATION']):
+                            # Check if this looks like a section header
+                            if len(word_text) > 3:
+                                office_section_end_y = word_y
+                                logger.info(f"Office Use section ends at y={office_section_end_y} ('{word['text']}')")
+                                break
+
+            # If we found section boundaries, filter words to only those within the section
+            if office_section_y is not None and office_section_end_y is not None:
+                words_in_section = [w for w in words
+                                   if office_section_y <= w['bounds']['y'] < office_section_end_y]
+                logger.info(f"Filtering to {len(words_in_section)} words within Office Use section")
+                logger.info(f"Section words: {[w['text'] for w in words_in_section[:20]]}")
+
+                # Use only words within section for this field
+                # Create a temporary words list for this extraction
+                section_filtered_words = words_in_section
+            else:
+                logger.warning(f"Could not determine Office Use section boundaries")
+                section_filtered_words = words
+        else:
+            section_filtered_words = words
+
         # For all other fields, continue with normal extraction strategies
         # Find label word(s) in the document
         label_words = []
@@ -502,7 +560,10 @@ class OCRService:
             label_tokens = label_upper.split()
 
             # Try to find multi-word labels
-            for i, word in enumerate(words):
+            # Use section_filtered_words for Office Use fields, regular words for others
+            search_words = section_filtered_words if is_office_use_field else words
+
+            for i, word in enumerate(search_words):
                 word_upper = word['text'].upper()
 
                 # Check if this starts a multi-word label match
@@ -512,12 +573,12 @@ class OCRService:
                     matched = True
 
                     for j, token in enumerate(label_tokens[1:], 1):
-                        if i + j < len(words):
-                            next_word = words[i + j]['text'].upper()
+                        if i + j < len(search_words):
+                            next_word = search_words[i + j]['text'].upper()
                             if token not in next_word and next_word not in token:
                                 matched = False
                                 break
-                            matches.append(words[i + j])
+                            matches.append(search_words[i + j])
                         else:
                             matched = False
                             break
@@ -525,7 +586,7 @@ class OCRService:
                     if matched and len(matches) >= len(label_tokens) * 0.7:  # Allow partial matches
                         label_words.extend(matches)
                         matched_label = label
-                        if is_father_field:
+                        if is_father_field or is_office_use_field:
                             logger.info(f"Found label match: '{matched_label}' at position {matches[0]['bounds']}")
                         break
 
@@ -549,10 +610,12 @@ class OCRService:
 
         # Strategy 1: Look for words on the same horizontal line (right of label)
         # Use larger gap tolerance for fields that may have multiple words with spaces
+        # For Office Use fields, use section_filtered_words to prevent cross-section extraction
         gap_multiplier = 2.5 if field_name in ['siblings_info', 'full_name'] else 1.0
-        value_words = self._find_words_right_of(words, label_bounds, same_line=True,
+        value_search_words = section_filtered_words if is_office_use_field else words
+        value_words = self._find_words_right_of(value_search_words, label_bounds, same_line=True,
                                                  max_gap_multiplier=gap_multiplier)
-        if is_parent_field:
+        if is_parent_field or is_office_use_field:
             logger.info(f"Strategy 1 - Right of label: Found {len(value_words)} words: {[w['text'] for w in value_words]}")
         else:
             logger.debug(f"{field_name}: Found {len(value_words)} words right of label: {[w['text'] for w in value_words]}")
@@ -602,9 +665,9 @@ class OCRService:
             # For multi-line fields like siblings or address, look further down and allow multiline
             max_lines = 5 if field_name in ['siblings_info', 'home_address', 'full_name'] else 3
             allow_multiline = field_name in ['siblings_info', 'home_address', 'full_name']
-            value_words = self._find_words_below(words, label_bounds, max_lines=max_lines,
+            value_words = self._find_words_below(value_search_words, label_bounds, max_lines=max_lines,
                                                  allow_multiline=allow_multiline)
-            if is_father_field:
+            if is_father_field or is_office_use_field:
                 logger.info(f"Strategy 3 - Below label: Found {len(value_words)} words: {[w['text'] for w in value_words]}")
             else:
                 logger.debug(f"{field_name}: Found {len(value_words)} words below label: {[w['text'] for w in value_words]}")
@@ -1236,20 +1299,239 @@ class OCRService:
         return value_words
 
     def _extract_checkbox_value(self, words: List[Dict], label_bounds: Dict) -> List[Dict]:
-        """Extract gender from checkbox indicators."""
-        # Look for MALE or FEMALE near checkboxes
-        # This is a simplified version - could be enhanced with checkbox detection
-        gender_words = []
+        """
+        Extract gender from checkbox indicators by detecting which checkbox is marked.
 
+        The form uses:
+        - Tick mark (✓) for SELECTED checkbox
+        - Cross mark (✗) for UNSELECTED checkbox
+
+        CRITICAL: We only look for TICK marks (✓, √, ✔, V) to indicate selection.
+        Cross marks (✗, X) are IGNORED as they indicate "not selected".
+
+        Strategy:
+        1. Find the "MALE" and "FEMALE" text labels
+        2. Look for TICK symbols (✓, √, ✔, V) near each label
+        3. Determine which label has a tick nearby using distance measurement
+        4. Return the gender that has a tick mark
+
+        Args:
+            words: List of all words in the document
+            label_bounds: Bounding box of the "GENDER" label
+
+        Returns:
+            List of word dicts representing the selected gender value
+        """
+        logger.info("=" * 80)
+        logger.info("GENDER DETECTION - DETAILED DEBUG")
+        logger.info("=" * 80)
+        logger.info(f"Gender label bounds: {label_bounds}")
+
+        # Find MALE and FEMALE labels within reasonable distance from GENDER label
+        male_words = []
+        female_words = []
+
+        # Log ALL words near the GENDER label for debugging
+        logger.info("\nAll words near GENDER label:")
         for word in words:
             word_text = word['text'].upper()
-            if 'MALE' in word_text or 'FEMALE' in word_text:
-                # Check if it's near the gender label area
-                vertical_distance = abs(word['bounds']['y'] - label_bounds['y'])
-                if vertical_distance < label_bounds['height'] * 3:
-                    gender_words.append(word)
+            word_y = word['bounds']['y']
+            vertical_distance = abs(word_y - label_bounds['y'])
 
-        return gender_words
+            if vertical_distance < label_bounds['height'] * 3:
+                logger.info(f"  Word: '{word['text']}' at x={word['bounds']['x']}, y={word_y}")
+
+                # Look for MALE (but not FEMALE)
+                if 'MALE' in word_text and 'FEMALE' not in word_text:
+                    male_words.append(word)
+                    logger.info(f"    -> Identified as MALE label")
+                # Look for FEMALE
+                elif 'FEMALE' in word_text:
+                    female_words.append(word)
+                    logger.info(f"    -> Identified as FEMALE label")
+
+        if not male_words and not female_words:
+            logger.warning("No MALE or FEMALE labels found near gender field")
+            logger.info("=" * 80 + "\n")
+            return []
+
+        if not male_words:
+            logger.warning("MALE label not found - returning FEMALE by default")
+            logger.info("=" * 80 + "\n")
+            return female_words
+
+        if not female_words:
+            logger.warning("FEMALE label not found - returning MALE by default")
+            logger.info("=" * 80 + "\n")
+            return male_words
+
+        # Use simplified tick-based detection
+        male_bounds = self._calculate_combined_bounds(male_words)
+        female_bounds = self._calculate_combined_bounds(female_words)
+
+        logger.info(f"\nMALE label at: x={male_bounds['x']}, y={male_bounds['y']}")
+        logger.info(f"FEMALE label at: x={female_bounds['x']}, y={female_bounds['y']}")
+
+        # CRITICAL: Only look for TICK symbols (positive indicators)
+        # Cross symbols (✗, X) are IGNORED - they mean "not selected"
+        tick_symbols = ['✓', '√', '✔', 'V', 'v']
+
+        logger.info(f"\nSearching for tick symbols: {tick_symbols}")
+        logger.info("Note: Cross marks (✗, X, /) are IGNORED - they indicate 'not selected'\n")
+
+        male_tick_count = 0
+        female_tick_count = 0
+
+        # Search for tick symbols near MALE and FEMALE labels
+        for word in words:
+            word_text = word['text']
+
+            # Check if it's a tick symbol
+            has_tick = any(tick in word_text for tick in tick_symbols)
+
+            if has_tick:
+                word_x = word['bounds']['x']
+                word_y = word['bounds']['y']
+
+                # Calculate distance to MALE label
+                male_distance = abs(word_x - male_bounds['x']) + abs(word_y - male_bounds['y'])
+
+                # Calculate distance to FEMALE label
+                female_distance = abs(word_x - female_bounds['x']) + abs(word_y - female_bounds['y'])
+
+                logger.info(f"Found tick symbol: '{word_text}' at x={word_x}, y={word_y}")
+                logger.info(f"  Distance to MALE: {male_distance}px")
+                logger.info(f"  Distance to FEMALE: {female_distance}px")
+
+                # Assign to closest label (within reasonable distance)
+                if male_distance < female_distance and male_distance < 150:
+                    male_tick_count += 1
+                    logger.info(f"  -> Assigned to MALE")
+                elif female_distance < 150:
+                    female_tick_count += 1
+                    logger.info(f"  -> Assigned to FEMALE")
+                else:
+                    logger.info(f"  -> Too far from both labels (ignored)")
+
+        logger.info(f"\nTICK COUNT SUMMARY:")
+        logger.info(f"MALE tick count: {male_tick_count}")
+        logger.info(f"FEMALE tick count: {female_tick_count}")
+
+        # Decision based on tick count
+        result_words = []
+        if male_tick_count > female_tick_count:
+            logger.info("\nDECISION: MALE (more ticks)")
+            result_words = male_words
+        elif female_tick_count > male_tick_count:
+            logger.info("\nDECISION: FEMALE (more ticks)")
+            result_words = female_words
+        else:
+            logger.warning("\nDECISION: UNCERTAIN (equal ticks or none found)")
+            logger.info("Using fallback detection method...")
+            # Fallback: Look for text patterns that might indicate selection
+            result_words = self._detect_gender_fallback(words, male_words, female_words, label_bounds)
+
+        logger.info(f"\nFinal gender detection result: {[w['text'] for w in result_words]}")
+        logger.info("=" * 80 + "\n")
+
+        return result_words
+
+
+    def _detect_gender_fallback(self, words: List[Dict], male_words: List[Dict],
+                                 female_words: List[Dict], label_bounds: Dict) -> List[Dict]:
+        """
+        Fallback gender detection when tick symbols aren't found.
+
+        This handles cases where:
+        - OCR doesn't detect tick symbols (✓, √, ✔)
+        - The form uses different checkbox styles
+        - Only one gender option is present in the extracted text
+
+        Strategy:
+        1. Check which gender label is extracted with higher confidence
+        2. Look for spatial indicators (which appears first/closer to label)
+        3. Look for ANY symbols near each label as a last resort
+        4. Default to the gender that appears in the text
+
+        Args:
+            words: All words in the document
+            male_words: MALE label words
+            female_words: FEMALE label words
+            label_bounds: GENDER label bounds
+
+        Returns:
+            List of words representing the best guess for gender
+        """
+        logger.info("FALLBACK GENDER DETECTION")
+        logger.info("-" * 60)
+
+        # If only one gender label was found, assume that's the selected one
+        # (less likely to extract unchecked option)
+        if male_words and not female_words:
+            logger.info("Fallback: Only MALE label found -> selecting MALE")
+            return male_words
+        elif female_words and not male_words:
+            logger.info("Fallback: Only FEMALE label found -> selecting FEMALE")
+            return female_words
+
+        # If both found, check which is closer to the GENDER label (might be listed first)
+        if male_words and female_words:
+            male_bounds = self._calculate_combined_bounds(male_words)
+            female_bounds = self._calculate_combined_bounds(female_words)
+
+            male_x = male_bounds['x']
+            female_x = female_bounds['x']
+
+            logger.info(f"Both labels found - MALE at x={male_x}, FEMALE at x={female_x}")
+
+            # Strategy 1: Check for ANY symbols (including crosses) as last resort
+            # Count number of symbols near each label
+            male_symbol_count = 0
+            female_symbol_count = 0
+
+            all_symbols = ['✓', '√', '✔', 'V', 'v', '✗', 'X', 'x', '*', '•', '◆', '■', '□', '/', '\\']
+
+            for word in words:
+                word_text = word['text']
+                has_symbol = any(sym in word_text for sym in all_symbols) or len(word_text) == 1
+
+                if has_symbol:
+                    word_x = word['bounds']['x']
+                    word_y = word['bounds']['y']
+
+                    male_distance = abs(word_x - male_x) + abs(word_y - male_bounds['y'])
+                    female_distance = abs(word_x - female_x) + abs(word_y - female_bounds['y'])
+
+                    if male_distance < female_distance and male_distance < 150:
+                        male_symbol_count += 1
+                    elif female_distance < 150:
+                        female_symbol_count += 1
+
+            logger.info(f"Symbol density: MALE has {male_symbol_count} symbols, FEMALE has {female_symbol_count} symbols")
+
+            # Strategy 2: Check which appears first (leftmost)
+            # On the form: GENDER: ☑MALE ☐FEMALE (typically)
+            appears_first = "MALE" if male_x < female_x else "FEMALE"
+            logger.info(f"Spatial order: {appears_first} appears first (leftmost)")
+
+            # Decision logic:
+            # 1. If symbol density differs significantly, use that
+            if male_symbol_count > female_symbol_count:
+                logger.info(f"Fallback decision: MALE (more symbols: {male_symbol_count} vs {female_symbol_count})")
+                return male_words
+            elif female_symbol_count > male_symbol_count:
+                logger.info(f"Fallback decision: FEMALE (more symbols: {female_symbol_count} vs {male_symbol_count})")
+                return female_words
+            # 2. Otherwise, use spatial ordering (first one is usually checked)
+            elif male_x < female_x:
+                logger.info(f"Fallback decision: MALE (appears first)")
+                return male_words
+            else:
+                logger.info(f"Fallback decision: FEMALE (appears first)")
+                return female_words
+
+        logger.warning("Fallback: No clear gender indicator found")
+        return []
 
     def _is_label_text(self, text: str) -> bool:
         """Check if text appears to be a form label rather than a value."""
@@ -1360,6 +1642,18 @@ class OCRService:
         """
         processed = fields.copy()
 
+        # Clean and validate receipt number
+        if 'receipt_number' in processed:
+            original_value = processed['receipt_number']
+            cleaned = self._clean_receipt_number(processed['receipt_number'])
+            if cleaned != original_value:
+                logger.info(f"Receipt number cleaned: '{original_value}' -> '{cleaned}'")
+            processed['receipt_number'] = cleaned
+            # If cleaning resulted in empty string, remove the field entirely
+            if not cleaned:
+                logger.info(f"Receipt number removed - invalid value detected")
+                del processed['receipt_number']
+
         # Clean admission number - remove school names and unwanted text
         if 'admission_number' in processed:
             original_value = processed['admission_number']
@@ -1394,12 +1688,26 @@ class OCRService:
                 processed['application_date'] = parsed_date
 
         # Extract gender from checkbox or text
+        # The spatial extraction already determines which checkbox is marked,
+        # so we just need to normalize the value to exactly "MALE" or "FEMALE"
         if 'gender' in processed:
             gender_text = processed['gender'].upper()
-            if 'MALE' in gender_text and 'FEMALE' not in gender_text:
-                processed['gender'] = 'MALE'
-            elif 'FEMALE' in gender_text:
+            logger.info(f"Post-processing gender: raw value = '{processed['gender']}'")
+
+            # Normalize to standard values
+            if 'FEMALE' in gender_text:
+                # If text contains "FEMALE", it's female (even if it also contains "MALE" like "FEMALE")
                 processed['gender'] = 'FEMALE'
+                logger.info(f"  Normalized to: FEMALE")
+            elif 'MALE' in gender_text:
+                # If text contains "MALE" but NOT "FEMALE", it's male
+                processed['gender'] = 'MALE'
+                logger.info(f"  Normalized to: MALE")
+            else:
+                # Unknown format - log warning but keep original value
+                logger.warning(f"  Gender value '{processed['gender']}' doesn't contain MALE or FEMALE")
+                # Remove the field to indicate unclear extraction
+                del processed['gender']
 
         # Clean age - extract just the number
         if 'age' in processed:
@@ -1485,6 +1793,69 @@ class OCRService:
 
         logger.debug(f"  Final cleaned value: '{cleaned}'")
         return cleaned
+
+    def _clean_receipt_number(self, value):
+        """
+        Clean and validate receipt number by filtering out section labels and invalid text.
+
+        Receipt numbers are typically:
+        - Short (under 30 characters)
+        - Numbers only: "12345"
+        - Letters and numbers: "REC-001", "R-2021-001"
+        - NO full sentences or section headers
+
+        Common false positives to reject:
+        - "PERSONAL :" (from "PERSONAL INFORMATION: STUDENT" section header)
+        - "STUDENT" (from nearby section)
+        - Other form section names
+
+        Args:
+            value: Raw receipt number value from OCR
+
+        Returns:
+            str: Cleaned receipt number, or empty string if invalid
+        """
+        if not value:
+            return ''
+
+        logger.debug(f"Validating receipt number: '{value}'")
+
+        # Words that indicate this is NOT a receipt number (section labels, etc.)
+        invalid_words = [
+            'PERSONAL', 'INFORMATION', 'STUDENT', 'FAMILY', 'SECTION',
+            'MOTHER', 'FATHER', 'NAME', 'CONTACT', 'ADDRESS', 'HOME',
+            'OFFICE', 'USE', 'ONLY', 'ADMISSION', 'DATE', 'APPLICATION'
+        ]
+
+        # Check if value contains any invalid words
+        value_upper = value.upper()
+        for word in invalid_words:
+            if word in value_upper:
+                logger.info(f"Receipt number: Rejected '{value}' - contains invalid word '{word}'")
+                return ''
+
+        # Validate format
+        # Receipt numbers should be short and may contain:
+        # - Numbers only: "12345"
+        # - Letters and numbers with dashes: "REC-001", "R-2021-001"
+        # - But NOT full sentences or text with colons
+        if len(value) > 30:
+            logger.info(f"Receipt number: Rejected '{value}' - too long ({len(value)} chars)")
+            return ''
+
+        # Reject if contains colon (usually indicates section header like "PERSONAL :")
+        if ':' in value:
+            logger.info(f"Receipt number: Rejected '{value}' - contains colon (section header)")
+            return ''
+
+        # Reject if contains multiple spaces (usually indicates phrase/sentence)
+        if value.count(' ') > 2:
+            logger.info(f"Receipt number: Rejected '{value}' - too many spaces")
+            return ''
+
+        # If value passes all checks, it's likely a valid receipt number
+        logger.debug(f"Receipt number: Accepted '{value}'")
+        return value.strip()
 
     def _parse_date(self, date_str):
         """
