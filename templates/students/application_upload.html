@@ -405,7 +405,7 @@
 
             <!-- RIGHT: Manual Entry Form (60%) -->
             <div class="form-panel">
-                <form method="post" enctype="multipart/form-data" id="uploadForm" novalidate>
+                <form method="post" action="{% url 'application_upload' %}" enctype="multipart/form-data" id="uploadForm" novalidate>
                     {% csrf_token %}
 
                     <!-- Hidden fields -->
@@ -1069,6 +1069,7 @@ $(document).ready(function() {
 
     $form.on('submit', function(e) {
         e.preventDefault();
+        console.log('=== Form Submit Handler Triggered ===');
 
         // Reset validation states
         $('.is-invalid').removeClass('is-invalid');
@@ -1076,31 +1077,57 @@ $(document).ready(function() {
         let isValid = true;
 
         // Check if file uploaded
+        console.log('Checking uploaded file:', uploadedFile);
         if (!uploadedFile) {
+            console.error('ERROR: No file uploaded');
             alert('Please upload a scanned application form first.');
             return false;
         }
+        console.log('File check passed:', uploadedFile.name);
+
+        // Verify hidden file input has the file
+        const hiddenFileInput = $('#scannedFileInput')[0];
+        console.log('Hidden file input files:', hiddenFileInput.files);
+        if (!hiddenFileInput.files || hiddenFileInput.files.length === 0) {
+            console.error('ERROR: Hidden file input is empty, attempting to set file again');
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(uploadedFile);
+            hiddenFileInput.files = dataTransfer.files;
+            console.log('File re-transferred to hidden input:', hiddenFileInput.files);
+        }
 
         // Validate required fields
+        console.log('Validating required fields...');
+        let invalidFields = [];
         $form.find('[required]').each(function() {
             const $field = $(this);
             if (!$field.val() || $field.val().trim() === '') {
                 $field.addClass('is-invalid');
+                invalidFields.push($field.attr('name') || $field.attr('id'));
                 isValid = false;
             }
         });
 
+        if (invalidFields.length > 0) {
+            console.error('Invalid required fields:', invalidFields);
+        } else {
+            console.log('All required fields valid');
+        }
+
         // Email validation
+        console.log('Validating email fields...');
         $('input[type="email"]').each(function() {
             const $field = $(this);
             const value = $field.val();
             if (value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
                 $field.addClass('is-invalid');
+                console.error('Invalid email:', $field.attr('name'), value);
                 isValid = false;
             }
         });
 
         // Phone validation
+        console.log('Validating phone fields...');
         $('input[type="tel"]').each(function() {
             const $field = $(this);
             const value = $field.val();
@@ -1108,20 +1135,24 @@ $(document).ready(function() {
                 const cleanPhone = value.replace(/[\s-]/g, '');
                 if (!/^(\+94|0)?[0-9]{9,10}$/.test(cleanPhone)) {
                     $field.addClass('is-invalid');
+                    console.error('Invalid phone:', $field.attr('name'), value);
                     isValid = false;
                 }
             }
         });
 
         if (!isValid) {
+            console.error('Validation failed, scrolling to first error');
             // Scroll to first error
             $('html, body').animate({
                 scrollTop: $('.is-invalid').first().offset().top - 100
             }, 300);
             return false;
         }
+        console.log('All validations passed');
 
         // Collect schedule preferences
+        console.log('Collecting schedule preferences...');
         const schedulePreferences = {};
         $('.schedule-check:checked').each(function() {
             const $slot = $(this).closest('.schedule-slot');
@@ -1134,15 +1165,39 @@ $(document).ready(function() {
             schedulePreferences[day][slot] = 'regular';
         });
         $('#schedulePreferencesInput').val(JSON.stringify(schedulePreferences));
+        console.log('Schedule preferences:', schedulePreferences);
+        console.log('Schedule preferences JSON:', $('#schedulePreferencesInput').val());
 
         // Show loading state
+        console.log('Setting loading state...');
         $('#submitBtn').prop('disabled', true);
         $('#submitSpinner').removeClass('d-none');
         $('#submitIcon').addClass('d-none');
         $('#submitText').text('Saving...');
 
+        // Final check - log all form data
+        console.log('=== Form Data Summary ===');
+        console.log('Form action:', this.action);
+        console.log('Form method:', this.method);
+        console.log('Form enctype:', this.enctype);
+        console.log('File input name:', $('#scannedFileInput').attr('name'));
+        console.log('File input files:', $('#scannedFileInput')[0].files);
+
+        // Log a few key fields
+        console.log('Key fields:');
+        console.log('- name_with_initials:', $('#name_with_initials').val());
+        console.log('- full_name:', $('#full_name').val());
+        console.log('- date_of_birth:', $('#date_of_birth').val());
+        console.log('- gender:', $('#gender').val());
+        console.log('- mother_name:', $('#mother_name').val());
+        console.log('- father_name:', $('#father_name').val());
+        console.log('- home_address:', $('#home_address').val());
+        console.log('- whatsapp_number:', $('#whatsapp_number').val());
+
         // Submit the form
+        console.log('Submitting form now...');
         this.submit();
+        console.log('Form submit() called - page should reload/redirect');
     });
 
     // Real-time validation

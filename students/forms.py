@@ -14,12 +14,14 @@ class ApplicationForm(forms.ModelForm):
     class Meta:
         model = Application
         fields = [
-            'name_with_initials', 'full_name', 'date_of_birth', 'gender', 'nationality',
+            'name_with_initials', 'full_name', 'date_of_birth', 'age', 'gender', 'nationality',
             'student_email', 'student_nic', 'current_school', 'siblings_info',
             'mother_name', 'mother_contact_number', 'mother_occupation',
             'father_name', 'father_contact_number', 'father_occupation',
             'home_address', 'whatsapp_number', 'primary_contact_email',
-            'schedule_preferences', 'special_comments', 'terms_accepted'
+            'schedule_preferences', 'special_comments', 'terms_accepted',
+            'application_form_scan',  # For scanned/uploaded application forms
+            'admission_number', 'application_date', 'receipt_number'  # Office Use fields
         ]
 
         widgets = {
@@ -120,13 +122,46 @@ class ApplicationForm(forms.ModelForm):
             'terms_accepted': forms.CheckboxInput(attrs={
                 'class': 'form-check-input'
             }),
+
+            # Scanned Application Form (for offline/upload submissions)
+            'application_form_scan': forms.FileInput(attrs={
+                'class': 'form-control d-none',
+                'accept': 'image/*,.pdf'
+            }),
+
+            # Office Use Only fields
+            'age': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'readonly': 'readonly'
+            }),
+            'admission_number': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'e.g., YLE-2025-001'
+            }),
+            'application_date': forms.DateInput(attrs={
+                'class': 'form-control',
+                'type': 'date'
+            }),
+            'receipt_number': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Receipt Number'
+            }),
         }
 
     def clean_terms_accepted(self):
-        """Ensure terms are accepted"""
-        terms = self.cleaned_data.get('terms_accepted')
-        if not terms:
-            raise forms.ValidationError('You must accept the terms and conditions to submit this application.')
+        """
+        Ensure terms are accepted for online applications.
+        For scanned/uploaded applications, terms acceptance is not required.
+        """
+        terms = self.cleaned_data.get('terms_accepted', False)
+
+        # Check if this is from the upload form (which doesn't have terms checkbox)
+        # by checking if the checkbox was in the initial POST data
+        if 'terms_accepted' in self.data:
+            # Terms checkbox was in the form, so validate it
+            if not terms:
+                raise forms.ValidationError('You must accept the terms and conditions to submit this application.')
+
         return terms
 
     def clean_date_of_birth(self):

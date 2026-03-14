@@ -96,7 +96,7 @@ class Application(models.Model):
     # CONTACT INFORMATION
     home_address = models.TextField()
     whatsapp_number = models.CharField(max_length=20)
-    primary_contact_email = models.EmailField()  # Usually parent email
+    primary_contact_email = models.EmailField(blank=True)  # Usually parent email
 
     # CLASS SCHEDULE PREFERENCES
     # Stored as JSON: {day: {time_slot: class_type}}
