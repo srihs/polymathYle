@@ -381,6 +381,118 @@ class OCRService:
         Returns:
             str: Extracted value or None
         """
+        # Extra debugging for parent fields
+        is_parent_field = 'mother' in field_name or 'father' in field_name
+        is_father_field = 'father' in field_name
+
+        if is_father_field:
+            logger.info(f"=== EXTRACTING FATHER FIELD: {field_name} ===")
+            logger.info(f"Labels to search: {labels}")
+
+        # CRITICAL FIX: For parent contact/occupation fields, SKIP generic strategies
+        # These fields have generic labels (CONTACT NUMBER, OCCUPATION) that appear in BOTH
+        # mother and father sections. Generic label matching will always find the FIRST occurrence
+        # (mother's section), which is WRONG for father fields.
+        #
+        # Solution: Use ONLY section-aware extraction (Strategy 5) for these fields
+        parent_contact_occupation_fields = [
+            'mother_contact_number', 'father_contact_number',
+            'mother_occupation', 'father_occupation'
+        ]
+
+        if field_name in parent_contact_occupation_fields:
+            logger.info(f"{'=' * 60}")
+            logger.info(f"CRITICAL: {field_name} requires section-aware extraction")
+            logger.info(f"Skipping generic strategies to prevent cross-contamination")
+            logger.info(f"{'=' * 60}")
+
+            # Determine parent type
+            parent_prefix = 'FATHER' if field_name.startswith('father_') else 'MOTHER'
+
+            # Find label for section boundary detection (we still need this)
+            label_words = []
+            matched_label = None
+
+            for label in labels:
+                label_upper = label.upper()
+                label_tokens = label_upper.split()
+
+                # Try to find multi-word labels
+                for i, word in enumerate(words):
+                    word_upper = word['text'].upper()
+
+                    # Check if this starts a multi-word label match
+                    if word_upper == label_tokens[0] or label_tokens[0] in word_upper:
+                        # Check if subsequent words match
+                        matches = [word]
+                        matched = True
+
+                        for j, token in enumerate(label_tokens[1:], 1):
+                            if i + j < len(words):
+                                next_word = words[i + j]['text'].upper()
+                                if token not in next_word and next_word not in token:
+                                    matched = False
+                                    break
+                                matches.append(words[i + j])
+                            else:
+                                matched = False
+                                break
+
+                        if matched and len(matches) >= len(label_tokens) * 0.7:
+                            label_words.extend(matches)
+                            matched_label = label
+                            logger.info(f"Found label '{matched_label}' at y={matches[0]['bounds']['y']}")
+                            break
+
+                if label_words:
+                    break
+
+            if not label_words:
+                logger.warning(f"No label found for {field_name}")
+                return None
+
+            label_bounds = self._calculate_combined_bounds(label_words)
+
+            # Use ONLY section-aware extraction
+            logger.info(f"Calling section-aware extraction for {parent_prefix}...")
+            value_words = self._find_in_parent_section(words, label_bounds, parent_prefix, field_name)
+
+            if value_words:
+                logger.info(f"Section-aware extraction found {len(value_words)} words: {[w['text'] for w in value_words]}")
+            else:
+                logger.warning(f"Section-aware extraction found no words for {field_name}")
+
+            # Skip to final processing (label filtering and value assembly)
+            filtered_words = []
+            for word in value_words:
+                word_text = word['text'].upper()
+                is_label = False
+
+                # Check if this word is part of any label
+                for label_list in self.FIELD_LABELS.values():
+                    for label in label_list:
+                        label_tokens = label.upper().split()
+                        if word_text in label_tokens:
+                            if len(word_text) > 3 or word_text in ['NAME', 'DATE', 'NUMBER', 'TEL', 'NO']:
+                                is_label = True
+                                break
+                    if is_label:
+                        break
+
+                if not is_label:
+                    filtered_words.append(word)
+
+            if filtered_words:
+                value = ' '.join(w['text'] for w in filtered_words)
+                logger.info(f"FINAL VALUE for {field_name}: '{value}'")
+                logger.info(f"{'=' * 60}\n")
+                return value.strip()
+            else:
+                logger.warning(f"NO VALUE after filtering for {field_name}")
+                logger.info(f"{'=' * 60}\n")
+                return None
+
+        # For all other fields, continue with normal extraction strategies
         # Find label word(s) in the document
         label_words = []
         matched_label = None
@@ -413,16 +525,24 @@ class OCRService:
                     if matched and len(matches) >= len(label_tokens) * 0.7:  # Allow partial matches
                         label_words.extend(matches)
                         matched_label = label
+                        if is_father_field:
+                            logger.info(f"Found label match: '{matched_label}' at position {matches[0]['bounds']}")
                         break
 
             if label_words:
                 break
 
         if not label_words:
-            logger.debug(f"No label words found for {field_name} with labels: {labels}")
+            if is_parent_field:
+                logger.warning(f"No label words found for {field_name} with labels: {labels}")
+            else:
+                logger.debug(f"No label words found for {field_name} with labels: {labels}")
             return None
 
-        logger.debug(f"Found label '{matched_label}' for {field_name} at position {label_words[0]['bounds']}")
+        if is_parent_field:
+            logger.info(f"Found label '{matched_label}' for {field_name} at position {label_words[0]['bounds']}")
+        else:
+            logger.debug(f"Found label '{matched_label}' for {field_name} at position {label_words[0]['bounds']}")
 
         # Calculate label bounding box
         label_bounds = self._calculate_combined_bounds(label_words)
@@ -432,7 +552,10 @@ class OCRService:
         gap_multiplier = 2.5 if field_name in ['siblings_info', 'full_name'] else 1.0
         value_words = self._find_words_right_of(words, label_bounds, same_line=True,
                                                  max_gap_multiplier=gap_multiplier)
-        logger.debug(f"{field_name}: Found {len(value_words)} words right of label: {[w['text'] for w in value_words]}")
+        if is_parent_field:
+            logger.info(f"Strategy 1 - Right of label: Found {len(value_words)} words: {[w['text'] for w in value_words]}")
+        else:
+            logger.debug(f"{field_name}: Found {len(value_words)} words right of label: {[w['text'] for w in value_words]}")
 
         # Strategy 2: For full_name specifically, also check words below and combine them
         # This handles names that span multiple rows (e.g., "Kamburugamuwe Gam Acharige" on row 1,
@@ -481,20 +604,25 @@ class OCRService:
             allow_multiline = field_name in ['siblings_info', 'home_address', 'full_name']
             value_words = self._find_words_below(words, label_bounds, max_lines=max_lines,
                                                  allow_multiline=allow_multiline)
-            logger.debug(f"{field_name}: Found {len(value_words)} words below label: {[w['text'] for w in value_words]}")
+            if is_father_field:
+                logger.info(f"Strategy 3 - Below label: Found {len(value_words)} words: {[w['text'] for w in value_words]}")
+            else:
+                logger.debug(f"{field_name}: Found {len(value_words)} words below label: {[w['text'] for w in value_words]}")
 
         # Strategy 4: For checkboxes/gender, look for checked indicators
         if field_name == 'gender' and not value_words:
             value_words = self._extract_checkbox_value(words, label_bounds)
 
-        # Strategy 5: For context-sensitive fields (occupation, contact in parent sections)
-        # Look for parent section context
-        if field_name in ['mother_occupation', 'father_occupation', 'mother_contact_number', 'father_contact_number']:
+        # Strategy 5: For parent NAME fields only (contact/occupation handled separately above)
+        # Names can use section-aware extraction as a fallback
+        if field_name in ['mother_name', 'father_name']:
             if not value_words or len(value_words) == 0:
-                # Try to find the parent section first
                 parent_prefix = 'MOTHER' if 'mother' in field_name else 'FATHER'
+                if is_parent_field:
+                    logger.info(f"Strategy 5 - Attempting section-aware extraction for {parent_prefix} NAME")
                 value_words = self._find_in_parent_section(words, label_bounds, parent_prefix, field_name)
-                logger.debug(f"{field_name}: Found {len(value_words)} words in {parent_prefix} section")
+                if is_parent_field:
+                    logger.info(f"Strategy 5 result: Found {len(value_words)} words: {[w['text'] for w in value_words]}")
 
         # Strategy 6: For WhatsApp number in Contact Information section
         # WhatsApp often appears under HOME ADDRESS section
@@ -530,13 +658,24 @@ class OCRService:
             if not is_label:
                 filtered_words.append(word)
 
-        logger.debug(f"{field_name}: {len(filtered_words)} words after filtering: {[w['text'] for w in filtered_words]}")
+        if is_parent_field:
+            logger.info(f"After label filtering: {len(filtered_words)} words: {[w['text'] for w in filtered_words]}")
+        else:
+            logger.debug(f"{field_name}: {len(filtered_words)} words after filtering: {[w['text'] for w in filtered_words]}")
 
         if filtered_words:
             # Combine words into value, respecting spatial order
             value = ' '.join(w['text'] for w in filtered_words)
+            if is_parent_field:
+                logger.info(f"FINAL EXTRACTED VALUE for {field_name}: '{value}'")
+                if is_father_field:
+                    logger.info(f"=== END EXTRACTION FOR {field_name} ===\n")
             return value.strip()
 
+        if is_parent_field:
+            logger.warning(f"NO VALUE EXTRACTED for {field_name}")
+            if is_father_field:
+                logger.info(f"=== END EXTRACTION FOR {field_name} ===\n")
         return None
 
     def _calculate_combined_bounds(self, words: List[Dict]) -> Dict:
@@ -697,76 +836,241 @@ class OCRService:
         Returns:
             List of words that are the field value
         """
-        # Find the parent section header (e.g., "MOTHER'S INFORMATION")
+        is_father_field = 'father' in field_name
+        if is_father_field:
+            logger.info(f"=== PARENT SECTION EXTRACTION for {parent_prefix} ===")
+            logger.info(f"Field name: {field_name}")
+
+        # Find the parent section header or parent NAME field
+        # Strategy: Look for "MOTHER'S NAME" / "FATHER'S NAME" as the section start
+        # This is more reliable than looking for just "MOTHER" or "FATHER"
         parent_words = []
+        parent_name_found = False
+
+        # First, try to find "PARENT'S NAME" or "PARENT NAME" field
         for i, word in enumerate(words):
-            if parent_prefix in word['text'].upper():
-                parent_words.append(word)
-                # Look for nearby words that might complete the section header
-                for j in range(i+1, min(i+3, len(words))):
-                    if any(keyword in words[j]['text'].upper()
-                          for keyword in ['INFORMATION', 'DETAILS', 'INFO', 'PARTICULARS']):
-                        parent_words.append(words[j])
-                        break
-                break
+            word_text = word['text'].upper()
+            if parent_prefix in word_text:
+                # Check if this is the NAME field for this parent
+                # Look at the next few words to see if "NAME" appears
+                is_name_field = False
+                if 'NAME' in word_text:  # "FATHER'S" and "NAME" in same word
+                    is_name_field = True
+                else:
+                    # Check next 2 words for "NAME"
+                    for j in range(i+1, min(i+3, len(words))):
+                        if 'NAME' in words[j]['text'].upper():
+                            is_name_field = True
+                            break
+
+                if is_name_field:
+                    parent_words.append(word)
+                    parent_name_found = True
+                    if is_father_field:
+                        logger.info(f"Found {parent_prefix}'s NAME field at index {i}: '{word['text']}' at y={word['bounds']['y']}")
+                    # Add next word if it contains NAME
+                    if i+1 < len(words) and 'NAME' in words[i+1]['text'].upper():
+                        parent_words.append(words[i+1])
+                        if is_father_field:
+                            logger.info(f"  - Added NAME word: '{words[i+1]['text']}'")
+                    break
+
+        # If NAME field not found, fall back to looking for section header
+        if not parent_name_found:
+            for i, word in enumerate(words):
+                if parent_prefix in word['text'].upper():
+                    parent_words.append(word)
+                    if is_father_field:
+                        logger.info(f"Found {parent_prefix} word at index {i}: '{word['text']}' at y={word['bounds']['y']}")
+                    # Look for nearby words that might complete the section header
+                    for j in range(i+1, min(i+3, len(words))):
+                        if any(keyword in words[j]['text'].upper()
+                              for keyword in ['INFORMATION', 'DETAILS', 'INFO', 'PARTICULARS']):
+                            parent_words.append(words[j])
+                            if is_father_field:
+                                logger.info(f"  - Added section keyword: '{words[j]['text']}'")
+                            break
+                    break
 
         if not parent_words:
-            logger.debug(f"No {parent_prefix} section header found")
+            if is_father_field:
+                logger.warning(f"No {parent_prefix} section header found!")
+                # Log all words containing parent prefix for debugging
+                logger.info(f"All words containing '{parent_prefix}':")
+                for i, word in enumerate(words):
+                    if parent_prefix in word['text'].upper():
+                        logger.info(f"  Word {i}: '{word['text']}' at y={word['bounds']['y']}")
+            else:
+                logger.debug(f"No {parent_prefix} section header found")
             return []
 
         parent_section_bounds = self._calculate_combined_bounds(parent_words)
-        logger.debug(f"Found {parent_prefix} section at y={parent_section_bounds['y']}")
+        if is_father_field:
+            logger.info(f"Found {parent_prefix} section at y={parent_section_bounds['y']}")
+        else:
+            logger.debug(f"Found {parent_prefix} section at y={parent_section_bounds['y']}")
 
         # Determine the section boundaries
         # Section starts at the parent header and extends down until next major section
         section_start_y = parent_section_bounds['y']
         section_end_y = section_start_y + 500  # Default: 500px down
 
+        if is_father_field:
+            logger.info(f"Initial section boundaries: start_y={section_start_y}, end_y={section_end_y}")
+
         # Try to find the end of this section (next parent section or major header)
-        other_parent = 'FATHER' if parent_prefix == 'MOTHER' else 'MOTHER'
-        for word in words:
-            if (word['bounds']['y'] > section_start_y and
-                (other_parent in word['text'].upper() or
-                 any(header in word['text'].upper() for header in
-                     ['CONTACT INFORMATION', 'STUDENT INFORMATION', 'ADDRESS']))):
-                section_end_y = min(section_end_y, word['bounds']['y'])
-                logger.debug(f"Section ends at y={section_end_y}")
-                break
+        # CRITICAL FIX: For FATHER section, we need to find the NEXT section AFTER father
+        # For MOTHER section, we need to find FATHER section (which comes after)
+        if parent_prefix == 'MOTHER':
+            # Mother section ends where Father section begins
+            other_parent = 'FATHER'
+            section_end_markers = [other_parent, 'CONTACT INFORMATION', 'STUDENT INFORMATION', 'ADDRESS']
+
+            for word in words:
+                if word['bounds']['y'] > section_start_y:
+                    if (other_parent in word['text'].upper() or
+                        any(header in word['text'].upper() for header in section_end_markers)):
+                        section_end_y = min(section_end_y, word['bounds']['y'])
+                        logger.debug(f"Mother section ends at: '{word['text']}' at y={section_end_y}")
+                        break
+        else:
+            # Father section ends at next major section (NOT mother, as mother comes before)
+            # Look for section markers that typically come AFTER the family information
+            section_end_markers = ['CONTACT INFORMATION', 'HOME ADDRESS', 'STUDENT INFORMATION',
+                                   'SIBLINGS', 'PAYMENT', 'OFFICE USE', 'REMARKS']
+
+            if is_father_field:
+                logger.info(f"Searching for FATHER section end markers: {section_end_markers}")
+
+            for word in words:
+                word_y = word['bounds']['y']
+                if word_y > section_start_y:
+                    word_text = word['text'].upper()
+                    for marker in section_end_markers:
+                        if marker in word_text:
+                            # Make sure this is a section header, not just a word containing the marker
+                            # Check if this looks like a header (all caps, at start of line)
+                            if len(word_text) > 3:  # Skip short words
+                                section_end_y = min(section_end_y, word_y)
+                                if is_father_field:
+                                    logger.info(f"Section boundary found: '{word['text']}' at y={word_y}")
+                                    logger.info(f"FATHER section ends at y={section_end_y}")
+                                break
+                    if section_end_y < section_start_y + 500:  # Found a marker
+                        break
+
+        if is_father_field:
+            logger.info(f"Final section boundaries: start_y={section_start_y}, end_y={section_end_y}")
+            # Log all words in the FATHER section for debugging
+            section_words = [w for w in words if section_start_y <= w['bounds']['y'] <= section_end_y]
+            logger.info(f"Total words in {parent_prefix} section: {len(section_words)}")
+            logger.info(f"First 30 words in {parent_prefix} section:")
+            for i, w in enumerate(section_words[:30]):
+                logger.info(f"  [{i}] y={w['bounds']['y']:4.0f}: '{w['text']}'")
 
         # Now look for the specific field label within this section
-        field_type = 'CONTACT' if 'contact' in field_name else 'OCCUPATION'
+        # Determine what keyword to search for in the label
+        if 'contact' in field_name:
+            field_type = 'CONTACT'
+            search_keywords = ['CONTACT', 'NUMBER', 'TEL', 'PHONE']
+        elif 'occupation' in field_name:
+            field_type = 'OCCUPATION'
+            search_keywords = ['OCCUPATION']
+        elif 'name' in field_name:
+            field_type = 'NAME'
+            # For name fields, look for "NAME" but prefer specific patterns like "FATHER'S NAME"
+            search_keywords = ['NAME']
+        else:
+            field_type = 'UNKNOWN'
+            search_keywords = []
+
         label_in_section = None
 
+        if is_father_field:
+            logger.info(f"Searching for '{field_type}' label within section boundaries...")
+            logger.info(f"Search keywords: {search_keywords}")
+            # Log all words in the section
+            section_words = [w for w in words if section_start_y <= w['bounds']['y'] <= section_end_y]
+            logger.info(f"Words in {parent_prefix} section ({len(section_words)} total):")
+            for i, w in enumerate(section_words[:20]):  # Limit to first 20 for readability
+                logger.info(f"  {i}: '{w['text']}' at y={w['bounds']['y']}")
+
+        # Search for the field label within the section
+        # Look for words that match any of the search keywords
         for i, word in enumerate(words):
             word_y = word['bounds']['y']
             if section_start_y <= word_y <= section_end_y:
                 word_text = word['text'].upper()
-                if field_type in word_text:
-                    label_in_section = word
-                    logger.debug(f"Found '{field_type}' label in {parent_prefix} section at y={word_y}")
+                # Check if any search keyword is in this word
+                for keyword in search_keywords:
+                    if keyword in word_text:
+                        # For NAME fields, also check if FATHER/MOTHER is nearby to avoid confusion
+                        if field_type == 'NAME':
+                            # Look for FATHER or MOTHER in the same word or within 2 words before
+                            has_parent_context = False
+                            if parent_prefix in word_text:
+                                has_parent_context = True
+                            else:
+                                # Check previous 2 words
+                                for j in range(max(0, i-2), i):
+                                    if section_start_y <= words[j]['bounds']['y'] <= section_end_y:
+                                        if parent_prefix in words[j]['text'].upper():
+                                            has_parent_context = True
+                                            break
+
+                            # Only accept this NAME label if it has parent context
+                            if not has_parent_context:
+                                if is_father_field:
+                                    logger.info(f"  Skipping '{word['text']}' - no {parent_prefix} context")
+                                continue
+
+                        label_in_section = word
+                        if is_father_field:
+                            logger.info(f"Found '{field_type}' label in {parent_prefix} section: '{word['text']}' at y={word_y}")
+                        else:
+                            logger.debug(f"Found '{field_type}' label in {parent_prefix} section at y={word_y}")
+                        break
+
+                if label_in_section:
                     break
 
         if not label_in_section:
-            logger.debug(f"No '{field_type}' label found in {parent_prefix} section")
+            if is_father_field:
+                logger.warning(f"No '{field_type}' label found in {parent_prefix} section")
+                logger.info(f"Searched between y={section_start_y} and y={section_end_y}")
+            else:
+                logger.debug(f"No '{field_type}' label found in {parent_prefix} section")
             return []
 
         # Extract value relative to this label
         field_label_bounds = label_in_section['bounds']
 
         # Try right of label first
+        # Use larger gap for names (may have multiple words)
+        gap_mult = 2.0 if field_type == 'NAME' else 1.5
         value_words = self._find_words_right_of(words, field_label_bounds, same_line=True,
-                                                max_gap_multiplier=1.5)
+                                                max_gap_multiplier=gap_mult)
+        if is_father_field:
+            logger.info(f"Words right of '{field_type}' label: {[w['text'] for w in value_words]}")
 
         # Then try below
         if not value_words:
+            # Allow multiline for names and occupations (they can wrap)
+            allow_multi = field_type in ['NAME', 'OCCUPATION']
             value_words = self._find_words_below(words, field_label_bounds, max_lines=2,
-                                                 allow_multiline=False)
+                                                 allow_multiline=allow_multi)
+            if is_father_field:
+                logger.info(f"Words below '{field_type}' label: {[w['text'] for w in value_words]}")
 
         # Filter to only include words within the section
         filtered = [w for w in value_words
                    if section_start_y <= w['bounds']['y'] <= section_end_y]
 
-        logger.debug(f"Found {len(filtered)} value words in section: {[w['text'] for w in filtered]}")
+        if is_father_field:
+            logger.info(f"After section filtering: {len(filtered)} value words: {[w['text'] for w in filtered]}")
+            logger.info(f"=== END PARENT SECTION EXTRACTION ===")
+        else:
+            logger.debug(f"Found {len(filtered)} value words in section: {[w['text'] for w in filtered]}")
         return filtered
 
     def _find_in_contact_section(self, words: List[Dict], label_bounds: Dict,

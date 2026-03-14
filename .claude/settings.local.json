@@ -88,7 +88,11 @@
       "Bash(\"c:\\\\Users\\\\srima\\\\source\\\\repos\\\\polymathYle\\\\env\\\\Scripts\\\\python.exe\" manage.py shell:*)",
       "Bash(\"c:\\\\Users\\\\srima\\\\source\\\\repos\\\\polymathYle\\\\env\\\\Scripts\\\\python.exe\" manage.py shell -c \"from django.urls import reverse; print\\(reverse\\(''apply''\\)\\)\")",
       "Bash(git reset:*)",
-      "Bash(git show:*)"
+      "Bash(git show:*)",
+      "Bash(if [ -n \"$GOOGLE_CLOUD_CREDENTIALS\" ])",
+      "Bash(then echo \"GOOGLE_CLOUD_CREDENTIALS is set (length: $#GOOGLE_CLOUD_CREDENTIALS)\")",
+      "Bash(else echo \"GOOGLE_CLOUD_CREDENTIALS is NOT set\")",
+      "Bash(fi)"
     ],
     "deny": []
   },
