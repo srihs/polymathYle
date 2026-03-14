@@ -57,6 +57,11 @@ staticfiles/
 .env.*.local
 .env
 
+# Google Cloud credentials (NEVER commit these!)
+*-service-account*.json
+wp-email-*.json
+google-vision-credentials.json
+
 # Migrations (optional - comment out if you want to track migrations)
 # */migrations/*.py
 # !*/migrations/__init__.py
