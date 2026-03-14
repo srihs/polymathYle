@@ -50,7 +50,7 @@ class OCRService:
             'RECEIPT NUMBER', 'RECEIPT NO', 'RECEIPT', 'REC NO'
         ],
         'application_date': [
-            'DATE', 'APPLICATION DATE', 'OFFICE DATE'
+            'DATE', 'APPLICATION DATE', 'RECEIVED DATE', 'DATE RECEIVED', 'OFFICE DATE'
         ],
 
         # Student Personal Information
@@ -1056,6 +1056,14 @@ class OCRService:
         """
         processed = fields.copy()
 
+        # Clean admission number - remove school names and unwanted text
+        if 'admission_number' in processed:
+            original_value = processed['admission_number']
+            cleaned = self._clean_admission_number(processed['admission_number'])
+            if cleaned != original_value:
+                logger.info(f"Admission number cleaned: '{original_value}' -> '{cleaned}'")
+            processed['admission_number'] = cleaned
+
         # Clean phone numbers
         phone_fields = ['mother_contact_number', 'father_contact_number', 'whatsapp_number']
         for field in phone_fields:
@@ -1073,6 +1081,13 @@ class OCRService:
             parsed_date = self._parse_date(dob)
             if parsed_date:
                 processed['date_of_birth'] = parsed_date
+
+        # Parse application date
+        if 'application_date' in processed:
+            app_date = processed['application_date']
+            parsed_date = self._parse_date(app_date)
+            if parsed_date:
+                processed['application_date'] = parsed_date
 
         # Extract gender from checkbox or text
         if 'gender' in processed:
@@ -1096,6 +1111,76 @@ class OCRService:
                 processed[field] = self._format_name(processed[field])
 
         return processed
+
+    def _clean_admission_number(self, value):
+        """
+        Clean admission number by removing school names and other non-admission text.
+
+        The OCR extraction may capture text from the school logo/header area near
+        the admission number field, resulting in values like "YLE - 2021-1660 POLYMATH COLLEGE".
+        This method filters out school-related words and normalizes the format.
+
+        Args:
+            value: Raw admission number value from OCR
+
+        Returns:
+            str: Cleaned admission number (e.g., "YLE-2021-1660")
+        """
+        if not value:
+            return value
+
+        logger.debug(f"Cleaning admission number: '{value}'")
+
+        # Words to remove (school names, common school-related words)
+        # These are often extracted from the header/logo area
+        remove_words = [
+            'POLYMATH', 'COLLEGE', 'SCHOOL', 'ENGLISH', 'ACADEMY',
+            'UNIVERSITY', 'INSTITUTE', 'EDUCATION', 'LEARNING',
+            'CENTER', 'CENTRE', 'INTERNATIONAL', 'CAMBRIDGE'
+        ]
+
+        # Split into words and filter out school-related terms
+        words = value.split()
+        filtered_words = []
+
+        for word in words:
+            word_upper = word.upper()
+            # Skip if word is in removal list
+            if word_upper in remove_words:
+                logger.debug(f"  Removing school-related word: '{word}'")
+                continue
+            # Keep words that look like admission number parts
+            # (e.g., "YLE", "2021", "1660", or with dashes like "YLE-2021-1660")
+            filtered_words.append(word)
+
+        # Join filtered words
+        cleaned = ' '.join(filtered_words).strip()
+        logger.debug(f"  After filtering: '{cleaned}'")
+
+        # Normalize spacing around dashes: "YLE - 2021 - 1660" -> "YLE-2021-1660"
+        cleaned = re.sub(r'\s*-\s*', '-', cleaned)
+        logger.debug(f"  After dash normalization: '{cleaned}'")
+
+        # Replace remaining spaces with dashes for multi-part admission numbers
+        # "YLE 2021 1660" -> "YLE-2021-1660"
+        # But only if it looks like an admission number pattern
+        if re.search(r'[A-Z]+\s+\d{4}\s+\d+', cleaned):
+            cleaned = re.sub(r'\s+', '-', cleaned)
+            logger.debug(f"  After space-to-dash conversion: '{cleaned}'")
+
+        # Final validation: try to extract just the admission number pattern
+        # Pattern: PREFIX-YEAR-NUMBER (e.g., YLE-2021-1660)
+        admission_pattern = r'([A-Z]+)-?(\d{4})-?(\d+)'
+        match = re.search(admission_pattern, cleaned)
+        if match:
+            # Reconstruct in standard format
+            prefix, year, number = match.groups()
+            standardized = f"{prefix}-{year}-{number}"
+            logger.debug(f"  Standardized format: '{standardized}'")
+            return standardized
+
+        logger.debug(f"  Final cleaned value: '{cleaned}'")
+        return cleaned
 
     def _parse_date(self, date_str):
         """
@@ -1240,7 +1325,7 @@ class OCRService:
             return 'LOW'
 
         # Field-specific confidence checks
-        if field_name == 'date_of_birth':
+        if field_name in ['date_of_birth', 'application_date']:
             # High confidence if it's a valid date
             if self._parse_date(value):
                 return 'HIGH'
@@ -1268,9 +1353,14 @@ class OCRService:
                 return 'LOW'
 
         if field_name == 'admission_number':
-            if re.match(r'^(YLE|FCE)-\d{4}-\d{4}$', value):
+            # Pattern: PREFIX-YEAR-NUMBER (e.g., YLE-2021-1660)
+            # Number part can be 1-6 digits
+            if re.match(r'^[A-Z]{2,5}-\d{4}-\d{1,6}$', value):
                 return 'HIGH'
-            return 'MEDIUM'
+            # Partial match (missing some parts but has the structure)
+            elif re.match(r'^[A-Z]{2,5}-\d{4}', value):
+                return 'MEDIUM'
+            return 'LOW'
 
         # Check length - very short values are suspicious
         if len(value) < 2:
@@ -1299,7 +1389,7 @@ class OCRService:
             return False
 
         # Field-specific validation
-        if field_name == 'date_of_birth':
+        if field_name in ['date_of_birth', 'application_date']:
             return self._parse_date(value) is not None
 
         if field_name in ['mother_contact_number', 'father_contact_number', 'whatsapp_number']:
@@ -1317,7 +1407,9 @@ class OCRService:
                 return False
 
         if field_name == 'admission_number':
-            return bool(re.match(r'^(YLE|FCE)-\d{4}-\d{4}$', value))
+            # Pattern: PREFIX-YEAR-NUMBER (e.g., YLE-2021-1660)
+            # More flexible pattern - number part can be 1-6 digits
+            return bool(re.match(r'^[A-Z]{2,5}-\d{4}-\d{1,6}$', value))
 
         # Must have reasonable length
         if len(value) < 2 or len(value) > 200:

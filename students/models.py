@@ -19,7 +19,11 @@ class Application(models.Model):
         help_text="Unique reference number in format A{YYMMDD}-{ID}"
     )
     admission_number = models.CharField(max_length=50, unique=True, blank=True, null=True)
-    application_date = models.DateField(auto_now_add=True)
+    application_date = models.DateField(
+        blank=True,
+        null=True,
+        help_text="Date from scanned form or auto-set on creation"
+    )
     receipt_number = models.CharField(max_length=50, blank=True)
 
     # APPLICATION STATUS - Workflow stages

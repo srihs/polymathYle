@@ -653,7 +653,39 @@ def application_upload_view(request):
     if request.method == 'POST':
         form = ApplicationForm(request.POST, request.FILES)
         if form.is_valid():
-            application = form.save()
+            application = form.save(commit=False)
+
+            # Set application type to OFFLINE for scanned forms
+            application.application_type = 'OFFLINE'
+
+            # Handle office use fields (not in ApplicationForm)
+            admission_number = request.POST.get('admission_number', '').strip()
+            if admission_number:
+                application.admission_number = admission_number
+
+            application_date = request.POST.get('application_date', '').strip()
+            if application_date:
+                try:
+                    from datetime import datetime
+                    # Parse date from form (YYYY-MM-DD format)
+                    parsed_date = datetime.strptime(application_date, '%Y-%m-%d').date()
+                    application.application_date = parsed_date
+                except (ValueError, TypeError):
+                    # If parsing fails, use current date as default
+                    from datetime import date
+                    application.application_date = date.today()
+            else:
+                # No date provided, use current date
+                from datetime import date
+                application.application_date = date.today()
+
+            receipt_number = request.POST.get('receipt_number', '').strip()
+            if receipt_number:
+                application.receipt_number = receipt_number
+
+            # Save the application
+            application.save()
+
             messages.success(request, f'Application {application.reference_number} saved successfully!')
             return redirect('application_review', application_id=application.id)
         else:

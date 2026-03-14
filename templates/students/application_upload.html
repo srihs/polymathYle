@@ -433,17 +433,19 @@
                                 <input type="text" class="form-control" id="admission_number" name="admission_number" placeholder="e.g., YLE-2021-0001">
                             </div>
                             <div class="col-md-4">
+                                <label for="application_date" class="form-label">
+                                    Application Date
+                                    <small class="text-muted">(From scanned form)</small>
+                                </label>
+                                <input type="date" class="form-control" id="application_date" name="application_date">
+                                <div class="invalid-feedback">Please enter a valid date</div>
+                            </div>
+                            <div class="col-md-4">
                                 <label for="receipt_number" class="form-label">
                                     Receipt Number
                                     <small class="text-muted">(If payment received)</small>
                                 </label>
                                 <input type="text" class="form-control" id="receipt_number" name="receipt_number" placeholder="e.g., REC-001">
-                            </div>
-                            <div class="col-md-4">
-                                <label for="application_date" class="form-label">
-                                    Application Date
-                                </label>
-                                <input type="date" class="form-control" id="application_date" name="application_date">
                             </div>
                         </div>
                     </div>
@@ -858,13 +860,6 @@ $(document).ready(function() {
     let zoomLevel = 1;
 
     // ========================================
-    // Application Date Auto-fill
-    // ========================================
-    // Set application date to today on page load
-    const today = new Date().toISOString().split('T')[0];
-    $('#application_date').val(today);
-
-    // ========================================
     // Age Calculation
     // ========================================
     /**
@@ -1247,6 +1242,8 @@ $(document).ready(function() {
         const fieldMappings = {
             // Office Use
             'admission_number': '#admission_number',
+            'application_date': '#application_date',
+            'receipt_number': '#receipt_number',
 
             // Student Information
             'name_with_initials': '#name_with_initials',
