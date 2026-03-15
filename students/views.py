@@ -435,8 +435,8 @@ def student_enroll_view(request, application_id):
             first_name=application.full_name.split()[0] if application.full_name else '',
         )
 
-        # Add to Students group
-        student_group = Group.objects.get(name='Students')
+        # Add to Students group (create group if it doesn't exist)
+        student_group, created = Group.objects.get_or_create(name='Students')
         user.groups.add(student_group)
 
         # Create student profile
