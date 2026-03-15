@@ -124,6 +124,21 @@ class Application(models.Model):
 
     # DOCUMENTS
     application_form_scan = models.FileField(upload_to='applications/scans/', blank=True)
+    application_page1 = models.ImageField(upload_to='applications/pages/', blank=True)
+    application_page2 = models.ImageField(upload_to='applications/pages/', blank=True)
+
+    # HANDWRITING DETECTION (OCR Analysis)
+    is_handwritten = models.BooleanField(default=False, help_text="Whether the form is handwritten")
+    handwriting_detection_method = models.CharField(
+        max_length=50,
+        blank=True,
+        default='',
+        help_text="Method used for handwriting detection (e.g., Google Cloud Vision)"
+    )
+    handwriting_percentage = models.IntegerField(
+        default=0,
+        help_text="Percentage of handwritten content detected (0-100)"
+    )
 
     # Meta
     created_at = models.DateTimeField(auto_now_add=True)
