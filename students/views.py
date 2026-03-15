@@ -424,16 +424,23 @@ def student_enroll_view(request, application_id):
         return redirect('application_review', application_id=application.id)
 
     if request.method == 'POST':
-        # Create user account
+        # Create or get user account
         from django.contrib.auth.models import User, Group
         username = f"student_{application.admission_number.lower().replace('-', '_')}"
 
-        user = User.objects.create_user(
+        # Check if user already exists
+        user, user_created = User.objects.get_or_create(
             username=username,
-            email=application.student_email or application.primary_contact_email,
-            password=request.POST.get('password', 'student123'),  # Default password
-            first_name=application.full_name.split()[0] if application.full_name else '',
+            defaults={
+                'email': application.student_email or application.primary_contact_email,
+                'first_name': application.full_name.split()[0] if application.full_name else '',
+            }
         )
+
+        # Set password only if this is a new user
+        if user_created:
+            user.set_password(request.POST.get('password', 'student123'))
+            user.save()
 
         # Add to Students group (create group if it doesn't exist)
         student_group, created = Group.objects.get_or_create(name='Students')
