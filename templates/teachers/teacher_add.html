@@ -62,20 +62,30 @@
     display: none;
 }
 
+.wizard-step-icon .step-number {
+    display: inline;
+    color: inherit;
+}
+
 .wizard-step.active .wizard-step-icon {
-    background: linear-gradient(135deg, var(--bs-primary) 0%, #6c63ff 100%);
-    color: white;
-    box-shadow: 0 4px 12px rgba(var(--bs-primary-rgb), 0.3);
+    background: #405189 !important;
+    color: #fff !important;
+    box-shadow: 0 4px 12px rgba(64, 81, 137, 0.4);
     transform: scale(1.1);
 }
 
+.wizard-step.active .wizard-step-icon .step-number {
+    display: inline !important;
+    color: #fff !important;
+}
+
 .wizard-step.completed .wizard-step-icon {
-    background: #198754;
-    color: white;
+    background: #198754 !important;
+    color: #fff !important;
 }
 
 .wizard-step.completed .wizard-step-icon .step-number {
-    display: none;
+    display: none !important;
 }
 
 .wizard-step.completed .wizard-step-icon .step-check {
