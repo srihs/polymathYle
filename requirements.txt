@@ -13,3 +13,6 @@ google-auth>=2.28.0
 
 # Image handling (Django ImageField support)
 Pillow>=10.2.0
+
+# QR code generation (used on application approval)
+qrcode[pil]>=7.4.2

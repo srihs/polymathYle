@@ -30,4 +30,7 @@ urlpatterns = [
     # Attendance Management (Teachers/Staff)
     path('attendance/mark/', views.attendance_mark_view, name='attendance_mark'),
     path('attendance/report/', views.attendance_report_view, name='attendance_report'),
+
+    # Public QR-scan attendance endpoint (no login required)
+    path('attendance/scan/<str:admission_number>/', views.attendance_scan_view, name='attendance_scan'),
 ]

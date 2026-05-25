@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 from datetime import date
+from io import BytesIO
+from django.core.files.base import ContentFile
 
 
 
@@ -10,6 +12,14 @@ class Application(models.Model):
     Student application form - supports both online and offline submissions
     Based on Polymath College application form structure
     """
+    DOCUMENT_TYPE_CHOICES = (
+        ('BIRTH_CERTIFICATE', 'Birth Certificate'),
+        ('PHOTO', 'Photo'),
+        ('PASSPORT', 'Passport'),
+        ('VACCINATION', 'Vaccination Record'),
+        ('OTHER', 'Other'),
+    )
+
     # APPLICATION DETAILS
     reference_number = models.CharField(
         max_length=20,
@@ -126,6 +136,13 @@ class Application(models.Model):
     application_form_scan = models.FileField(upload_to='applications/scans/', blank=True)
     application_page1 = models.ImageField(upload_to='applications/pages/', blank=True)
     application_page2 = models.ImageField(upload_to='applications/pages/', blank=True)
+    document1 = models.FileField(upload_to='applications/documents/', blank=True, null=True)
+    document1_type = models.CharField(max_length=32, blank=True, choices=DOCUMENT_TYPE_CHOICES)
+    document2 = models.FileField(upload_to='applications/documents/', blank=True, null=True)
+    document2_type = models.CharField(max_length=32, blank=True, choices=DOCUMENT_TYPE_CHOICES)
+
+    # QR code generated once application is approved (payload encodes attendance scan URL)
+    qr_code = models.ImageField(upload_to='applications/qr_codes/', blank=True, null=True)
 
     # HANDWRITING DETECTION (OCR Analysis)
     is_handwritten = models.BooleanField(default=False, help_text="Whether the form is handwritten")
@@ -194,6 +211,29 @@ class Application(models.Model):
             new_num = 1
 
         return f'FCE-{year}-{new_num:04d}'
+
+    def generate_qr_code(self, base_url):
+        """
+        Generate a QR-code PNG that encodes the attendance scan URL and store it
+        on `qr_code`. `base_url` is the fully-qualified URL (caller must supply,
+        since the model has no access to the request).
+        """
+        import qrcode
+
+        if not self.admission_number:
+            return None
+
+        qr = qrcode.QRCode(version=1, box_size=10, border=4)
+        qr.add_data(base_url)
+        qr.make(fit=True)
+        img = qr.make_image(fill_color="black", back_color="white")
+
+        buffer = BytesIO()
+        img.save(buffer, format='PNG')
+        filename = f'qr_{self.admission_number}.png'
+        self.qr_code.save(filename, ContentFile(buffer.getvalue()), save=False)
+        super().save(update_fields=['qr_code'])
+        return self.qr_code
 
 
 class BaselineTest(models.Model):
@@ -532,3 +572,39 @@ class Attendance(models.Model):
 
     def __str__(self):
         return f"{self.student.full_name} - {self.date} - {self.status}"
+
+
+class QRAttendance(models.Model):
+    """
+    Attendance log produced by scanning the QR code on a student's admission card.
+    Uses `admission_number` (string) rather than a hard FK so that a scan still
+    succeeds before the Student row is created.
+    """
+    admission_number = models.CharField(max_length=20, db_index=True)
+    student = models.ForeignKey(
+        Student,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='qr_attendance_records'
+    )
+    scanned_at = models.DateTimeField(auto_now_add=True)
+    scanned_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='qr_scans'
+    )
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-scanned_at']
+        indexes = [
+            models.Index(fields=['admission_number', '-scanned_at']),
+        ]
+        verbose_name = 'QR Attendance Scan'
+        verbose_name_plural = 'QR Attendance Scans'
+
+    def __str__(self):
+        return f"{self.admission_number} @ {self.scanned_at}"

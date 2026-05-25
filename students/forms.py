@@ -21,8 +21,16 @@ class ApplicationForm(forms.ModelForm):
             'home_address', 'whatsapp_number', 'primary_contact_email',
             'schedule_preferences', 'special_comments', 'terms_accepted',
             'application_form_scan',  # For scanned/uploaded application forms
+            'document1', 'document1_type', 'document2', 'document2_type',
             'admission_number', 'application_date', 'receipt_number'  # Office Use fields
         ]
+
+        labels = {
+            'document1': 'Additional Document 1',
+            'document1_type': 'Document 1 Type',
+            'document2': 'Additional Document 2',
+            'document2_type': 'Document 2 Type',
+        }
 
         widgets = {
             'name_with_initials': forms.TextInput(attrs={
@@ -127,6 +135,22 @@ class ApplicationForm(forms.ModelForm):
             'application_form_scan': forms.FileInput(attrs={
                 'class': 'form-control d-none',
                 'accept': 'image/*,.pdf'
+            }),
+
+            # Additional supporting documents (birth certificate, photo, etc.)
+            'document1': forms.ClearableFileInput(attrs={
+                'class': 'form-control',
+                'accept': 'image/*,.pdf'
+            }),
+            'document1_type': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+            'document2': forms.ClearableFileInput(attrs={
+                'class': 'form-control',
+                'accept': 'image/*,.pdf'
+            }),
+            'document2_type': forms.Select(attrs={
+                'class': 'form-select'
             }),
 
             # Office Use Only fields

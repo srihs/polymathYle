@@ -2,8 +2,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
 from django.db.models import Avg, Count, Q
+from django.urls import reverse
 from datetime import datetime, timedelta, date
-from .models import Application, Student, Guardian, Attendance, StudentBadge
+from .models import Application, Student, Guardian, Attendance, QRAttendance, StudentBadge
 from .forms import ApplicationForm
 from django.core.paginator import Paginator
 from django.http import JsonResponse
@@ -381,6 +382,16 @@ def application_review_view(request, application_id):
             application.authorized_by = request.user.get_full_name() or request.user.username
             application.authorization_date = date.today()
             application.save()
+
+            if application.admission_number and not application.qr_code:
+                scan_url = request.build_absolute_uri(
+                    reverse('attendance_scan', args=[application.admission_number])
+                )
+                try:
+                    application.generate_qr_code(scan_url)
+                except Exception:
+                    logger.exception("Failed to generate QR code for application %s", application.id)
+
             messages.success(request, f'Application approved! Admission Number: {application.admission_number}')
 
             # Option to create student profile
@@ -687,6 +698,36 @@ def application_upload_view(request):
     return render(request, 'students/application_upload.html', {
         'form': form
     })
+
+
+def attendance_scan_view(request, admission_number):
+    """
+    Public endpoint hit by phones scanning a student's QR code.
+    Records the scan and resolves the related Student (if one exists).
+    Intentionally unauthenticated so any device can register a scan.
+    """
+    student = Student.objects.filter(admission_number__iexact=admission_number).first()
+
+    forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if forwarded_for:
+        ip_address = forwarded_for.split(',')[0].strip()
+    else:
+        ip_address = request.META.get('REMOTE_ADDR')
+
+    QRAttendance.objects.create(
+        admission_number=admission_number,
+        student=student,
+        scanned_by=request.user if request.user.is_authenticated else None,
+        ip_address=ip_address,
+    )
+
+    context = {
+        'admission_number': admission_number,
+        'student': student,
+        'scanned_at': datetime.now(),
+        'found': student is not None,
+    }
+    return render(request, 'students/attendance_scan_result.html', context)
 
 
 @login_required

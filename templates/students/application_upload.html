@@ -648,6 +648,45 @@
                         </div>
                     </div>
 
+                    <!-- Additional Documents Section -->
+                    <div class="form-section section-contact">
+                        <div class="form-section-header">
+                            <div class="form-section-icon">
+                                <i class="ri-file-copy-2-line"></i>
+                            </div>
+                            <div>
+                                <h6 class="form-section-title">Additional Documents</h6>
+                                <small class="text-muted">Birth certificate, photo, passport, etc. (optional)</small>
+                            </div>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <label for="{{ form.document1.id_for_label }}" class="form-label">
+                                    {{ form.document1.label }}
+                                </label>
+                                {{ form.document1 }}
+                            </div>
+                            <div class="col-md-4">
+                                <label for="{{ form.document1_type.id_for_label }}" class="form-label">
+                                    {{ form.document1_type.label }}
+                                </label>
+                                {{ form.document1_type }}
+                            </div>
+                            <div class="col-md-8">
+                                <label for="{{ form.document2.id_for_label }}" class="form-label">
+                                    {{ form.document2.label }}
+                                </label>
+                                {{ form.document2 }}
+                            </div>
+                            <div class="col-md-4">
+                                <label for="{{ form.document2_type.id_for_label }}" class="form-label">
+                                    {{ form.document2_type.label }}
+                                </label>
+                                {{ form.document2_type }}
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Class Schedule Preferences Section -->
                     <div class="form-section section-schedule">
                         <div class="form-section-header">
