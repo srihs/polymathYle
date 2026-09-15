@@ -202,98 +202,111 @@ class OCRService:
 
         from google.cloud import vision
 
-        # Prepare image for API
-        image = vision.Image()
-
         if isinstance(image_data, str):
             if os.path.isfile(image_data):
                 # File path
                 with open(image_data, 'rb') as f:
-                    image.content = f.read()
-            elif image_data.startswith('data:image'):
-                # Base64 data URL
+                    content = f.read()
+            elif image_data.startswith('data:'):
+                # Base64 data URL (data:image/... or data:application/pdf)
                 header, base64_data = image_data.split(',', 1)
-                image.content = base64.b64decode(base64_data)
+                content = base64.b64decode(base64_data)
             else:
                 # Assume raw base64
-                image.content = base64.b64decode(image_data)
+                content = base64.b64decode(image_data)
         elif isinstance(image_data, bytes):
-            image.content = image_data
+            content = image_data
         elif hasattr(image_data, 'read'):
             # File-like object
-            image.content = image_data.read()
+            content = image_data.read()
         else:
             raise ValueError("Unsupported image data format")
 
-        # Use DOCUMENT_TEXT_DETECTION for better handwriting recognition
-        response = self.client.document_text_detection(image=image)
+        if content.startswith(b'%PDF'):
+            # PDFs must go through files:annotate; synchronous requests read the first 5 pages
+            request = vision.AnnotateFileRequest(
+                input_config=vision.InputConfig(content=content, mime_type='application/pdf'),
+                features=[vision.Feature(type_=vision.Feature.Type.DOCUMENT_TEXT_DETECTION)],
+            )
+            file_response = self.client.batch_annotate_files(requests=[request]).responses[0]
+            if file_response.error.message:
+                raise RuntimeError(f"Vision API error: {file_response.error.message}")
+            responses = list(file_response.responses)
+        else:
+            # Use DOCUMENT_TEXT_DETECTION for better handwriting recognition
+            responses = [self.client.document_text_detection(image=vision.Image(content=content))]
 
-        if response.error.message:
-            raise RuntimeError(f"Vision API error: {response.error.message}")
-
-        full_text = response.full_text_annotation.text if response.full_text_annotation else ""
-
-        # Extract text blocks AND individual words with positions
+        texts = []
         blocks = []
         words = []
+        # PDF pages are stacked vertically so positions from later pages don't overlap earlier ones
+        y_offset = 0
 
-        if response.full_text_annotation:
-            for page in response.full_text_annotation.pages:
+        for response in responses:
+            if response.error.message:
+                raise RuntimeError(f"Vision API error: {response.error.message}")
+
+            annotation = response.full_text_annotation
+            if not annotation:
+                continue
+            texts.append(annotation.text)
+
+            for page in annotation.pages:
+                page_offset = y_offset
+
+                def to_bounds(bounding_box, page=page, page_offset=page_offset):
+                    # Images report pixel vertices; PDFs report normalized (0-1) vertices
+                    if bounding_box.vertices:
+                        xs = [v.x for v in bounding_box.vertices]
+                        ys = [v.y for v in bounding_box.vertices]
+                    else:
+                        xs = [round(v.x * page.width) for v in bounding_box.normalized_vertices]
+                        ys = [round(v.y * page.height) for v in bounding_box.normalized_vertices]
+                    ys = [y + page_offset for y in ys]
+                    return {
+                        'x': min(xs),
+                        'y': min(ys),
+                        'x_end': max(xs),
+                        'y_end': max(ys),
+                        'width': max(xs) - min(xs),
+                        'height': max(ys) - min(ys),
+                    }
+
                 for block in page.blocks:
                     block_text = ""
                     block_words = []
 
                     for paragraph in block.paragraphs:
-                        para_words = []
                         for word in paragraph.words:
                             word_text = "".join(
                                 symbol.text for symbol in word.symbols
                             )
 
-                            # Get word bounding box
-                            word_vertices = word.bounding_box.vertices
-                            word_bounds = {
-                                'x': min(v.x for v in word_vertices),
-                                'y': min(v.y for v in word_vertices),
-                                'x_end': max(v.x for v in word_vertices),
-                                'y_end': max(v.y for v in word_vertices),
-                                'width': max(v.x for v in word_vertices) - min(v.x for v in word_vertices),
-                                'height': max(v.y for v in word_vertices) - min(v.y for v in word_vertices),
-                            }
-
                             word_info = {
                                 'text': word_text,
-                                'bounds': word_bounds,
+                                'bounds': to_bounds(word.bounding_box),
                                 'confidence': word.confidence if hasattr(word, 'confidence') else None
                             }
 
                             words.append(word_info)
                             block_words.append(word_info)
-                            para_words.append(word_text)
 
                             block_text += word_text + " "
                         block_text = block_text.strip() + "\n"
 
                     if block_text.strip():
                         # Get block bounding box for spatial analysis
-                        vertices = block.bounding_box.vertices
-                        bounds = {
-                            'x': min(v.x for v in vertices),
-                            'y': min(v.y for v in vertices),
-                            'x_end': max(v.x for v in vertices),
-                            'y_end': max(v.y for v in vertices),
-                            'width': max(v.x for v in vertices) - min(v.x for v in vertices),
-                            'height': max(v.y for v in vertices) - min(v.y for v in vertices),
-                        }
                         blocks.append({
                             'text': block_text.strip(),
-                            'bounds': bounds,
+                            'bounds': to_bounds(block.bounding_box),
                             'words': block_words,
                             'confidence': block.confidence if hasattr(block, 'confidence') else None
                         })
 
+                y_offset += page.height
+
         return {
-            'text': full_text,
+            'text': "\n".join(texts),
             'blocks': blocks,
             'words': words
         }

@@ -124,3 +124,4 @@ static/assets/js/pages/leaflet-map.init.js
 
 # Google Cloud service account credentials
 google.json
+credentials.json

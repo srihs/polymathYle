@@ -143,6 +143,19 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# Upload limits
+# The OCR endpoint receives scans (images or PDFs) as base64 JSON, which counts toward
+# DATA_UPLOAD_MAX_MEMORY_SIZE and is ~33% larger than the file itself. The default of
+# 2.5MB rejects most scanned PDFs, so allow the 10MB client-side limit plus base64 overhead.
+MAX_UPLOAD_SIZE_MB = int(os.getenv('MAX_UPLOAD_SIZE_MB', '10'))
+DATA_UPLOAD_MAX_MEMORY_SIZE = int(MAX_UPLOAD_SIZE_MB * 1024 * 1024 * 1.4)
+# Files larger than this are streamed to a temp file instead of held in memory
+FILE_UPLOAD_MAX_MEMORY_SIZE = int(os.getenv('FILE_UPLOAD_MAX_MEMORY_SIZE_MB', '5')) * 1024 * 1024
+FILE_UPLOAD_PERMISSIONS = 0o644
+
+# File types accepted for application scans and supporting documents
+ALLOWED_UPLOAD_EXTENSIONS = ['pdf', 'jpg', 'jpeg', 'png', 'webp']
+
 # Authentication settings
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'dashboard'

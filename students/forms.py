@@ -1,5 +1,13 @@
 from django import forms
+from django.conf import settings
+from django.core.validators import FileExtensionValidator
 from .models import Application
+
+
+def validate_upload_size(file):
+    max_bytes = settings.MAX_UPLOAD_SIZE_MB * 1024 * 1024
+    if file.size > max_bytes:
+        raise forms.ValidationError(f'File size must be less than {settings.MAX_UPLOAD_SIZE_MB}MB.')
 
 
 class ApplicationForm(forms.ModelForm):
@@ -171,6 +179,16 @@ class ApplicationForm(forms.ModelForm):
                 'placeholder': 'Receipt Number'
             }),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Scans and supporting documents may be PDFs or images
+        for name in ('application_form_scan', 'document1', 'document2'):
+            if name in self.fields:
+                self.fields[name].validators += [
+                    FileExtensionValidator(settings.ALLOWED_UPLOAD_EXTENSIONS),
+                    validate_upload_size,
+                ]
 
     def clean_terms_accepted(self):
         """

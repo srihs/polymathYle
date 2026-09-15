@@ -888,14 +888,18 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'assets/libs/pdfjs/pdf.min.js' %}"></script>
 <script>
 $(document).ready(function() {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = "{% static 'assets/libs/pdfjs/pdf.worker.min.js' %}";
+
     // ========================================
     // State Variables
     // ========================================
     let uploadedFile = null;
+    let pdfDoc = null;
     let currentPage = 1;
-    let totalPages = 2; // For demo - would be dynamic for PDFs
+    let totalPages = 1;
     let zoomLevel = 1;
 
     // ========================================
@@ -1011,23 +1015,62 @@ $(document).ready(function() {
     }
 
     function displayPreview(file) {
-        const reader = new FileReader();
+        pdfDoc = null;
+        currentPage = 1;
+        totalPages = 1;
+        $('#pageToggle').hide();
 
-        reader.onload = function(e) {
-            $previewImage.attr('src', e.target.result);
+        const showPreview = function() {
             $uploadZone.hide();
             $imageContainer.show();
 
             // Show controls including Extract Data button
             $('#extractDataBtn, #zoomOutBtn, #zoomInBtn, #fitBtn').show();
-
-            // Show page toggle for multi-page (mock - would need PDF.js for real PDFs)
-            if (file.type === 'application/pdf') {
-                $('#pageToggle').show();
-            }
         };
 
+        if (file.type === 'application/pdf') {
+            // Browsers can't show a PDF in an <img>, so render each page to an image with PDF.js
+            file.arrayBuffer()
+                .then(function(buffer) {
+                    return pdfjsLib.getDocument({ data: buffer }).promise;
+                })
+                .then(function(doc) {
+                    pdfDoc = doc;
+                    totalPages = doc.numPages;
+                    updatePageInfo();
+                    if (totalPages > 1) {
+                        $('#pageToggle').show();
+                    }
+                    return renderPdfPage(1);
+                })
+                .then(showPreview)
+                .catch(function(err) {
+                    console.error('PDF preview failed:', err);
+                    alert('Could not preview this PDF. It may be corrupted or password protected.');
+                });
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            $previewImage.attr('src', e.target.result);
+            showPreview();
+        };
         reader.readAsDataURL(file);
+    }
+
+    function renderPdfPage(pageNumber) {
+        return pdfDoc.getPage(pageNumber).then(function(page) {
+            // Render at 2x for a sharp preview when zoomed in
+            const viewport = page.getViewport({ scale: 2 });
+            const canvas = document.createElement('canvas');
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            return page.render({ canvasContext: canvas.getContext('2d'), viewport: viewport }).promise
+                .then(function() {
+                    $previewImage.attr('src', canvas.toDataURL('image/png'));
+                });
+        });
     }
 
     // ========================================
@@ -1065,18 +1108,18 @@ $(document).ready(function() {
     // Page Navigation (for multi-page documents)
     // ========================================
     $('#prevPageBtn').on('click', function() {
-        if (currentPage > 1) {
+        if (pdfDoc && currentPage > 1) {
             currentPage--;
             updatePageInfo();
-            // In real implementation, would load different page from PDF
+            renderPdfPage(currentPage);
         }
     });
 
     $('#nextPageBtn').on('click', function() {
-        if (currentPage < totalPages) {
+        if (pdfDoc && currentPage < totalPages) {
             currentPage++;
             updatePageInfo();
-            // In real implementation, would load different page from PDF
+            renderPdfPage(currentPage);
         }
     });
 
