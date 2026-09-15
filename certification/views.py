@@ -663,33 +663,12 @@ def certification_report_view(request):
     Staff report on certifications issued.
     Provides statistics and trends on certificate issuance.
     """
-    # Date range (default: last 12 months)
-    date_to = date.today()
-    date_from = date_to - timedelta(days=365)
+    date_from, date_to, level_filter, certificates_qs = _report_filters(request)
 
-    date_from_str = request.GET.get('date_from', '')
-    date_to_str = request.GET.get('date_to', '')
-
-    if date_from_str:
-        date_from = datetime.strptime(date_from_str, '%Y-%m-%d').date()
-    if date_to_str:
-        date_to = datetime.strptime(date_to_str, '%Y-%m-%d').date()
-
-    # Filter by level
-    level_filter = request.GET.get('level', '')
-
-    # Base querysets
-    certificates_qs = Certificate.objects.filter(
-        issue_date__gte=date_from,
-        issue_date__lte=date_to
-    )
     achievements_qs = Achievement.objects.filter(
         earned_date__date__gte=date_from,
         earned_date__date__lte=date_to
     )
-
-    if level_filter:
-        certificates_qs = certificates_qs.filter(level_id=level_filter)
 
     # Certificate statistics
     total_certificates = certificates_qs.count()
@@ -751,8 +730,9 @@ def certification_report_view(request):
         certificates__issue_date__gte=date_from,
         certificates__issue_date__lte=date_to
     ).annotate(
-        cert_count=Count('certificates')
-    ).order_by('-cert_count')[:10]
+        certificate_count=Count('certificates'),
+        avg_shields=Avg('certificates__shields_earned'),
+    ).order_by('-certificate_count')[:10]
 
     # Get levels for filter
     levels = YLELevel.objects.filter(is_active=True)
@@ -760,6 +740,9 @@ def certification_report_view(request):
     context = {
         'date_from': date_from,
         'date_to': date_to,
+        # Pre-fill the date filter inputs when no range was submitted
+        'default_start_date': date_from.isoformat(),
+        'default_end_date': date_to.isoformat(),
         'level_filter': level_filter,
         'levels': levels,
         # Certificate stats
@@ -780,6 +763,83 @@ def certification_report_view(request):
     }
 
     return render(request, 'certification/certification_report.html', context)
+
+
+def _report_filters(request):
+    """
+    Parse the report's date range (default: last 12 months) and level filter.
+    Returns (date_from, date_to, level_filter, filtered certificate queryset).
+    """
+    date_to = date.today()
+    date_from = date_to - timedelta(days=365)
+
+    try:
+        if request.GET.get('date_from'):
+            date_from = datetime.strptime(request.GET['date_from'], '%Y-%m-%d').date()
+        if request.GET.get('date_to'):
+            date_to = datetime.strptime(request.GET['date_to'], '%Y-%m-%d').date()
+    except ValueError:
+        messages.warning(request, 'Invalid date format. Showing the last 12 months instead.')
+        date_to = date.today()
+        date_from = date_to - timedelta(days=365)
+
+    level_filter = request.GET.get('level', '')
+
+    certificates_qs = Certificate.objects.filter(
+        issue_date__gte=date_from,
+        issue_date__lte=date_to
+    )
+    # The report form sends level short codes (STARTERS, MOVERS, FLYERS); accept ids too
+    if level_filter.isdigit():
+        certificates_qs = certificates_qs.filter(level_id=level_filter)
+    elif level_filter:
+        certificates_qs = certificates_qs.filter(level__short_code__iexact=level_filter)
+
+    return date_from, date_to, level_filter, certificates_qs
+
+
+@login_required
+@permission_required('certification.view_certificate', raise_exception=True)
+def certification_report_export_view(request):
+    """
+    Export the certificates in the report's date range / level filter as CSV.
+    """
+    import csv
+
+    date_from, date_to, level_filter, certificates_qs = _report_filters(request)
+    certificate_types = dict(Certificate.CERTIFICATE_TYPE_CHOICES)
+
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = (
+        f'attachment; filename="certification_report_{date_from:%Y%m%d}_{date_to:%Y%m%d}.csv"'
+    )
+    # BOM so Excel opens UTF-8 names correctly
+    response.write('﻿')
+
+    writer = csv.writer(response)
+    writer.writerow([
+        'Certificate Number', 'Issue Date', 'Student', 'Admission Number',
+        'Certificate Type', 'Level', 'Title', 'Listening Shields', 'Reading Shields',
+        'Writing Shields', 'Speaking Shields', 'Total Shields', 'Verified',
+    ])
+    for cert in certificates_qs.select_related('student', 'level').order_by('-issue_date'):
+        writer.writerow([
+            cert.certificate_number,
+            cert.issue_date.isoformat(),
+            cert.student.full_name,
+            cert.student.admission_number,
+            certificate_types.get(cert.certificate_type, cert.certificate_type),
+            cert.level.name if cert.level else '',
+            cert.title,
+            cert.listening_shields,
+            cert.reading_shields,
+            cert.writing_shields,
+            cert.speaking_shields,
+            cert.calculate_total_shields(),
+            'Yes' if cert.is_verified else 'No',
+        ])
+
+    return response
 
 
 # ============== AJAX/API ENDPOINTS ==============

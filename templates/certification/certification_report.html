@@ -30,7 +30,7 @@
                         <button type="button" class="btn btn-light" onclick="window.print();">
                             <i class="ri-printer-line me-1"></i> Print Report
                         </button>
-                        <a href="{% url 'certification_report_export' %}" class="btn btn-outline-light">
+                        <a href="{% url 'certification_report_export' %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}" class="btn btn-outline-light">
                             <i class="ri-download-line me-1"></i> Export CSV
                         </a>
                     </div>
@@ -444,7 +444,7 @@
                             <h6 class="mb-1">{{ cert.student.full_name }}</h6>
                             <div class="d-flex flex-wrap gap-2">
                                 <span class="badge bg-{% if cert.level == 'STARTERS' %}info{% elif cert.level == 'MOVERS' %}warning{% else %}success{% endif %}-subtle text-{% if cert.level == 'STARTERS' %}info{% elif cert.level == 'MOVERS' %}warning{% else %}success{% endif %}">
-                                    {{ cert.get_level_display }}
+                                    {{ cert.level.name|default:'-' }}
                                 </span>
                                 <small class="text-muted">
                                     <i class="ri-calendar-line me-1"></i>{{ cert.issue_date|date:"M d, Y" }}
@@ -452,7 +452,7 @@
                             </div>
                         </div>
                         <div class="text-end">
-                            <span class="badge bg-warning fs-6">{{ cert.total_shields }}/20</span>
+                            <span class="badge bg-warning fs-6">{{ cert.shields_earned }}/20</span>
                         </div>
                     </div>
                     {% endfor %}

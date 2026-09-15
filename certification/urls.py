@@ -47,6 +47,7 @@ urlpatterns = [
 
     # Certification report - staff only
     path('reports/', views.certification_report_view, name='certification_report'),
+    path('reports/export/', views.certification_report_export_view, name='certification_report_export'),
 
     # ============== API ENDPOINTS ==============
 

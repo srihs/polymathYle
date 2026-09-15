@@ -27,7 +27,7 @@
                         </div>
                     </div>
                     {% if perms.certification.add_certificatetemplate %}
-                    <a href="{% url 'template_create' %}" class="btn btn-light">
+                    <a href="{% url 'admin:certification_certificatetemplate_add' %}" class="btn btn-light">
                         <i class="ri-add-line me-1"></i> Create Template
                     </a>
                     {% endif %}
@@ -128,7 +128,7 @@
                         <i class="ri-eye-line me-1"></i> Preview
                     </a>
                     {% if perms.certification.change_certificatetemplate %}
-                    <a href="{% url 'template_edit' template.id %}" class="btn btn-soft-warning btn-sm">
+                    <a href="{% url 'admin:certification_certificatetemplate_change' template.id %}" class="btn btn-soft-warning btn-sm">
                         <i class="ri-edit-line"></i>
                     </a>
                     {% endif %}
@@ -168,8 +168,9 @@
                     </div>
                     <div class="modal-footer border-top-0 justify-content-center">
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <form method="post" action="{% url 'template_delete' template.id %}" class="d-inline">
+                        <form method="post" action="{% url 'admin:certification_certificatetemplate_delete' template.id %}" class="d-inline">
                             {% csrf_token %}
+                            <input type="hidden" name="post" value="yes">
                             <button type="submit" class="btn btn-danger">
                                 <i class="ri-delete-bin-line me-1"></i> Delete Template
                             </button>
@@ -192,7 +193,7 @@
                 <h5 class="text-muted mb-2">No Templates Found</h5>
                 <p class="text-muted mb-4">There are no certificate templates created yet.</p>
                 {% if perms.certification.add_certificatetemplate %}
-                <a href="{% url 'template_create' %}" class="btn btn-primary">
+                <a href="{% url 'admin:certification_certificatetemplate_add' %}" class="btn btn-primary">
                     <i class="ri-add-line me-1"></i> Create First Template
                 </a>
                 {% endif %}
