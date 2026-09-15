@@ -11,10 +11,13 @@ from django.core.paginator import Paginator
 from django.http import JsonResponse, Http404
 from django.utils import timezone
 from datetime import datetime, timedelta
+import logging
 
 from .models import YLELevel, Class, Unit, Lesson, Activity
 from teachers.models import Teacher
 from students.models import Student
+
+logger = logging.getLogger(__name__)
 
 
 # ============== YLE LEVEL VIEWS ==============
@@ -167,7 +170,8 @@ def class_list_view(request):
             Q(class_name__icontains=search_query) |
             Q(class_code__icontains=search_query) |
             Q(teacher__full_name__icontains=search_query) |
-            Q(room_number__icontains=search_query)
+            Q(room_number__icontains=search_query) |
+            Q(location__icontains=search_query)
         )
 
     # Filter by level
@@ -262,6 +266,21 @@ def class_detail_view(request, class_id):
     return render(request, 'courses/class_detail.html', context)
 
 
+def _parse_date(value):
+    """Parse 'YYYY-MM-DD' (or a date); empty/None gives None."""
+    if not value:
+        return None
+    if hasattr(value, 'year'):
+        return value
+    return datetime.strptime(value, '%Y-%m-%d').date()
+
+
+def _date_ranges_overlap(start_a, end_a, start_b, end_b):
+    """Date ranges overlap; None on either side is treated as open-ended."""
+    return (end_a is None or start_b is None or end_a >= start_b) and \
+           (start_a is None or end_b is None or start_a <= end_b)
+
+
 def check_teacher_schedule_overlap(teacher_id, day, from_time, to_time, start_date, end_date, exclude_class_id=None):
     """
     Check if a teacher has overlapping schedules with the proposed schedule.
@@ -286,10 +305,12 @@ def check_teacher_schedule_overlap(teacher_id, day, from_time, to_time, start_da
     if exclude_class_id:
         classes_query = classes_query.exclude(id=exclude_class_id)
 
+    new_start = _parse_date(start_date)
+    new_end = _parse_date(end_date)
+
     for cls in classes_query:
-        # Check if date ranges overlap
-        if not (cls.end_date < datetime.strptime(start_date, '%Y-%m-%d').date() or
-                cls.start_date > datetime.strptime(end_date, '%Y-%m-%d').date()):
+        # Check if date ranges overlap (a missing date means open-ended)
+        if _date_ranges_overlap(cls.start_date, cls.end_date, new_start, new_end):
             # Date ranges overlap, check schedule
             for sched in cls.schedule or []:
                 # Check if this schedule has the same teacher
@@ -319,16 +340,22 @@ def class_add_view(request):
         class_code = request.POST.get('class_code')
         max_students = request.POST.get('max_students', 25)
         room_number = request.POST.get('room_number', '')
-        start_date = request.POST.get('start_date')
-        end_date = request.POST.get('end_date')
+        location = request.POST.get('location', '')
 
-        # Validate required fields
-        if not all([level_id, class_name, class_code, start_date, end_date]):
-            messages.error(request, 'Please fill in all required fields.')
+        # Validate required fields (name the missing ones so the user knows what to fix)
+        required = {'Class name': class_name, 'Class code': class_code, 'YLE level': level_id, 'Location': location}
+        missing = [label for label, value in required.items() if not (value or '').strip()]
+        if missing:
+            logger.warning('Class add rejected, missing fields: %s', missing)
+            messages.error(request, f'Please fill in: {", ".join(missing)}.')
+            return redirect('class_add')
+
+        if location not in dict(Class.LOCATION_CHOICES):
+            messages.error(request, 'Please select a valid location.')
             return redirect('class_add')
 
         # Check for duplicate class code
-        if Class.objects.filter(class_code=class_code).exists():
+        if Class.objects.filter(class_code__iexact=class_code).exists():
             messages.error(request, f'Class code "{class_code}" already exists.')
             return redirect('class_add')
 
@@ -358,7 +385,7 @@ def class_add_view(request):
                     # Check for teacher schedule overlap
                     if teacher_id:
                         has_overlap, overlapping_class = check_teacher_schedule_overlap(
-                            teacher_id, schedule_days[i], from_time, to_time, start_date, end_date
+                            teacher_id, schedule_days[i], from_time, to_time, None, None
                         )
                         if has_overlap:
                             teacher = Teacher.objects.get(id=teacher_id)
@@ -389,9 +416,8 @@ def class_add_view(request):
             class_code=class_code.upper(),
             schedule=schedule,
             max_students=int(max_students),
+            location=location,
             room_number=room_number,
-            start_date=start_date,
-            end_date=end_date,
             is_active=True,
         )
 
@@ -405,6 +431,7 @@ def class_add_view(request):
     context = {
         'levels': levels,
         'teachers': teachers,
+        'locations': Class.LOCATION_CHOICES,
     }
 
     return render(request, 'courses/class_add.html', context)
@@ -442,13 +469,13 @@ def class_edit_view(request, class_id):
         class_obj.room_number = request.POST.get('room_number', class_obj.room_number)
         class_obj.is_active = request.POST.get('is_active') == 'on'
 
-        # Update dates
-        start_date = request.POST.get('start_date')
-        end_date = request.POST.get('end_date')
-        if start_date:
-            class_obj.start_date = start_date
-        if end_date:
-            class_obj.end_date = end_date
+        # Location is required
+        location = request.POST.get('location', '')
+        if location not in dict(Class.LOCATION_CHOICES):
+            messages.error(request, 'Please select the class location.')
+            return redirect('class_edit', class_id=class_id)
+        class_obj.location = location
+
 
         # Parse schedule from form (now includes per-schedule teacher)
         schedule = []
@@ -473,8 +500,8 @@ def class_edit_view(request, class_id):
                     if teacher_id:
                         has_overlap, overlapping_class = check_teacher_schedule_overlap(
                             teacher_id, schedule_days[i], from_time, to_time,
-                            str(start_date or class_obj.start_date),
-                            str(end_date or class_obj.end_date),
+                            class_obj.start_date,
+                            class_obj.end_date,
                             exclude_class_id=class_id
                         )
                         if has_overlap:
@@ -502,7 +529,7 @@ def class_edit_view(request, class_id):
         class_obj.schedule = schedule
 
         class_obj.save(update_fields=['class_name', 'class_code', 'level', 'max_students',
-                                       'room_number', 'is_active', 'start_date', 'end_date', 'schedule'])
+                                       'location', 'room_number', 'is_active', 'schedule'])
         messages.success(request, f'Class "{class_obj.class_name}" updated successfully!')
         return redirect('class_detail', class_id=class_obj.id)
 
@@ -514,6 +541,7 @@ def class_edit_view(request, class_id):
         'class': class_obj,
         'levels': levels,
         'teachers': teachers,
+        'locations': Class.LOCATION_CHOICES,
     }
 
     return render(request, 'courses/class_form.html', context)

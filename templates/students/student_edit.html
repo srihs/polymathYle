@@ -6,6 +6,9 @@
 {% block Title %}Students{% endblock %}
 {% block functionTitle %}{{ student.full_name }}{% endblock %}
 
+{# Messages are shown inside this page #}
+{% block messages %}{% endblock %}
+
 {% block content %}
 <style>
 /* ========================================
@@ -624,81 +627,63 @@
                                     Current YLE Level <span class="text-danger">*</span>
                                 </label>
                                 <select class="form-select" id="current_level" name="current_level" required>
-                                    <option value="STARTERS" {% if student.current_level == 'STARTERS' %}selected{% endif %}>Pre A1 Starters</option>
-                                    <option value="MOVERS" {% if student.current_level == 'MOVERS' %}selected{% endif %}>A1 Movers</option>
-                                    <option value="FLYERS" {% if student.current_level == 'FLYERS' %}selected{% endif %}>A2 Flyers</option>
+                                    {% for level in levels %}
+                                    <option value="{{ level.short_code }}" {% if student.current_level == level.short_code %}selected{% endif %}>{{ level.name }}</option>
+                                    {% endfor %}
+                                    {% if student.level and not student.level.is_active or not student.level %}
+                                    <option value="{{ student.current_level }}" selected>{{ student.get_current_level_display }} (inactive)</option>
+                                    {% endif %}
                                 </select>
                             </div>
                             <div class="col-md-6">
                                 <label for="assigned_class" class="form-label">Assigned Class</label>
-                                <select class="form-select" id="assigned_class" name="assigned_class">
-                                    <option value="">Not Assigned</option>
-                                    {% for class in classes %}
-                                        <option value="{{ class.id }}" {% if student.assigned_class and student.assigned_class.id == class.id %}selected{% endif %}>
-                                            {{ class.class_name }} - {{ class.get_level_display }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
+                                {% if student.assigned_class %}
+                                    <input type="text" class="form-control" id="assigned_class" readonly
+                                           value="{{ student.assigned_class.class_name }} ({{ student.assigned_class.class_code }})">
+                                    <div class="form-text">
+                                        <i class="ri-lock-line me-1"></i>The class can only be changed through a transfer request or promotion.
+                                    </div>
+                                {% else %}
+                                    <select class="form-select" id="assigned_class" name="assigned_class">
+                                        <option value="">Not Assigned</option>
+                                        {% for option in class_options %}
+                                            <option value="{{ option.id }}" data-level="{{ option.level }}"{% if option.is_full %} disabled{% endif %}>
+                                                {{ option.label }}{% if option.location %} · {{ option.location }}{% endif %}{% if option.schedule %} · {{ option.schedule }}{% endif %} · {% if option.is_full %}Full{% else %}{{ option.seats_left }} seat{{ option.seats_left|pluralize }} left{% endif %}{% if option.match == 'full' %} · Matches preference{% endif %}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="form-text">
+                                        <i class="ri-information-line me-1"></i>Only classes for the selected level are shown. Once saved, the class is locked.
+                                    </div>
+                                {% endif %}
                             </div>
                         </div>
 
-                        <!-- YLE Level Visual Cards -->
+                        <!-- Level Visual Cards (from Academic Management -> YLE Levels) -->
                         <p class="text-muted small mb-3">Or select a level visually:</p>
                         <div class="row g-3">
+                            {% for level in levels %}
                             <div class="col-md-4">
                                 <div class="form-check form-check-card h-100">
-                                    <input class="form-check-input yle-level-radio" type="radio" name="yle_level_display" id="level_starters" value="STARTERS" {% if student.current_level == 'STARTERS' %}checked{% endif %}>
-                                    <label class="form-check-label d-block p-3 border rounded cursor-pointer {% if student.current_level == 'STARTERS' %}border-info bg-info-subtle{% endif %}" for="level_starters">
+                                    <input class="form-check-input yle-level-radio" type="radio" name="yle_level_display"
+                                           id="level_{{ level.short_code|lower }}" value="{{ level.short_code }}"
+                                           {% if student.current_level == level.short_code %}checked{% endif %}>
+                                    <label class="form-check-label d-block p-3 border rounded cursor-pointer h-100 {% if student.current_level == level.short_code %}border-primary bg-primary-subtle{% endif %}" for="level_{{ level.short_code|lower }}">
                                         <div class="d-flex align-items-center">
                                             <div class="avatar-sm me-3 flex-shrink-0">
-                                                <span class="avatar-title bg-info-subtle text-info rounded">
-                                                    <i class="ri-seedling-line fs-4"></i>
+                                                <span class="avatar-title text-white rounded" style="background-color: {{ level.color_theme|default:'#405189' }};">
+                                                    <i class="{{ level.icon|default:'ri-medal-line' }} fs-4"></i>
                                                 </span>
                                             </div>
                                             <div>
-                                                <h6 class="mb-1">Pre A1 Starters</h6>
-                                                <p class="text-muted mb-0 small">Beginner (Ages 6-8)</p>
+                                                <h6 class="mb-1">{{ level.name }}</h6>
+                                                <p class="text-muted mb-0 small">{% if level.cefr_level %}CEFR {{ level.cefr_level }} · {% endif %}Ages {{ level.age_range_min }}-{{ level.age_range_max }} · {{ level.class_count }} class{{ level.class_count|pluralize:"es" }}</p>
                                             </div>
                                         </div>
                                     </label>
                                 </div>
                             </div>
-                            <div class="col-md-4">
-                                <div class="form-check form-check-card h-100">
-                                    <input class="form-check-input yle-level-radio" type="radio" name="yle_level_display" id="level_movers" value="MOVERS" {% if student.current_level == 'MOVERS' %}checked{% endif %}>
-                                    <label class="form-check-label d-block p-3 border rounded cursor-pointer {% if student.current_level == 'MOVERS' %}border-warning bg-warning-subtle{% endif %}" for="level_movers">
-                                        <div class="d-flex align-items-center">
-                                            <div class="avatar-sm me-3 flex-shrink-0">
-                                                <span class="avatar-title bg-warning-subtle text-warning rounded">
-                                                    <i class="ri-run-line fs-4"></i>
-                                                </span>
-                                            </div>
-                                            <div>
-                                                <h6 class="mb-1">A1 Movers</h6>
-                                                <p class="text-muted mb-0 small">Elementary (Ages 8-10)</p>
-                                            </div>
-                                        </div>
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-check form-check-card h-100">
-                                    <input class="form-check-input yle-level-radio" type="radio" name="yle_level_display" id="level_flyers" value="FLYERS" {% if student.current_level == 'FLYERS' %}checked{% endif %}>
-                                    <label class="form-check-label d-block p-3 border rounded cursor-pointer {% if student.current_level == 'FLYERS' %}border-success bg-success-subtle{% endif %}" for="level_flyers">
-                                        <div class="d-flex align-items-center">
-                                            <div class="avatar-sm me-3 flex-shrink-0">
-                                                <span class="avatar-title bg-success-subtle text-success rounded">
-                                                    <i class="ri-rocket-line fs-4"></i>
-                                                </span>
-                                            </div>
-                                            <div>
-                                                <h6 class="mb-1">A2 Flyers</h6>
-                                                <p class="text-muted mb-0 small">Pre-Intermediate (Ages 10-12)</p>
-                                            </div>
-                                        </div>
-                                    </label>
-                                </div>
-                            </div>
+                            {% endfor %}
                         </div>
 
                         <!-- Step 3 Note -->
@@ -1108,15 +1093,8 @@ $(document).ready(function() {
         $('#current_level').val(level);
 
         // Update card styles
-        $('.form-check-card label').removeClass('border-info bg-info-subtle border-warning bg-warning-subtle border-success bg-success-subtle');
-
-        if (level === 'STARTERS') {
-            $(this).siblings('label').addClass('border-info bg-info-subtle');
-        } else if (level === 'MOVERS') {
-            $(this).siblings('label').addClass('border-warning bg-warning-subtle');
-        } else if (level === 'FLYERS') {
-            $(this).siblings('label').addClass('border-success bg-success-subtle');
-        }
+        $('.yle-level-radio').siblings('label').removeClass('border-primary bg-primary-subtle');
+        $(this).siblings('label').addClass('border-primary bg-primary-subtle');
     });
 
     // Sync select dropdown with YLE level cards
@@ -1392,17 +1370,32 @@ $(document).ready(function() {
 
         // Get level display name
         var levelVal = $('#current_level').val();
-        var levelDisplay = '-';
-        if (levelVal === 'STARTERS') levelDisplay = 'Pre A1 Starters';
-        else if (levelVal === 'MOVERS') levelDisplay = 'A1 Movers';
-        else if (levelVal === 'FLYERS') levelDisplay = 'A2 Flyers';
+        var levelDisplay = levelVal ? $('#current_level option:selected').text() : '-';
         $('#review-level').text(levelDisplay);
 
-        // Get class display name
-        var classSelect = $('#assigned_class');
-        var classDisplay = classSelect.find('option:selected').text().trim();
-        $('#review-class').text(classDisplay === 'Not Assigned' ? '-' : classDisplay);
+        // Get class display name (locked classes render as a read-only input)
+        var classField = $('#assigned_class');
+        var classDisplay = classField.is('select')
+            ? classField.find('option:selected').text().trim()
+            : classField.val();
+        $('#review-class').text(!classDisplay || classDisplay === 'Not Assigned' ? '-' : classDisplay);
     }
+
+    // Only offer classes for the selected level (unassigned students only)
+    function filterClassesByLevel() {
+        var $select = $('select#assigned_class');
+        if (!$select.length) return;
+        var level = $('#current_level').val();
+        $select.find('option[data-level]').each(function() {
+            var matches = $(this).data('level') === level;
+            $(this).prop('hidden', !matches);
+            if (!matches && $(this).is(':selected')) {
+                $select.val('');
+            }
+        });
+    }
+    $('#current_level, .yle-level-radio').on('change', filterClassesByLevel);
+    filterClassesByLevel();
 
     // ========================================
     // Track form changes

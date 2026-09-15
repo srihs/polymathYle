@@ -6,6 +6,9 @@
 {% block Title %}Applications{% endblock %}
 {% block functionTitle %}Create Student Profile{% endblock %}
 
+{# Messages are shown inside this page #}
+{% block messages %}{% endblock %}
+
 {% block content %}
 <style>
 /* ========================================
@@ -599,78 +602,68 @@ legend {
                             Assign Initial Level <span class="text-danger" aria-label="required">*</span>
                         </label>
 
-                        <!-- YLE Level Cards -->
+                        <!-- Level Cards (from Academic Management -> YLE Levels) -->
                         <div class="row g-3 mb-0">
+                            {% for level in levels %}
                             <div class="col-md-4">
                                 <div class="form-check form-check-card h-100">
-                                    <input class="form-check-input yle-level-radio" type="radio" name="current_level" id="level_starters" value="STARTERS" checked>
-                                    <label class="form-check-label d-block p-3 border rounded cursor-pointer border-info bg-info-subtle" for="level_starters">
+                                    <input class="form-check-input yle-level-radio" type="radio" name="current_level"
+                                           id="level_{{ level.short_code|lower }}" value="{{ level.short_code }}"
+                                           data-name="{{ level.name }}"
+                                           {% if level.short_code == suggested_level %}checked{% endif %}>
+                                    <label class="form-check-label d-block p-3 border rounded cursor-pointer h-100" for="level_{{ level.short_code|lower }}">
                                         <div class="text-center">
                                             <div class="avatar-md mx-auto mb-3">
-                                                <span class="avatar-title bg-info text-white rounded-circle fs-2">
-                                                    <i class="ri-seedling-line"></i>
+                                                <span class="avatar-title text-white rounded-circle fs-2" style="background-color: {{ level.color_theme|default:'#405189' }};">
+                                                    <i class="{{ level.icon|default:'ri-medal-line' }}"></i>
                                                 </span>
                                             </div>
-                                            <h5 class="mb-1 text-info">Pre A1 Starters</h5>
-                                            <p class="text-muted mb-2 small">Beginner Level</p>
-                                            <span class="badge bg-info-subtle text-info">Ages 6-8</span>
+                                            <h5 class="mb-1">{{ level.name }}</h5>
+                                            {% if level.cefr_level %}<p class="text-muted mb-2 small">CEFR {{ level.cefr_level }}</p>{% endif %}
+                                            <span class="badge bg-light text-body">Ages {{ level.age_range_min }}-{{ level.age_range_max }}</span>
+                                            <span class="badge {% if level.class_count %}bg-primary-subtle text-primary{% else %}bg-danger-subtle text-danger{% endif %} ms-1">
+                                                <i class="ri-team-line me-1"></i>{{ level.class_count }} class{{ level.class_count|pluralize:"es" }}
+                                            </span>
+                                            {% if level.short_code == suggested_level and application.age %}
+                                            <span class="badge bg-success-subtle text-success ms-1">Suits age {{ application.age }}</span>
+                                            {% endif %}
                                         </div>
+                                        {% if level.description %}
                                         <hr class="my-3">
-                                        <ul class="list-unstyled text-muted small mb-0">
-                                            <li class="mb-1"><i class="ri-check-line text-success me-2"></i>Basic vocabulary</li>
-                                            <li class="mb-1"><i class="ri-check-line text-success me-2"></i>Simple sentences</li>
-                                            <li><i class="ri-check-line text-success me-2"></i>Listening & speaking focus</li>
-                                        </ul>
+                                        <p class="text-muted small mb-0">{{ level.description }}</p>
+                                        {% endif %}
                                     </label>
                                 </div>
                             </div>
-                            <div class="col-md-4">
-                                <div class="form-check form-check-card h-100">
-                                    <input class="form-check-input yle-level-radio" type="radio" name="current_level" id="level_movers" value="MOVERS">
-                                    <label class="form-check-label d-block p-3 border rounded cursor-pointer" for="level_movers">
-                                        <div class="text-center">
-                                            <div class="avatar-md mx-auto mb-3">
-                                                <span class="avatar-title bg-warning text-white rounded-circle fs-2">
-                                                    <i class="ri-run-line"></i>
-                                                </span>
-                                            </div>
-                                            <h5 class="mb-1 text-warning">A1 Movers</h5>
-                                            <p class="text-muted mb-2 small">Elementary Level</p>
-                                            <span class="badge bg-warning-subtle text-warning">Ages 8-10</span>
-                                        </div>
-                                        <hr class="my-3">
-                                        <ul class="list-unstyled text-muted small mb-0">
-                                            <li class="mb-1"><i class="ri-check-line text-success me-2"></i>Expanded vocabulary</li>
-                                            <li class="mb-1"><i class="ri-check-line text-success me-2"></i>Short conversations</li>
-                                            <li><i class="ri-check-line text-success me-2"></i>Reading & writing intro</li>
-                                        </ul>
-                                    </label>
+                            {% empty %}
+                            <div class="col-12">
+                                <div class="alert alert-warning border-0 mb-0">
+                                    <i class="ri-error-warning-line me-1"></i>
+                                    No active levels. Add levels in Academic Management &rarr; YLE Levels before enrolling students.
                                 </div>
                             </div>
-                            <div class="col-md-4">
-                                <div class="form-check form-check-card h-100">
-                                    <input class="form-check-input yle-level-radio" type="radio" name="current_level" id="level_flyers" value="FLYERS">
-                                    <label class="form-check-label d-block p-3 border rounded cursor-pointer" for="level_flyers">
-                                        <div class="text-center">
-                                            <div class="avatar-md mx-auto mb-3">
-                                                <span class="avatar-title bg-success text-white rounded-circle fs-2">
-                                                    <i class="ri-rocket-line"></i>
-                                                </span>
-                                            </div>
-                                            <h5 class="mb-1 text-success">A2 Flyers</h5>
-                                            <p class="text-muted mb-2 small">Pre-Intermediate Level</p>
-                                            <span class="badge bg-success-subtle text-success">Ages 10-12</span>
-                                        </div>
-                                        <hr class="my-3">
-                                        <ul class="list-unstyled text-muted small mb-0">
-                                            <li class="mb-1"><i class="ri-check-line text-success me-2"></i>Advanced vocabulary</li>
-                                            <li class="mb-1"><i class="ri-check-line text-success me-2"></i>Complex sentences</li>
-                                            <li><i class="ri-check-line text-success me-2"></i>All four skills</li>
-                                        </ul>
-                                    </label>
-                                </div>
-                            </div>
+                            {% endfor %}
                         </div>
+
+                        <!-- Class Allocation -->
+                        <fieldset class="mt-4">
+                            <legend class="h6 text-uppercase fw-semibold text-primary mb-2">
+                                <i class="ri-team-line me-2"></i>Class Allocation
+                            </legend>
+                            <p class="text-muted small mb-3">
+                                Classes for the selected level. Classes that match the parent's preferred days and times are listed first.
+                                <strong>Once enrolled, the class can only be changed through a transfer request or promotion.</strong>
+                            </p>
+
+                            <div id="classOptions" class="row g-2" role="radiogroup" aria-label="Class"></div>
+
+                            <div id="noClassAvailable" class="alert alert-warning border-0 mt-2 mb-0" style="display: none;">
+                                <i class="ri-error-warning-line me-1"></i>
+                                <span id="noClassMessage"></span>
+                                You can enroll without a class and assign one later from the student's Edit page.
+                            </div>
+                        </fieldset>
+                        {{ class_options|json_script:"class-options-data" }}
                     </div>
 
                     <!-- Step 3: Account Setup & Review -->
@@ -794,7 +787,11 @@ legend {
                                     </div>
                                     <div class="col-md-4">
                                         <small class="text-muted d-block">Selected YLE Level</small>
-                                        <strong id="review-yle-level">Pre A1 Starters</strong>
+                                        <strong id="review-yle-level">-</strong>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <small class="text-muted d-block">Class</small>
+                                        <strong id="review-class">-</strong>
                                     </div>
                                     <div class="col-md-4">
                                         <small class="text-muted d-block">Initial Password</small>
@@ -875,24 +872,14 @@ $(document).ready(function() {
     // YLE Level card selection
     // ========================================
     $('.yle-level-radio').on('change', function() {
-        // Remove all selection styling
-        $('.form-check-card label').removeClass('border-info bg-info-subtle border-warning bg-warning-subtle border-success bg-success-subtle');
-
-        // Add styling based on selection
-        var level = $(this).val();
-        var label = $(this).siblings('label');
-
-        if (level === 'STARTERS') {
-            label.addClass('border-info bg-info-subtle');
-        } else if (level === 'MOVERS') {
-            label.addClass('border-warning bg-warning-subtle');
-        } else if (level === 'FLYERS') {
-            label.addClass('border-success bg-success-subtle');
-        }
+        // Highlight the selected level card
+        $('.yle-level-radio').siblings('label').removeClass('border-primary bg-primary-subtle');
+        $('.yle-level-radio:checked').siblings('label').addClass('border-primary bg-primary-subtle');
 
         // Update review summary
         updateReviewSummary();
     });
+    $('.yle-level-radio:checked').siblings('label').addClass('border-primary bg-primary-subtle');
 
     // ========================================
     // Generate Password
@@ -1149,17 +1136,93 @@ $(document).ready(function() {
     // ========================================
     function updateReviewSummary() {
         // Update YLE Level
-        var selectedLevel = $('input[name="current_level"]:checked').val();
-        var levelDisplayMap = {
-            'STARTERS': 'Pre A1 Starters',
-            'MOVERS': 'A1 Movers',
-            'FLYERS': 'A2 Flyers'
-        };
-        $('#review-yle-level').text(levelDisplayMap[selectedLevel] || '-');
+        var $selectedLevel = $('input[name="current_level"]:checked');
+        $('#review-yle-level').text($selectedLevel.length ? $selectedLevel.data('name') : '-');
+
+        // Update Class
+        var $class = $('input[name="assigned_class"]:checked');
+        $('#review-class').text($class.length && $class.val() ? $class.data('label') : 'Not assigned');
 
         // Update Password
         $('#review-password').text($('#password').val() || '-');
     }
+
+    // ========================================
+    // Class Allocation
+    // ========================================
+    var classOptions = JSON.parse(document.getElementById('class-options-data').textContent);
+    var matchBadges = {
+        'full': '<span class="badge bg-success-subtle text-success"><i class="ri-star-line me-1"></i>Matches preference</span>',
+        'partial': '<span class="badge bg-info-subtle text-info">Partly matches preference</span>',
+        'none': '<span class="badge bg-light text-muted">Different days/times</span>'
+    };
+
+    function escapeHtml(value) {
+        return $('<div>').text(value == null ? '' : String(value)).html().replace(/"/g, '&quot;');
+    }
+
+    function renderClassOptions() {
+        var level = $('input[name="current_level"]:checked').val();
+        var previous = $('input[name="assigned_class"]:checked').val();
+        var forLevel = classOptions.filter(function(o) { return o.level === level; });
+        var available = forLevel.filter(function(o) { return !o.is_full; });
+        var $container = $('#classOptions').empty();
+
+        forLevel.forEach(function(o) {
+            var id = 'class_' + o.id;
+            var details = [];
+            if (o.schedule) details.push('<i class="ri-calendar-line me-1"></i>' + escapeHtml(o.schedule));
+            if (o.teachers) details.push('<i class="ri-user-star-line me-1"></i>' + escapeHtml(o.teachers));
+            if (o.location || o.room) {
+                details.push('<i class="ri-building-line me-1"></i>' + escapeHtml([o.location, o.room ? 'Room ' + o.room : ''].filter(Boolean).join(' · ')));
+            }
+            var seats = o.is_full
+                ? '<span class="badge bg-danger-subtle text-danger">Full</span>'
+                : '<span class="badge bg-primary-subtle text-primary">' + o.seats_left + ' of ' + o.max_students + ' seats left</span>';
+
+            $container.append(
+                '<div class="col-md-6">' +
+                  '<div class="form-check border rounded p-3 ps-5 h-100' + (o.is_full ? ' bg-light opacity-75' : '') + '">' +
+                    '<input class="form-check-input" type="radio" name="assigned_class" id="' + id + '" value="' + o.id + '"' +
+                      ' data-label="' + escapeHtml(o.label) + '"' + (o.is_full ? ' disabled' : '') + '>' +
+                    '<label class="form-check-label w-100" for="' + id + '">' +
+                      '<span class="d-flex flex-wrap justify-content-between gap-1 mb-1">' +
+                        '<strong>' + escapeHtml(o.label) + '</strong>' + seats +
+                      '</span>' +
+                      '<small class="text-muted d-block">' + (details.join('<br>') || 'No schedule set') + '</small>' +
+                      (matchBadges[o.match] ? '<span class="d-block mt-2">' + matchBadges[o.match] + '</span>' : '') +
+                    '</label>' +
+                  '</div>' +
+                '</div>'
+            );
+        });
+
+        // Keep the previous choice if still valid, otherwise pre-select the best available match
+        var $previous = $container.find('input[value="' + previous + '"]:not(:disabled)');
+        if ($previous.length) {
+            $previous.prop('checked', true);
+        } else if (available.length) {
+            $container.find('input[value="' + available[0].id + '"]').prop('checked', true);
+        }
+
+        if (available.length) {
+            $container.append(
+                '<div class="col-12"><div class="form-check">' +
+                  '<input class="form-check-input" type="radio" name="assigned_class" id="class_none" value="" data-label="Not assigned">' +
+                  '<label class="form-check-label text-muted small" for="class_none">Enroll without a class for now</label>' +
+                '</div></div>'
+            );
+            $('#noClassAvailable').hide();
+        } else {
+            $('#noClassMessage').text(forLevel.length
+                ? 'All classes for this level are full.'
+                : 'There are no active classes for this level yet.');
+            $('#noClassAvailable').show();
+        }
+    }
+
+    $('input[name="current_level"]').on('change', renderClassOptions);
+    renderClassOptions();
 
     // ========================================
     // Initialize

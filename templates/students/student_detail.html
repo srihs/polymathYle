@@ -52,6 +52,10 @@
                                         <span class="badge bg-success-subtle text-success">
                                             <i class="ri-rocket-line me-1"></i>A2 Flyers
                                         </span>
+                                    {% else %}
+                                        <span class="badge bg-primary-subtle text-primary">
+                                            <i class="{{ student.level.icon|default:'ri-medal-line' }} me-1"></i>{{ student.get_current_level_display }}
+                                        </span>
                                     {% endif %}
                                     {% if student.is_active %}
                                         <span class="badge bg-success-subtle text-success">
@@ -337,6 +341,18 @@
                             <div>
                                 <strong class="d-block text-success">A2 Flyers</strong>
                                 <small class="text-muted">Pre-Intermediate Level (Ages 10-12)</small>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="d-flex align-items-center p-3 border rounded bg-primary-subtle">
+                            <div class="avatar-sm me-3">
+                                <span class="avatar-title rounded-circle" style="background-color: {{ student.level.color_theme|default:'#405189' }};">
+                                    <i class="{{ student.level.icon|default:'ri-medal-line' }} fs-4 text-white"></i>
+                                </span>
+                            </div>
+                            <div>
+                                <strong class="d-block text-primary">{{ student.get_current_level_display }}</strong>
+                                {% if student.level %}<small class="text-muted">{% if student.level.cefr_level %}CEFR {{ student.level.cefr_level }} · {% endif %}Ages {{ student.level.age_range_min }}-{{ student.level.age_range_max }}</small>{% endif %}
                             </div>
                         </div>
                     {% endif %}

@@ -407,15 +407,11 @@ class Student(models.Model):
     # CURRENT SCHOOL
     current_school = models.CharField(max_length=200, blank=True)
 
-    # YLE LEVEL ASSIGNMENT
-    LEVEL_CHOICES = [
-        ('STARTERS', 'Pre A1 Starters'),
-        ('MOVERS', 'A1 Movers'),
-        ('FLYERS', 'A2 Flyers'),
-    ]
+    # LEVEL ASSIGNMENT
+    # Short code of a courses.YLELevel (e.g. STARTERS, KET, FCE); the level list is managed
+    # in Academic Management -> YLE Levels, so no fixed choices here.
     current_level = models.CharField(
         max_length=20,
-        choices=LEVEL_CHOICES,
         default='STARTERS'
     )
 
@@ -447,6 +443,17 @@ class Student(models.Model):
 
     def __str__(self):
         return f"{self.admission_number} - {self.full_name} ({self.current_level})"
+
+    @property
+    def level(self):
+        """The courses.YLELevel matching current_level, or None."""
+        if not hasattr(self, '_level_cache'):
+            from courses.models import YLELevel
+            self._level_cache = YLELevel.objects.filter(short_code__iexact=self.current_level).first()
+        return self._level_cache
+
+    def get_current_level_display(self):
+        return self.level.name if self.level else self.current_level
 
     def calculate_age(self):
         """Calculate current age from date of birth"""

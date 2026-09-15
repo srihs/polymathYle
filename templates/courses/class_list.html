@@ -211,7 +211,6 @@
                                     <th scope="col">Teacher</th>
                                     <th scope="col" class="text-center">Enrollment</th>
                                     <th scope="col">Schedule</th>
-                                    <th scope="col">Duration</th>
                                     <th scope="col">Status</th>
                                     <th scope="col" class="text-end">Actions</th>
                                 </tr>
@@ -232,6 +231,7 @@
                                                 </a>
                                                 <p class="text-muted mb-0 small">
                                                     <i class="ri-code-line me-1"></i>{{ class.class_code }}
+                                                    <span class="ms-2"><i class="ri-building-line me-1"></i>{{ class.get_location_display|default:"No location" }}</span>
                                                 </p>
                                             </div>
                                         </div>
@@ -317,11 +317,6 @@
                                         {% else %}
                                         <span class="text-muted small">No schedule</span>
                                         {% endif %}
-                                    </td>
-                                    <td>
-                                        <small class="text-muted">
-                                            {{ class.start_date|date:"M d" }} - {{ class.end_date|date:"M d, Y" }}
-                                        </small>
                                     </td>
                                     <td>
                                         {% if class.is_active %}
@@ -460,12 +455,12 @@
                                     <div class="border-top pt-3">
                                         <div class="row g-2 text-center">
                                             <div class="col-6">
-                                                <p class="text-muted mb-1 small">Room</p>
-                                                <h6 class="mb-0">{{ class.room_number|default:"TBA" }}</h6>
+                                                <p class="text-muted mb-1 small">Location</p>
+                                                <h6 class="mb-0">{{ class.get_location_display|default:"Not set" }}</h6>
                                             </div>
                                             <div class="col-6">
-                                                <p class="text-muted mb-1 small">Duration</p>
-                                                <h6 class="mb-0 small">{{ class.start_date|date:"M d" }} - {{ class.end_date|date:"M d" }}</h6>
+                                                <p class="text-muted mb-1 small">Room</p>
+                                                <h6 class="mb-0">{{ class.room_number|default:"TBA" }}</h6>
                                             </div>
                                         </div>
                                     </div>

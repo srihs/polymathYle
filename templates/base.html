@@ -530,6 +530,14 @@
                     </div>
                 </div>
                 <!-- end page title -->
+                {% block messages %}
+                {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                    <i class="ri-{% if message.tags == 'success' %}checkbox-circle{% elif message.tags == 'error' or message.tags == 'warning' %}error-warning{% else %}information{% endif %}-line me-2"></i>{{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+                {% endblock %}
                 {% block content %}
                 {% endblock %}
 

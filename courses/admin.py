@@ -12,8 +12,8 @@ class YLELevelAdmin(admin.ModelAdmin):
 
 @admin.register(Class)
 class ClassAdmin(admin.ModelAdmin):
-    list_display = ['class_code', 'level', 'class_name', 'teacher', 'current_enrollment', 'max_students', 'is_active']
-    list_filter = ['level', 'is_active', 'start_date', 'teacher']
+    list_display = ['class_code', 'level', 'class_name', 'location', 'teacher', 'current_enrollment', 'max_students', 'is_active']
+    list_filter = ['level', 'location', 'is_active', 'teacher']
     search_fields = ['class_name', 'class_code', 'teacher__full_name']
     readonly_fields = ['current_enrollment', 'created_at', 'updated_at']
 
@@ -25,7 +25,7 @@ class ClassAdmin(admin.ModelAdmin):
             'fields': ('teacher',)
         }),
         ('Schedule', {
-            'fields': ('schedule', 'room_number')
+            'fields': ('schedule', 'location', 'room_number')
         }),
         ('Capacity', {
             'fields': ('max_students', 'current_enrollment')

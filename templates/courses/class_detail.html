@@ -84,7 +84,7 @@
 
 <!-- Statistics Cards -->
 <div class="row">
-    <div class="col-xl-3 col-md-6">
+    <div class="col-xl-4 col-md-6">
         <div class="card card-animate">
             <div class="card-body">
                 <div class="d-flex justify-content-between">
@@ -109,7 +109,7 @@
         </div>
     </div>
 
-    <div class="col-xl-3 col-md-6">
+    <div class="col-xl-4 col-md-6">
         <div class="card card-animate">
             <div class="card-body">
                 <div class="d-flex justify-content-between">
@@ -130,30 +130,7 @@
         </div>
     </div>
 
-    <div class="col-xl-3 col-md-6">
-        <div class="card card-animate">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <p class="text-uppercase fw-medium text-muted text-truncate mb-3">Class Duration</p>
-                        <h4 class="fs-22 fw-semibold mb-1">
-                            {% widthratio 1 1 1 %}
-                            <span class="counter-value">{{ duration_weeks|default:"--" }}</span>
-                            <span class="text-muted fs-6">weeks</span>
-                        </h4>
-                        <p class="text-muted mb-0">{{ class.start_date|date:"M d" }} - {{ class.end_date|date:"M d, Y" }}</p>
-                    </div>
-                    <div class="avatar-sm flex-shrink-0">
-                        <span class="avatar-title bg-info-subtle rounded-circle fs-3">
-                            <i class="ri-calendar-line text-info"></i>
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-xl-3 col-md-6">
+    <div class="col-xl-4 col-md-6">
         <div class="card card-animate">
             <div class="card-body">
                 <div class="d-flex justify-content-between">
@@ -208,21 +185,15 @@
                             </tr>
                             <tr>
                                 <th class="ps-0 text-muted">
+                                    <i class="ri-building-line me-2"></i>Location
+                                </th>
+                                <td class="fw-medium">{{ class.get_location_display|default:"Not set" }}</td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0 text-muted">
                                     <i class="ri-map-pin-line me-2"></i>Room
                                 </th>
                                 <td class="fw-medium">{{ class.room_number|default:"Not assigned" }}</td>
-                            </tr>
-                            <tr>
-                                <th class="ps-0 text-muted">
-                                    <i class="ri-calendar-line me-2"></i>Start Date
-                                </th>
-                                <td class="fw-medium">{{ class.start_date|date:"F d, Y" }}</td>
-                            </tr>
-                            <tr>
-                                <th class="ps-0 text-muted">
-                                    <i class="ri-calendar-check-line me-2"></i>End Date
-                                </th>
-                                <td class="fw-medium">{{ class.end_date|date:"F d, Y" }}</td>
                             </tr>
                             <tr>
                                 <th class="ps-0 text-muted">

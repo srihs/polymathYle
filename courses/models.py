@@ -63,12 +63,21 @@ class Class(models.Model):
     max_students = models.IntegerField(default=25)
     current_enrollment = models.IntegerField(default=0)
 
-    # Room/Location
+    # Location (branch) and room
+    LOCATION_CHOICES = [
+        ('NAWINNA', 'Nawinna'),
+        ('WATTEGEDARA', 'Wattegedara'),
+        ('KOTTAWA', 'Kottawa'),
+    ]
+    # Required (forms and admin). Classes created before this field existed are left empty
+    # by the migration and must be given a location when next edited.
+    location = models.CharField(max_length=20, choices=LOCATION_CHOICES)
     room_number = models.CharField(max_length=50, blank=True)
 
     # Academic period
-    start_date = models.DateField()
-    end_date = models.DateField()
+    # Optional: classes can run open-ended
+    start_date = models.DateField(null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
 
     # Status
     is_active = models.BooleanField(default=True)

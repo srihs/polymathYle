@@ -88,6 +88,21 @@
                                 </div>
                             </div>
                             <div class="col-md-6">
+                                <label for="location" class="form-label">
+                                    Location <span class="text-danger" aria-label="required">*</span>
+                                </label>
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text"><i class="ri-building-line"></i></span>
+                                    <select class="form-select" id="location" name="location" required>
+                                        <option value="" {% if not class.location %}selected{% endif %} disabled>Select Location</option>
+                                        {% for value, label in locations %}
+                                        <option value="{{ value }}" {% if class.location == value %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="invalid-feedback">Please select the class location.</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
                                 <label for="room_number" class="form-label">Room Number</label>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="ri-map-pin-line"></i></span>
@@ -124,45 +139,6 @@
                                            required>
                                     <span class="input-group-text">students</span>
                                     <div class="invalid-feedback">Please enter a valid capacity (1-50).</div>
-                                </div>
-                            </div>
-                        </div>
-                    </fieldset>
-
-                    <!-- Duration Section -->
-                    <fieldset class="mb-4">
-                        <legend class="h6 text-uppercase fw-semibold text-primary mb-3">
-                            <i class="ri-calendar-line me-2"></i>Class Duration
-                        </legend>
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label for="start_date" class="form-label">
-                                    Start Date <span class="text-danger" aria-label="required">*</span>
-                                </label>
-                                <div class="input-group has-validation">
-                                    <span class="input-group-text"><i class="ri-calendar-line"></i></span>
-                                    <input type="date"
-                                           class="form-control"
-                                           id="start_date"
-                                           name="start_date"
-                                           value="{{ class.start_date|date:'Y-m-d'|default:'' }}"
-                                           required>
-                                    <div class="invalid-feedback">Please select a start date.</div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="end_date" class="form-label">
-                                    End Date <span class="text-danger" aria-label="required">*</span>
-                                </label>
-                                <div class="input-group has-validation">
-                                    <span class="input-group-text"><i class="ri-calendar-check-line"></i></span>
-                                    <input type="date"
-                                           class="form-control"
-                                           id="end_date"
-                                           name="end_date"
-                                           value="{{ class.end_date|date:'Y-m-d'|default:'' }}"
-                                           required>
-                                    <div class="invalid-feedback">Please select an end date after start date.</div>
                                 </div>
                             </div>
                         </div>
@@ -507,21 +483,6 @@ $(document).ready(function() {
                 errorDiv.css('display', 'none');
             }
         }
-    });
-
-    // Date validation
-    $('#end_date').on('change', function() {
-        var startDate = $('#start_date').val();
-        var endDate = $(this).val();
-        if (startDate && endDate && endDate < startDate) {
-            $(this).addClass('is-invalid');
-        } else {
-            $(this).removeClass('is-invalid');
-        }
-    });
-
-    $('#start_date').on('change', function() {
-        $('#end_date').trigger('change');
     });
 
     // Form validation

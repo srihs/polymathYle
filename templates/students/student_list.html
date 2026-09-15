@@ -125,9 +125,9 @@
                             <label for="level" class="form-label">YLE Level</label>
                             <select class="form-select" id="level" name="level" aria-label="Filter by YLE level">
                                 <option value="">All Levels</option>
-                                <option value="STARTERS" {% if level_filter == 'STARTERS' %}selected{% endif %}>Pre A1 Starters</option>
-                                <option value="MOVERS" {% if level_filter == 'MOVERS' %}selected{% endif %}>A1 Movers</option>
-                                <option value="FLYERS" {% if level_filter == 'FLYERS' %}selected{% endif %}>A2 Flyers</option>
+                                {% for level in levels %}
+                                <option value="{{ level.short_code }}" {% if level_filter == level.short_code %}selected{% endif %}>{{ level.name }}</option>
+                                {% endfor %}
                             </select>
                         </div>
                         <div class="col-lg-2 col-md-6">
@@ -291,6 +291,10 @@
                                                     <span class="badge bg-success-subtle text-success" title="A2 Flyers">
                                                         <i class="ri-rocket-line me-1"></i>Flyers
                                                     </span>
+                                                {% else %}
+                                                    <span class="badge bg-primary-subtle text-primary" title="{{ student.get_current_level_display }}">
+                                                        <i class="{{ student.level.icon|default:'ri-medal-line' }} me-1"></i>{{ student.get_current_level_display }}
+                                                    </span>
                                                 {% endif %}
                                             </td>
                                             <td>
@@ -397,8 +401,10 @@
                                                                 <span class="text-info">Starters</span>
                                                             {% elif student.current_level == 'MOVERS' %}
                                                                 <span class="text-warning">Movers</span>
-                                                            {% else %}
+                                                            {% elif student.current_level == 'FLYERS' %}
                                                                 <span class="text-success">Flyers</span>
+                                                            {% else %}
+                                                                <span class="text-primary">{{ student.get_current_level_display }}</span>
                                                             {% endif %}
                                                         </h6>
                                                     </div>

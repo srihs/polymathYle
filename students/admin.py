@@ -76,6 +76,13 @@ class StudentAdmin(admin.ModelAdmin):
     list_filter = ('current_level', 'is_active', 'gender')
     search_fields = ('full_name', 'admission_number', 'student_email')
 
+    def get_readonly_fields(self, request, obj=None):
+        readonly = list(super().get_readonly_fields(request, obj))
+        # Once assigned, a class changes only through a transfer request or promotion
+        if obj and obj.assigned_class_id:
+            readonly.append('assigned_class')
+        return readonly
+
 
 @admin.register(StudentBadge)
 class StudentBadgeAdmin(admin.ModelAdmin):

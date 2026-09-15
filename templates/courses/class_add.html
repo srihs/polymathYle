@@ -117,6 +117,18 @@
                         <div class="row g-3">
                             <div class="col-md-4">
                                 <div class="input-group has-validation">
+                                    <span class="input-group-text"><i class="ri-building-line"></i></span>
+                                    <select class="form-select" id="location" name="location" required>
+                                        <option value="" disabled selected>Select Location *</option>
+                                        {% for value, label in locations %}
+                                        <option value="{{ value }}">{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="invalid-feedback">Please select the class location.</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="input-group has-validation">
                                     <span class="input-group-text"><i class="ri-user-line"></i></span>
                                     <input type="number"
                                            class="form-control"
@@ -144,34 +156,6 @@
                                            autocomplete="off">
                                 </div>
                             </div>
-                            <div class="col-md-4">
-                                <div class="input-group has-validation">
-                                    <span class="input-group-text"><i class="ri-calendar-check-line"></i></span>
-                                    <input type="text"
-                                           class="form-control flatpickr-input"
-                                           id="start_date"
-                                           name="start_date"
-                                           placeholder="Start Date *"
-                                           data-provider="flatpickr"
-                                           data-date-format="Y-m-d"
-                                           required>
-                                    <div class="invalid-feedback">Please select a start date.</div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="input-group has-validation">
-                                    <span class="input-group-text"><i class="ri-calendar-close-line"></i></span>
-                                    <input type="text"
-                                           class="form-control flatpickr-input"
-                                           id="end_date"
-                                           name="end_date"
-                                           placeholder="End Date *"
-                                           data-provider="flatpickr"
-                                           data-date-format="Y-m-d"
-                                           required>
-                                    <div class="invalid-feedback">Please select an end date.</div>
-                                </div>
-                            </div>
                         </div>
                     </fieldset>
 
@@ -192,10 +176,9 @@
                                     <div class="d-flex flex-wrap gap-2 mb-2">
                                         <span class="badge bg-white bg-opacity-25 text-white" id="previewCode">CODE</span>
                                         <span class="badge bg-white bg-opacity-25 text-white" id="previewLevel">Level</span>
+                                        <span class="badge bg-white bg-opacity-25 text-white" id="previewLocation"><i class="ri-building-line me-1"></i>Location</span>
                                     </div>
                                     <div class="text-white small opacity-75">
-                                        <i class="ri-calendar-line me-1"></i><span id="previewDates">Select dates</span>
-                                        <span class="mx-2">|</span>
                                         <i class="ri-user-line me-1"></i><span id="previewCapacity">0</span> students max
                                     </div>
                                 </div>
@@ -233,7 +216,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <!-- Teacher data for JavaScript -->
 <script type="application/json" id="teacherData">
 [{% for teacher in teachers %}{"id": {{ teacher.id }}, "name": "{{ teacher.full_name|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}]
@@ -242,26 +224,6 @@
 $(document).ready(function() {
     // Parse teacher data
     const teachers = JSON.parse(document.getElementById('teacherData').textContent);
-    // Initialize Flatpickr for date inputs
-    const startDatePicker = flatpickr('#start_date', {
-        dateFormat: 'Y-m-d',
-        altInput: true,
-        altFormat: 'F j, Y',
-        minDate: 'today',
-        disableMobile: true,
-        onChange: function(selectedDates, dateStr) {
-            if (selectedDates.length > 0) {
-                endDatePicker.set('minDate', dateStr);
-            }
-        }
-    });
-
-    const endDatePicker = flatpickr('#end_date', {
-        dateFormat: 'Y-m-d',
-        altInput: true,
-        altFormat: 'F j, Y',
-        disableMobile: true
-    });
     let scheduleCount = 0;
 
     // Schedule item template
@@ -355,25 +317,15 @@ $(document).ready(function() {
         const className = $('#class_name').val() || 'Class Name';
         const classCode = $('#class_code').val() || 'CODE';
         const levelText = $('#level option:selected').text() || 'Level';
-        const startDate = $('#start_date').val();
-        const endDate = $('#end_date').val();
         const maxStudents = $('#max_students').val() || '0';
 
         $('#previewName').text(className);
         $('#previewCode').text(classCode);
         $('#previewLevel').text(levelText);
         $('#previewCapacity').text(maxStudents);
-
-        if (startDate && endDate) {
-            const start = new Date(startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-            const end = new Date(endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-            $('#previewDates').text(start + ' - ' + end);
-        } else if (startDate) {
-            const start = new Date(startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-            $('#previewDates').text('Starting ' + start);
-        } else {
-            $('#previewDates').text('Select dates');
-        }
+        $('#previewLocation').html('<i class="ri-building-line me-1"></i>').append(
+            document.createTextNode($('#location').val() ? $('#location option:selected').text() : 'Location')
+        );
 
         // Update preview color based on level
         const levelId = $('#level').val();
@@ -389,27 +341,12 @@ $(document).ready(function() {
     }
 
     // Bind preview updates
-    $('#class_name, #class_code, #level, #start_date, #end_date, #max_students').on('input change', updatePreview);
+    $('#class_name, #class_code, #level, #location, #max_students').on('input change', updatePreview);
 
     // Auto-uppercase class code
     $('#class_code').on('input', function() {
         $(this).val($(this).val().toUpperCase());
     });
-
-    // Date range validation
-    $('#start_date, #end_date').on('change', function() {
-        const startDate = $('#start_date').val();
-        const endDate = $('#end_date').val();
-
-        if (startDate && endDate && new Date(startDate) >= new Date(endDate)) {
-            $('#end_date').addClass('is-invalid');
-            $('#end_date').siblings('.invalid-feedback').text('End date must be after start date.');
-        } else {
-            $('#end_date').removeClass('is-invalid');
-        }
-    });
-
-    // Note: Date min/max validation is handled by flatpickr initialization above
 
     // Form validation
     const form = document.getElementById('classForm');
@@ -498,8 +435,8 @@ $(document).ready(function() {
             $('.badge').eq(1).removeClass('bg-success text-white').addClass('bg-light text-muted');
         }
 
-        // Check Configuration (dates and max_students)
-        if ($('#start_date').val() && $('#end_date').val() && $('#max_students').val()) {
+        // Check Configuration (max_students)
+        if ($('#max_students').val()) {
             progress += 1;
             $('.badge').eq(2).removeClass('bg-light text-muted').addClass('bg-success text-white');
         } else {
@@ -511,7 +448,7 @@ $(document).ready(function() {
     }
 
     // Bind progress update to input changes
-    $('#class_name, #class_code, #level, #start_date, #end_date, #max_students').on('input change', updateProgress);
+    $('#class_name, #class_code, #level, #location, #max_students').on('input change', updateProgress);
     $(document).on('input change', 'select[name="schedule_day"], input[name="schedule_from_time"], input[name="schedule_to_time"]', updateProgress);
 
     // Initial updates

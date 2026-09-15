@@ -250,21 +250,15 @@
                                                     <h6 class="mb-0 text-truncate">{{ class.level.name|default:"N/A" }}</h6>
                                                 </div>
                                                 <div class="col-4">
-                                                    <p class="text-muted mb-1 small">Room</p>
-                                                    <h6 class="mb-0">{{ class.room_number|default:"N/A" }}</h6>
+                                                    <p class="text-muted mb-1 small">Location</p>
+                                                    <h6 class="mb-0">{{ class.get_location_display|default:"N/A" }}</h6>
+                                                    {% if class.room_number %}<small class="text-muted">Room {{ class.room_number }}</small>{% endif %}
                                                 </div>
                                                 <div class="col-4">
                                                     <p class="text-muted mb-1 small">Students</p>
                                                     <h6 class="mb-0">{{ class.current_enrollment }}</h6>
                                                 </div>
                                             </div>
-                                        </div>
-
-                                        <div class="mt-3">
-                                            <p class="text-muted small mb-2">
-                                                <i class="ri-calendar-line me-1"></i>
-                                                {{ class.start_date|date:"M d, Y" }} - {{ class.end_date|date:"M d, Y" }}
-                                            </p>
                                         </div>
 
                                         <div class="d-flex gap-2 mt-3">

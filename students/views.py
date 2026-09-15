@@ -1,11 +1,14 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
+from django.db import transaction
 from django.db.models import Avg, Count, Q
 from django.urls import reverse
 from datetime import datetime, timedelta, date
 from .models import Application, Student, Guardian, Attendance, QRAttendance, StudentBadge
 from .forms import ApplicationForm
+from .class_allocation import ClassAssignmentError, assign_class, class_options, schedule_summary
+from courses.models import YLELevel
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
@@ -14,6 +17,13 @@ import json
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+def _levels_with_class_counts():
+    """Active levels in display order, each with class_count (active classes)."""
+    return YLELevel.objects.filter(is_active=True).annotate(
+        class_count=Count('classes', filter=Q(classes__is_active=True))
+    ).order_by('order', 'id')
 
 
 def apply_view(request):
@@ -192,6 +202,7 @@ def student_list_view(request):
         'students': page_obj.object_list,
         'search_query': search_query,
         'level_filter': level_filter,
+        'levels': YLELevel.objects.filter(is_active=True).order_by('order', 'id'),
         'status_filter': status_filter,
         'class_filter': class_filter,
         'sort_by': sort_by,
@@ -265,30 +276,38 @@ def student_edit_view(request, student_id):
         student.primary_contact_number = request.POST.get('primary_contact_number', student.primary_contact_number)
         student.whatsapp_number = request.POST.get('whatsapp_number', student.whatsapp_number)
         student.current_school = request.POST.get('current_school', student.current_school)
-        student.current_level = request.POST.get('current_level', student.current_level)
+        new_level = request.POST.get('current_level', student.current_level)
+        if not YLELevel.objects.filter(short_code=new_level, is_active=True).exists() and new_level != student.current_level:
+            messages.error(request, 'Please select a valid level.')
+            return redirect('student_edit', student_id=student.id)
+        student.current_level = new_level
         student.is_active = request.POST.get('is_active') == 'on'
-
-        # Handle class assignment
-        class_id = request.POST.get('assigned_class')
-        if class_id:
-            from courses.models import Class
-            student.assigned_class = get_object_or_404(Class, id=class_id)
 
         # Handle profile picture upload
         if 'profile_picture' in request.FILES:
             student.profile_picture = request.FILES['profile_picture']
 
-        student.save()
+        # Class can be assigned here only if the student has none yet;
+        # once assigned it changes only through a transfer request or promotion
+        class_id = request.POST.get('assigned_class')
+        try:
+            with transaction.atomic():
+                if class_id and not student.assigned_class_id:
+                    assign_class(student, class_id)
+                student.save()
+        except ClassAssignmentError as e:
+            messages.error(request, str(e))
+            return redirect('student_edit', student_id=student.id)
+
         messages.success(request, 'Student profile updated successfully!')
         return redirect('student_detail', student_id=student.id)
 
-    # Get classes for dropdown
-    from courses.models import Class
-    classes = Class.objects.filter(is_active=True)
-
     context = {
         'student': student,
-        'classes': classes,
+        'levels': _levels_with_class_counts(),
+        'class_options': [] if student.assigned_class_id else class_options(
+            student.application.schedule_preferences if student.application_id else None
+        ),
     }
 
     return render(request, 'students/student_edit.html', context)
@@ -435,75 +454,113 @@ def student_enroll_view(request, application_id):
         return redirect('application_review', application_id=application.id)
 
     if request.method == 'POST':
-        # Create or get user account
         from django.contrib.auth.models import User, Group
         username = f"student_{application.admission_number.lower().replace('-', '_')}"
+        class_id = request.POST.get('assigned_class')
+        current_level = request.POST.get('current_level', '')
+        if not YLELevel.objects.filter(short_code=current_level, is_active=True).exists():
+            messages.error(request, 'Please select a valid level.')
+            return redirect('student_enroll', application_id=application.id)
 
-        # Check if user already exists
-        user, user_created = User.objects.get_or_create(
-            username=username,
-            defaults={
-                'email': application.student_email or application.primary_contact_email,
-                'first_name': application.full_name.split()[0] if application.full_name else '',
-            }
-        )
+        try:
+            # All or nothing: a full class must not leave a half-created student behind
+            with transaction.atomic():
+                # Create or get user account
+                user, user_created = User.objects.get_or_create(
+                    username=username,
+                    defaults={
+                        'email': application.student_email or application.primary_contact_email,
+                        'first_name': application.full_name.split()[0] if application.full_name else '',
+                    }
+                )
 
-        # Set password only if this is a new user
-        if user_created:
-            user.set_password(request.POST.get('password', 'student123'))
-            user.save()
+                # Set password only if this is a new user
+                if user_created:
+                    user.set_password(request.POST.get('password', 'student123'))
+                    user.save()
 
-        # Add to Students group (create group if it doesn't exist)
-        student_group, created = Group.objects.get_or_create(name='Students')
-        user.groups.add(student_group)
+                # Add to Students group (create group if it doesn't exist)
+                student_group, created = Group.objects.get_or_create(name='Students')
+                user.groups.add(student_group)
 
-        # Create student profile
-        student = Student.objects.create(
-            application=application,
-            user=user,
-            admission_number=application.admission_number,
-            full_name=application.full_name,
-            name_with_initials=application.name_with_initials,
-            date_of_birth=application.date_of_birth,
-            age=application.age,
-            gender=application.gender,
-            nationality=application.nationality,
-            student_email=application.student_email,
-            home_address=application.home_address,
-            primary_contact_number=application.mother_contact_number or application.father_contact_number,
-            whatsapp_number=application.whatsapp_number,
-            current_school=application.current_school,
-            current_level=request.POST.get('current_level', 'STARTERS'),
-        )
+                # Create student profile
+                student = Student(
+                    application=application,
+                    user=user,
+                    admission_number=application.admission_number,
+                    full_name=application.full_name,
+                    name_with_initials=application.name_with_initials,
+                    date_of_birth=application.date_of_birth,
+                    age=application.age,
+                    gender=application.gender,
+                    nationality=application.nationality,
+                    student_email=application.student_email,
+                    home_address=application.home_address,
+                    primary_contact_number=application.mother_contact_number or application.father_contact_number,
+                    whatsapp_number=application.whatsapp_number,
+                    current_school=application.current_school,
+                    current_level=current_level,
+                )
 
-        # Create guardian profiles
-        # Mother
-        if application.mother_name:
-            mother = Guardian.objects.create(
-                full_name=application.mother_name,
-                relationship='MOTHER',
-                contact_number=application.mother_contact_number,
-                email=application.primary_contact_email,
-                occupation=application.mother_occupation,
+                # Class allocation (optional when no class has free seats; can be assigned once later)
+                class_obj = assign_class(student, class_id) if class_id else None
+                student.save()
+
+                if class_obj:
+                    application.selected_class_day = schedule_summary(class_obj)[:100]
+                    application.save(update_fields=['selected_class_day'])
+
+                # Create guardian profiles
+                # Mother
+                if application.mother_name:
+                    mother = Guardian.objects.create(
+                        full_name=application.mother_name,
+                        relationship='MOTHER',
+                        contact_number=application.mother_contact_number,
+                        email=application.primary_contact_email,
+                        occupation=application.mother_occupation,
+                    )
+                    student.guardians.add(mother)
+
+                # Father
+                if application.father_name:
+                    father = Guardian.objects.create(
+                        full_name=application.father_name,
+                        relationship='FATHER',
+                        contact_number=application.father_contact_number,
+                        email=application.primary_contact_email,
+                        occupation=application.father_occupation,
+                    )
+                    student.guardians.add(father)
+        except ClassAssignmentError as e:
+            messages.error(request, f'{e} Please choose another class.')
+            return redirect('student_enroll', application_id=application.id)
+
+        if class_obj:
+            messages.success(
+                request,
+                f'Student enrolled in {class_obj.class_name} successfully! Username: {username}'
             )
-            student.guardians.add(mother)
-
-        # Father
-        if application.father_name:
-            father = Guardian.objects.create(
-                full_name=application.father_name,
-                relationship='FATHER',
-                contact_number=application.father_contact_number,
-                email=application.primary_contact_email,
-                occupation=application.father_occupation,
+        else:
+            messages.warning(
+                request,
+                f'Student enrolled without a class. Username: {username}. '
+                'Assign a class from the student Edit page when a seat is available.'
             )
-            student.guardians.add(father)
-
-        messages.success(request, f'Student enrolled successfully! Username: {username}')
         return redirect('student_detail', student_id=student.id)
+
+    levels = list(_levels_with_class_counts())
+    # Pre-select the level whose age range fits the child most closely, otherwise the first level
+    fitting = [l for l in levels if application.age and l.age_range_min <= application.age <= l.age_range_max]
+    suggested = min(fitting, key=lambda l: (l.age_range_max - l.age_range_min, l.order)) if fitting else (
+        levels[0] if levels else None
+    )
 
     context = {
         'application': application,
+        'class_options': class_options(application.schedule_preferences),
+        'levels': levels,
+        'suggested_level': suggested.short_code if suggested else '',
     }
 
     return render(request, 'students/student_enroll.html', context)
