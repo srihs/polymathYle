@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block PageTitle %}Promote Students - {{ class_obj.class_name }} - Polymath School of English{% endblock %}
+{% block pageTitle %}Promote Students{% endblock %}
+{% block Title %}Classes{% endblock %}
+{% block functionTitle %}{{ class_obj.class_name }}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex align-items-center">
+        <div class="avatar-sm me-3">
+            <span class="avatar-title bg-success-subtle text-success rounded-circle">
+                <i class="ri-arrow-up-circle-line fs-4"></i>
+            </span>
+        </div>
+        <div>
+            <h5 class="card-title mb-0">Promote Students</h5>
+            <p class="text-muted mb-0 small">
+                {{ class_obj.class_name }} ({{ class_obj.class_code }}) · {{ class_obj.level.name }}
+                {% if target_level %}<i class="ri-arrow-right-line mx-1"></i><strong>{{ target_level.name }}</strong>{% endif %}
+            </p>
+        </div>
+    </div>
+    <div class="card-body">
+        {% if not target_level %}
+            <div class="alert alert-info border-0 mb-0">
+                <i class="ri-information-line me-1"></i>
+                {{ class_obj.level.name }} is the highest active level, so there is no level to promote to.
+            </div>
+        {% elif not students %}
+            <div class="alert alert-info border-0 mb-0">
+                <i class="ri-information-line me-1"></i>This class has no active students.
+            </div>
+        {% else %}
+        <form method="post" id="promoteForm">
+            {% csrf_token %}
+
+            <div class="row g-4">
+                <div class="col-lg-6">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="text-uppercase fw-semibold text-muted small mb-0">1. Select students</h6>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="selectAll">
+                            <label class="form-check-label small" for="selectAll">Select all</label>
+                        </div>
+                    </div>
+                    <div class="list-group">
+                        {% for s in students %}
+                        <label class="list-group-item d-flex align-items-center gap-2">
+                            <input class="form-check-input m-0 student-check" type="checkbox" name="students" value="{{ s.id }}">
+                            <span class="flex-grow-1">
+                                <span class="fw-medium">{{ s.full_name }}</span>
+                                <small class="text-muted d-block">{{ s.admission_number }}</small>
+                            </span>
+                            <span class="badge bg-light text-body">{{ s.get_current_level_display }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                    <p class="small text-muted mt-2 mb-0"><span id="selectedCount">0</span> selected</p>
+                </div>
+
+                <div class="col-lg-6">
+                    <h6 class="text-uppercase fw-semibold text-muted small mb-2">2. Choose a {{ target_level.name }} class</h6>
+                    {% if target_options %}
+                    <div class="d-grid gap-2" role="radiogroup" aria-label="Target class">
+                        {% for o in target_options %}
+                        <div class="form-check border rounded p-3 ps-5{% if o.is_full %} bg-light opacity-75{% endif %}">
+                            <input class="form-check-input target-class" type="radio" name="to_class" id="to_{{ o.id }}"
+                                   value="{{ o.id }}" data-seats="{{ o.seats_left }}" required{% if o.is_full %} disabled{% endif %}>
+                            <label class="form-check-label w-100" for="to_{{ o.id }}">
+                                <span class="d-flex flex-wrap justify-content-between gap-1 mb-1">
+                                    <strong>{{ o.label }}</strong>
+                                    {% if o.is_full %}
+                                    <span class="badge bg-danger-subtle text-danger">Full</span>
+                                    {% else %}
+                                    <span class="badge bg-primary-subtle text-primary">{{ o.seats_left }} of {{ o.max_students }} seats left</span>
+                                    {% endif %}
+                                </span>
+                                <small class="text-muted d-block">
+                                    {% if o.location or o.room %}<i class="ri-building-line me-1"></i>{{ o.location }}{% if o.room %} · Room {{ o.room }}{% endif %}<br>{% endif %}
+                                    {% if o.schedule %}<i class="ri-calendar-line me-1"></i>{{ o.schedule }}{% endif %}
+                                </small>
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning border-0">
+                        <i class="ri-error-warning-line me-1"></i>
+                        There are no active {{ target_level.name }} classes. Create one first.
+                    </div>
+                    {% endif %}
+
+                    <div id="seatWarning" class="alert alert-danger border-0 mt-3 mb-0" style="display: none;"></div>
+
+                    <label for="note" class="form-label mt-3">Note (optional)</label>
+                    <textarea class="form-control" id="note" name="note" rows="2" placeholder="e.g. Passed end-of-term assessment"></textarea>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-success" id="promoteBtn" disabled>
+                    <i class="ri-arrow-up-circle-line me-1"></i> Promote Selected
+                </button>
+                <a href="{% url 'class_detail' class_obj.id %}" class="btn btn-light">Cancel</a>
+            </div>
+        </form>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(function() {
+    function refresh() {
+        var selected = $('.student-check:checked').length;
+        var $target = $('.target-class:checked');
+        var seats = $target.length ? parseInt($target.data('seats'), 10) : null;
+        $('#selectedCount').text(selected);
+        $('#selectAll').prop('checked', selected > 0 && selected === $('.student-check').length);
+
+        var tooMany = seats !== null && selected > seats;
+        $('#seatWarning').toggle(tooMany).text(tooMany ? 'The selected class has ' + seats + ' seat(s) left, but ' + selected + ' students are selected.' : '');
+        $('#promoteBtn').prop('disabled', !selected || !$target.length || tooMany);
+    }
+    $('#selectAll').on('change', function() {
+        $('.student-check').prop('checked', this.checked);
+        refresh();
+    });
+    $('.student-check, .target-class').on('change', refresh);
+    $('#promoteForm').on('submit', function(e) {
+        var selected = $('.student-check:checked').length;
+        var target = $('.target-class:checked').closest('.form-check').find('strong').text();
+        if (!confirm('Promote ' + selected + ' student(s) to ' + target + '? Their level and class will change.')) {
+            e.preventDefault();
+        }
+    });
+    refresh();
+});
+</script>
+{% endblock %}

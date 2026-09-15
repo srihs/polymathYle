@@ -4,12 +4,19 @@ from django.contrib import messages
 from django.db import transaction
 from django.db.models import Avg, Count, Q
 from django.urls import reverse
+from urllib.parse import urlencode
 from datetime import datetime, timedelta, date
-from .models import Application, Student, Guardian, Attendance, QRAttendance, StudentBadge
+from .models import (
+    Application, Attendance, ClassTransferRequest, Guardian, QRAttendance, Student, StudentBadge,
+)
 from .forms import ApplicationForm
-from .class_allocation import ClassAssignmentError, assign_class, class_options, schedule_summary
+from .class_allocation import (
+    ClassAssignmentError, approve_transfer, assign_class, class_options, create_transfer_request,
+    next_level, promote_students, record_history, reject_transfer, schedule_summary, transfer_options,
+)
 from courses.models import YLELevel
 from django.core.paginator import Paginator
+from django.core.exceptions import PermissionDenied
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
@@ -254,6 +261,10 @@ def student_detail_view(request, student_id):
         'present_count': present_count,
         'attendance_percentage': attendance_percentage,
         'badges': badges,
+        'class_history': student.class_history.select_related(
+            'from_class', 'to_class', 'changed_by', 'transfer_request'
+        )[:20],
+        'pending_transfer': student.transfer_requests.filter(status='PENDING').select_related('to_class').first(),
     }
 
     return render(request, 'students/student_detail.html', context)
@@ -276,11 +287,13 @@ def student_edit_view(request, student_id):
         student.primary_contact_number = request.POST.get('primary_contact_number', student.primary_contact_number)
         student.whatsapp_number = request.POST.get('whatsapp_number', student.whatsapp_number)
         student.current_school = request.POST.get('current_school', student.current_school)
+        # Level is locked once the student has a class; it then changes only through promotion
         new_level = request.POST.get('current_level', student.current_level)
-        if not YLELevel.objects.filter(short_code=new_level, is_active=True).exists() and new_level != student.current_level:
-            messages.error(request, 'Please select a valid level.')
-            return redirect('student_edit', student_id=student.id)
-        student.current_level = new_level
+        if not student.assigned_class_id:
+            if not YLELevel.objects.filter(short_code=new_level, is_active=True).exists() and new_level != student.current_level:
+                messages.error(request, 'Please select a valid level.')
+                return redirect('student_edit', student_id=student.id)
+            student.current_level = new_level
         student.is_active = request.POST.get('is_active') == 'on'
 
         # Handle profile picture upload
@@ -292,9 +305,11 @@ def student_edit_view(request, student_id):
         class_id = request.POST.get('assigned_class')
         try:
             with transaction.atomic():
-                if class_id and not student.assigned_class_id:
-                    assign_class(student, class_id)
+                newly_assigned = assign_class(student, class_id) if class_id and not student.assigned_class_id else None
                 student.save()
+                if newly_assigned:
+                    record_history(student, 'ASSIGNED', request.user, to_class=newly_assigned,
+                                   to_level=student.current_level)
         except ClassAssignmentError as e:
             messages.error(request, str(e))
             return redirect('student_edit', student_id=student.id)
@@ -505,6 +520,8 @@ def student_enroll_view(request, application_id):
                 # Class allocation (optional when no class has free seats; can be assigned once later)
                 class_obj = assign_class(student, class_id) if class_id else None
                 student.save()
+                record_history(student, 'ENROLLED', request.user, to_class=class_obj,
+                               to_level=student.current_level)
 
                 if class_obj:
                     application.selected_class_day = schedule_summary(class_obj)[:100]
@@ -870,3 +887,181 @@ def ocr_extract_view(request):
             'error': f'Server error: {str(e)}'
         }, status=500)
 
+
+# ============== CLASS TRANSFERS & PROMOTION ==============
+
+def _safe_next(request, fallback):
+    from django.utils.http import url_has_allowed_host_and_scheme
+    next_url = request.POST.get('next') or request.GET.get('next')
+    if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()},
+                                                    require_https=request.is_secure()):
+        return next_url
+    return fallback
+
+
+@login_required
+@permission_required('students.add_classtransferrequest', raise_exception=True)
+def transfer_request_create_view(request, student_id):
+    """Raise a request to move a student to another class at the same level."""
+    student = get_object_or_404(Student.objects.select_related('assigned_class__level', 'application'), id=student_id)
+
+    if not student.assigned_class_id:
+        messages.warning(request, 'This student has no class yet. Assign one from the Edit page.')
+        return redirect('student_edit', student_id=student.id)
+
+    pending = student.transfer_requests.filter(status='PENDING').select_related('to_class').first()
+
+    if request.method == 'POST':
+        try:
+            transfer = create_transfer_request(
+                student, request.POST.get('to_class'), request.POST.get('reason', ''), request.user
+            )
+        except ClassAssignmentError as e:
+            messages.error(request, str(e))
+            retry_url = reverse('transfer_request_create', args=[student.id])
+            if request.POST.get('next'):
+                retry_url += '?' + urlencode({'next': request.POST['next']})
+            return redirect(retry_url)
+        messages.success(request, f'Transfer request to {transfer.to_class.class_name} submitted for approval.')
+        return redirect(_safe_next(request, reverse('student_detail', args=[student.id])))
+
+    return render(request, 'students/transfer_request_form.html', {
+        'student': student,
+        'options': transfer_options(student),
+        'pending': pending,
+        'next': _safe_next(request, ''),
+    })
+
+
+@login_required
+@permission_required('students.add_classtransferrequest', raise_exception=True)
+def transfer_request_new_view(request):
+    """Pick a student (who has a class) to raise a transfer request for."""
+    search_query = request.GET.get('search', '').strip()
+    students = Student.objects.filter(is_active=True, assigned_class__isnull=False).select_related(
+        'assigned_class'
+    ).annotate(
+        pending_count=Count('transfer_requests', filter=Q(transfer_requests__status='PENDING'))
+    ).order_by('full_name')
+
+    if search_query:
+        students = students.filter(
+            Q(full_name__icontains=search_query) |
+            Q(name_with_initials__icontains=search_query) |
+            Q(admission_number__icontains=search_query) |
+            Q(assigned_class__class_name__icontains=search_query) |
+            Q(assigned_class__class_code__icontains=search_query)
+        )
+
+    page_obj = Paginator(students, 20).get_page(request.GET.get('page'))
+    return render(request, 'students/transfer_request_new.html', {
+        'page_obj': page_obj,
+        'students': page_obj.object_list,
+        'search_query': search_query,
+    })
+
+
+@login_required
+@permission_required('students.view_classtransferrequest', raise_exception=True)
+def transfer_request_list_view(request):
+    """Transfer requests, pending first by default."""
+    status_filter = request.GET.get('status', 'PENDING')
+    transfers = ClassTransferRequest.objects.select_related(
+        'student', 'from_class__level', 'to_class__level', 'requested_by', 'decided_by'
+    )
+    if status_filter in dict(ClassTransferRequest.STATUS_CHOICES):
+        transfers = transfers.filter(status=status_filter)
+    else:
+        status_filter = ''
+
+    counts = dict(ClassTransferRequest.objects.values_list('status').annotate(n=Count('id')))
+    page_obj = Paginator(transfers, 20).get_page(request.GET.get('page'))
+
+    return render(request, 'students/transfer_request_list.html', {
+        'page_obj': page_obj,
+        'transfers': page_obj.object_list,
+        'status_filter': status_filter,
+        'status_choices': [(value, label, counts.get(value, 0)) for value, label in ClassTransferRequest.STATUS_CHOICES],
+        'total_count': sum(counts.values()),
+    })
+
+
+@login_required
+@permission_required('students.approve_classtransferrequest', raise_exception=True)
+@require_POST
+def transfer_request_decide_view(request, transfer_id):
+    """Approve (moves the student) or reject a pending transfer request."""
+    transfer = get_object_or_404(ClassTransferRequest.objects.select_related('student', 'to_class'), id=transfer_id)
+    action = request.POST.get('action')
+    note = request.POST.get('decision_note', '').strip()
+
+    try:
+        with transaction.atomic():
+            if action == 'approve':
+                approve_transfer(transfer, request.user, note)
+                messages.success(request, f'{transfer.student.full_name} moved to {transfer.to_class.class_name}.')
+            elif action == 'reject':
+                reject_transfer(transfer, request.user, note)
+                messages.info(request, f'Transfer request for {transfer.student.full_name} rejected.')
+            else:
+                raise ClassAssignmentError('Unknown action.')
+    except ClassAssignmentError as e:
+        messages.error(request, str(e))
+
+    return redirect(_safe_next(request, reverse('transfer_request_list')))
+
+
+@login_required
+@require_POST
+def transfer_request_cancel_view(request, transfer_id):
+    """The requester, or anyone who can approve transfers, can cancel a pending request."""
+    transfer = get_object_or_404(ClassTransferRequest.objects.select_related('student'), id=transfer_id)
+    if not (transfer.requested_by_id == request.user.id
+            or request.user.has_perm('students.approve_classtransferrequest')):
+        raise PermissionDenied
+
+    try:
+        with transaction.atomic():
+            reject_transfer(transfer, request.user, request.POST.get('decision_note', '').strip(), status='CANCELLED')
+        messages.info(request, f'Transfer request for {transfer.student.full_name} cancelled.')
+    except ClassAssignmentError as e:
+        messages.error(request, str(e))
+
+    return redirect(_safe_next(request, reverse('student_detail', args=[transfer.student_id])))
+
+
+@login_required
+@permission_required('students.promote_student', raise_exception=True)
+def class_promote_view(request, class_id):
+    """Promote selected students of a class into a class at the next level."""
+    from courses.models import Class
+
+    class_obj = get_object_or_404(Class.objects.select_related('level'), id=class_id)
+    target_level = next_level(class_obj.level)
+
+    if request.method == 'POST':
+        try:
+            with transaction.atomic():
+                promoted = promote_students(
+                    class_obj, request.POST.getlist('students'), request.POST.get('to_class'),
+                    request.user, request.POST.get('note', '').strip(),
+                )
+        except ClassAssignmentError as e:
+            messages.error(request, str(e))
+            return redirect('class_promote', class_id=class_obj.id)
+        to_class = promoted[0].assigned_class
+        plural = 's' if len(promoted) != 1 else ''
+        messages.success(
+            request, f'{len(promoted)} student{plural} promoted to {to_class.class_name} ({to_class.level.name}).'
+        )
+        return redirect('class_detail', class_id=class_obj.id)
+
+    target_options = [
+        o for o in class_options() if target_level and o['level'] == target_level.short_code.upper()
+    ]
+    return render(request, 'students/class_promote.html', {
+        'class_obj': class_obj,
+        'students': class_obj.enrolled_students.filter(is_active=True).order_by('full_name'),
+        'target_level': target_level,
+        'target_options': target_options,
+    })

@@ -1,5 +1,8 @@
 from django.contrib import admin
-from .models import Application, Guardian, Student, StudentBadge, Attendance, BaselineTest
+from .models import (
+    Application, Attendance, BaselineTest, ClassTransferRequest, Guardian, Student, StudentBadge,
+    StudentClassHistory,
+)
 
 
 class BaselineTestInline(admin.StackedInline):
@@ -82,6 +85,32 @@ class StudentAdmin(admin.ModelAdmin):
         if obj and obj.assigned_class_id:
             readonly.append('assigned_class')
         return readonly
+
+
+@admin.register(ClassTransferRequest)
+class ClassTransferRequestAdmin(admin.ModelAdmin):
+    list_display = ('student', 'from_class', 'to_class', 'status', 'requested_by', 'requested_at', 'decided_by')
+    list_filter = ('status',)
+    search_fields = ('student__full_name', 'student__admission_number', 'reason')
+    # Status changes must go through the app so the student is moved and history recorded
+    readonly_fields = ('student', 'from_class', 'to_class', 'status', 'requested_by', 'requested_at',
+                       'decided_by', 'decided_at')
+
+    def has_add_permission(self, request):
+        return False
+
+
+@admin.register(StudentClassHistory)
+class StudentClassHistoryAdmin(admin.ModelAdmin):
+    list_display = ('student', 'change_type', 'from_class', 'to_class', 'from_level', 'to_level', 'changed_by', 'changed_at')
+    list_filter = ('change_type',)
+    search_fields = ('student__full_name', 'student__admission_number')
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(StudentBadge)

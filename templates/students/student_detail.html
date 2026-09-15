@@ -366,11 +366,33 @@
                                 <i class="ri-book-open-line fs-4 text-white"></i>
                             </span>
                         </div>
-                        <div>
+                        <div class="flex-grow-1">
                             <strong class="d-block">{{ student.assigned_class.class_name }}</strong>
-                            <small class="text-muted">{{ student.assigned_class.get_level_display }}</small>
+                            <small class="text-muted">{{ student.assigned_class.class_code }}{% if student.assigned_class.location %} · {{ student.assigned_class.get_location_display }}{% endif %}</small>
                         </div>
+                        {% if perms.students.add_classtransferrequest and not pending_transfer %}
+                        <a href="{% url 'transfer_request_create' student.id %}" class="btn btn-sm btn-outline-primary ms-2">
+                            <i class="ri-arrow-left-right-line me-1"></i>Request Transfer
+                        </a>
+                        {% endif %}
                     </div>
+                    {% if pending_transfer %}
+                    <div class="alert alert-warning border-0 mt-2 mb-0 py-2 d-flex flex-wrap align-items-center gap-2">
+                        <span class="flex-grow-1 small">
+                            <i class="ri-time-line me-1"></i>Transfer to <strong>{{ pending_transfer.to_class.class_name|default:"-" }}</strong> pending approval
+                            (requested {{ pending_transfer.requested_at|date:"M d" }}).
+                        </span>
+                        {% if perms.students.view_classtransferrequest %}
+                        <a href="{% url 'transfer_request_list' %}" class="btn btn-sm btn-warning">Review</a>
+                        {% endif %}
+                        {% if pending_transfer.requested_by_id == user.id or perms.students.approve_classtransferrequest %}
+                        <form method="post" action="{% url 'transfer_request_cancel' pending_transfer.id %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-secondary">Cancel request</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                    {% endif %}
                 {% else %}
                     <div class="text-center py-3 border rounded bg-light">
                         <i class="ri-information-line fs-3 text-muted"></i>
@@ -401,6 +423,45 @@
                 <p class="text-muted small mt-2 mb-0">
                     <i class="ri-information-line me-1"></i>Cambridge YLE tests all four language skills
                 </p>
+            </div>
+        </div>
+
+        <!-- Class History Card -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="ri-history-line me-2 text-primary"></i>Class History
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if class_history %}
+                <ul class="list-unstyled mb-0">
+                    {% for h in class_history %}
+                    <li class="d-flex {% if not forloop.last %}pb-3 mb-3 border-bottom{% endif %}">
+                        <div class="avatar-xs me-3 flex-shrink-0">
+                            <span class="avatar-title rounded-circle {% if h.change_type == 'PROMOTED' %}bg-success-subtle text-success{% elif h.change_type == 'TRANSFERRED' %}bg-warning-subtle text-warning{% else %}bg-primary-subtle text-primary{% endif %}">
+                                <i class="{% if h.change_type == 'PROMOTED' %}ri-arrow-up-line{% elif h.change_type == 'TRANSFERRED' %}ri-arrow-left-right-line{% else %}ri-login-circle-line{% endif %}"></i>
+                            </span>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex flex-wrap justify-content-between gap-1">
+                                <strong>{{ h.get_change_type_display }}</strong>
+                                <small class="text-muted">{{ h.changed_at|date:"M d, Y" }}</small>
+                            </div>
+                            <small class="d-block">
+                                {% if h.from_class %}{{ h.from_class.class_name }} <i class="ri-arrow-right-line mx-1"></i>{% endif %}
+                                {% if h.to_class %}{{ h.to_class.class_name }}{% elif h.change_type == 'ENROLLED' %}No class assigned{% endif %}
+                                {% if h.from_level and h.from_level != h.to_level %}<span class="text-muted">({{ h.from_level }} &rarr; {{ h.to_level }})</span>{% endif %}
+                            </small>
+                            {% if h.note %}<small class="text-muted d-block fst-italic">{{ h.note }}</small>{% endif %}
+                            {% if h.changed_by %}<small class="text-muted">by {{ h.changed_by.get_full_name|default:h.changed_by.username }}</small>{% endif %}
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-muted mb-0 small">No class changes recorded yet.</p>
+                {% endif %}
             </div>
         </div>
 

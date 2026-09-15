@@ -626,7 +626,7 @@
                                 <label for="current_level" class="form-label">
                                     Current YLE Level <span class="text-danger">*</span>
                                 </label>
-                                <select class="form-select" id="current_level" name="current_level" required>
+                                <select class="form-select" id="current_level" name="current_level" required{% if student.assigned_class %} disabled{% endif %}>
                                     {% for level in levels %}
                                     <option value="{{ level.short_code }}" {% if student.current_level == level.short_code %}selected{% endif %}>{{ level.name }}</option>
                                     {% endfor %}
@@ -634,6 +634,11 @@
                                     <option value="{{ student.current_level }}" selected>{{ student.get_current_level_display }} (inactive)</option>
                                     {% endif %}
                                 </select>
+                                {% if student.assigned_class %}
+                                <div class="form-text">
+                                    <i class="ri-lock-line me-1"></i>The level is locked while the student has a class. It changes through promotion.
+                                </div>
+                                {% endif %}
                             </div>
                             <div class="col-md-6">
                                 <label for="assigned_class" class="form-label">Assigned Class</label>
@@ -660,6 +665,7 @@
                         </div>
 
                         <!-- Level Visual Cards (from Academic Management -> YLE Levels) -->
+                        {% if not student.assigned_class %}
                         <p class="text-muted small mb-3">Or select a level visually:</p>
                         <div class="row g-3">
                             {% for level in levels %}
@@ -685,6 +691,7 @@
                             </div>
                             {% endfor %}
                         </div>
+                        {% endif %}
 
                         <!-- Step 3 Note -->
                         <div class="alert alert-light border mt-4 mb-0" role="note">

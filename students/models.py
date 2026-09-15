@@ -440,6 +440,9 @@ class Student(models.Model):
 
     class Meta:
         ordering = ['-enrollment_date']
+        permissions = [
+            ('promote_student', 'Can promote students to the next level'),
+        ]
 
     def __str__(self):
         return f"{self.admission_number} - {self.full_name} ({self.current_level})"
@@ -615,3 +618,82 @@ class QRAttendance(models.Model):
 
     def __str__(self):
         return f"{self.admission_number} @ {self.scanned_at}"
+
+
+class ClassTransferRequest(models.Model):
+    """
+    Request to move a student to another class at the same level.
+    Once a student has a class, transfers (with approval) and promotion are the only ways to change it.
+    """
+    STATUS_CHOICES = [
+        ('PENDING', 'Pending'),
+        ('APPROVED', 'Approved'),
+        ('REJECTED', 'Rejected'),
+        ('CANCELLED', 'Cancelled'),
+    ]
+
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='transfer_requests')
+    from_class = models.ForeignKey(
+        'courses.Class', on_delete=models.SET_NULL, null=True, blank=True, related_name='transfers_out'
+    )
+    to_class = models.ForeignKey(
+        'courses.Class', on_delete=models.SET_NULL, null=True, related_name='transfers_in'
+    )
+    reason = models.TextField()
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='PENDING', db_index=True)
+
+    requested_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, related_name='transfer_requests_made'
+    )
+    requested_at = models.DateTimeField(auto_now_add=True)
+    decided_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True, related_name='transfer_requests_decided'
+    )
+    decided_at = models.DateTimeField(null=True, blank=True)
+    decision_note = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ['-requested_at']
+        permissions = [
+            ('approve_classtransferrequest', 'Can approve or reject class transfer requests'),
+        ]
+        verbose_name = 'Class Transfer Request'
+        verbose_name_plural = 'Class Transfer Requests'
+
+    def __str__(self):
+        return f"{self.student} → {self.to_class} ({self.status})"
+
+
+class StudentClassHistory(models.Model):
+    """Audit trail of every class/level change for a student."""
+    CHANGE_TYPE_CHOICES = [
+        ('ENROLLED', 'Enrolled'),
+        ('ASSIGNED', 'Class assigned'),
+        ('TRANSFERRED', 'Transferred'),
+        ('PROMOTED', 'Promoted'),
+    ]
+
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='class_history')
+    change_type = models.CharField(max_length=12, choices=CHANGE_TYPE_CHOICES)
+    from_class = models.ForeignKey(
+        'courses.Class', on_delete=models.SET_NULL, null=True, blank=True, related_name='+'
+    )
+    to_class = models.ForeignKey(
+        'courses.Class', on_delete=models.SET_NULL, null=True, blank=True, related_name='+'
+    )
+    from_level = models.CharField(max_length=20, blank=True)
+    to_level = models.CharField(max_length=20, blank=True)
+    transfer_request = models.ForeignKey(
+        ClassTransferRequest, on_delete=models.SET_NULL, null=True, blank=True, related_name='history'
+    )
+    note = models.TextField(blank=True)
+    changed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    changed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-changed_at', '-id']
+        verbose_name = 'Student Class History'
+        verbose_name_plural = 'Student Class History'
+
+    def __str__(self):
+        return f"{self.student} {self.get_change_type_display()} @ {self.changed_at:%Y-%m-%d}"

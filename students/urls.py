@@ -18,6 +18,14 @@ urlpatterns = [
     path('students/<int:student_id>/', views.student_detail_view, name='student_detail'),
     path('students/<int:student_id>/edit/', views.student_edit_view, name='student_edit'),
 
+    # Class transfers (request + approval) and promotion
+    path('students/<int:student_id>/transfer/', views.transfer_request_create_view, name='transfer_request_create'),
+    path('transfers/', views.transfer_request_list_view, name='transfer_request_list'),
+    path('transfers/new/', views.transfer_request_new_view, name='transfer_request_new'),
+    path('transfers/<int:transfer_id>/decide/', views.transfer_request_decide_view, name='transfer_request_decide'),
+    path('transfers/<int:transfer_id>/cancel/', views.transfer_request_cancel_view, name='transfer_request_cancel'),
+    path('classes/<int:class_id>/promote/', views.class_promote_view, name='class_promote'),
+
     # Application Management (Staff/Admin)
     path('applications/', views.application_list_view, name='application_list'),
     path('applications/upload/', views.application_upload_view, name='application_upload'),

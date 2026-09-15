@@ -117,3 +117,153 @@ def assign_class(student, class_id):
 
     student.assigned_class = class_obj
     return class_obj
+
+
+# ============== HISTORY, TRANSFERS AND PROMOTION ==============
+
+def record_history(student, change_type, user=None, from_class=None, to_class=None,
+                   from_level='', to_level='', note='', transfer_request=None):
+    from .models import StudentClassHistory
+    return StudentClassHistory.objects.create(
+        student=student, change_type=change_type, changed_by=user,
+        from_class=from_class, to_class=to_class,
+        from_level=from_level or '', to_level=to_level or '',
+        note=note, transfer_request=transfer_request,
+    )
+
+
+def transfer_options(student):
+    """Classes a student can transfer to: same level, active, not their current class."""
+    prefs = student.application.schedule_preferences if student.application_id else None
+    return [
+        o for o in class_options(prefs)
+        if o['level'] == (student.current_level or '').upper() and o['id'] != student.assigned_class_id
+    ]
+
+
+def create_transfer_request(student, to_class_id, reason, user):
+    from .models import ClassTransferRequest
+    if not student.assigned_class_id:
+        raise ClassAssignmentError('This student has no class yet. Assign one from the Edit page instead.')
+    if not (reason or '').strip():
+        raise ClassAssignmentError('Please give a reason for the transfer.')
+    if student.transfer_requests.filter(status='PENDING').exists():
+        raise ClassAssignmentError('This student already has a pending transfer request.')
+    try:
+        to_class = Class.objects.select_related('level').get(id=to_class_id, is_active=True)
+    except (Class.DoesNotExist, ValueError, TypeError):
+        raise ClassAssignmentError('The selected class does not exist or is no longer active.')
+    if to_class.id == student.assigned_class_id:
+        raise ClassAssignmentError('The student is already in that class.')
+    if to_class.level.short_code.upper() != (student.current_level or '').upper():
+        raise ClassAssignmentError('Transfers must be to a class at the same level. Use promotion to change level.')
+    return ClassTransferRequest.objects.create(
+        student=student, from_class_id=student.assigned_class_id, to_class=to_class,
+        reason=reason.strip(), requested_by=user,
+    )
+
+
+def approve_transfer(transfer, user, note=''):
+    """Move the student. Must be called inside a transaction."""
+    from django.utils import timezone
+    from .models import ClassTransferRequest, Student
+
+    transfer = ClassTransferRequest.objects.select_for_update().get(pk=transfer.pk)
+    if transfer.status != 'PENDING':
+        raise ClassAssignmentError(f'This request has already been {transfer.get_status_display().lower()}.')
+    student = Student.objects.select_for_update().get(pk=transfer.student_id)
+    if student.assigned_class_id != transfer.from_class_id:
+        raise ClassAssignmentError(
+            "The student's class has changed since this request was made. Reject it and raise a new request."
+        )
+    if not transfer.to_class_id:
+        raise ClassAssignmentError('The target class no longer exists.')
+    to_class = Class.objects.select_for_update().select_related('level').get(pk=transfer.to_class_id)
+    if not to_class.is_active:
+        raise ClassAssignmentError(f'{to_class.class_name} is no longer active.')
+    if to_class.level.short_code.upper() != (student.current_level or '').upper():
+        raise ClassAssignmentError(f'{to_class.class_name} is not at the student\'s current level.')
+    if to_class.enrolled_students.filter(is_active=True).count() >= to_class.max_students:
+        raise ClassAssignmentError(f'{to_class.class_name} is full ({to_class.max_students} students).')
+
+    from_class = student.assigned_class
+    student.assigned_class = to_class
+    student.save()
+
+    transfer.status = 'APPROVED'
+    transfer.decided_by = user
+    transfer.decided_at = timezone.now()
+    transfer.decision_note = note or ''
+    transfer.save()
+
+    record_history(
+        student, 'TRANSFERRED', user, from_class=from_class, to_class=to_class,
+        from_level=student.current_level, to_level=student.current_level,
+        note=transfer.reason, transfer_request=transfer,
+    )
+    return transfer
+
+
+def reject_transfer(transfer, user, note='', status='REJECTED'):
+    from django.utils import timezone
+    from .models import ClassTransferRequest
+
+    transfer = ClassTransferRequest.objects.select_for_update().get(pk=transfer.pk)
+    if transfer.status != 'PENDING':
+        raise ClassAssignmentError(f'This request has already been {transfer.get_status_display().lower()}.')
+    transfer.status = status
+    transfer.decided_by = user
+    transfer.decided_at = timezone.now()
+    transfer.decision_note = note or ''
+    transfer.save()
+    return transfer
+
+
+def next_level(level):
+    """The next active level after `level` in display order, or None."""
+    from courses.models import YLELevel
+    return YLELevel.objects.filter(is_active=True, order__gt=level.order).order_by('order', 'id').first()
+
+
+def promote_students(from_class, student_ids, to_class_id, user, note=''):
+    """
+    Promote selected students of `from_class` into a class at the next level.
+    Must be called inside a transaction. Returns the list of promoted students.
+    """
+    from .models import Student
+
+    target_level = next_level(from_class.level)
+    if not target_level:
+        raise ClassAssignmentError(f'{from_class.level.name} is the highest level; there is no level to promote to.')
+    try:
+        to_class = Class.objects.select_for_update().select_related('level').get(id=to_class_id, is_active=True)
+    except (Class.DoesNotExist, ValueError, TypeError):
+        raise ClassAssignmentError('Please choose an active class to promote into.')
+    if to_class.level_id != target_level.id:
+        raise ClassAssignmentError(f'Students can only be promoted to {target_level.name} classes.')
+
+    ids = {int(i) for i in student_ids if str(i).isdigit()}
+    if not ids:
+        raise ClassAssignmentError('Select at least one student to promote.')
+    students = list(
+        Student.objects.select_for_update().filter(id__in=ids, assigned_class=from_class, is_active=True)
+    )
+    if len(students) != len(ids):
+        raise ClassAssignmentError('Some selected students are no longer active in this class. Reload and try again.')
+
+    seats_left = to_class.max_students - to_class.enrolled_students.filter(is_active=True).count()
+    if len(students) > seats_left:
+        raise ClassAssignmentError(
+            f'{to_class.class_name} has {max(seats_left, 0)} seat(s) left, but {len(students)} students were selected.'
+        )
+
+    for student in students:
+        old_level = student.current_level
+        student.assigned_class = to_class
+        student.current_level = target_level.short_code
+        student.save()
+        record_history(
+            student, 'PROMOTED', user, from_class=from_class, to_class=to_class,
+            from_level=old_level, to_level=target_level.short_code, note=note,
+        )
+    return students

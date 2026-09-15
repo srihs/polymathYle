@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block PageTitle %}Request Class Transfer - {{ student.full_name }} - Polymath School of English{% endblock %}
+{% block pageTitle %}Request Class Transfer{% endblock %}
+{% block Title %}Students{% endblock %}
+{% block functionTitle %}{{ student.full_name }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-xl-8 col-lg-10">
+        <div class="card">
+            <div class="card-header d-flex align-items-center">
+                <div class="avatar-sm me-3">
+                    <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                        <i class="ri-arrow-left-right-line fs-4"></i>
+                    </span>
+                </div>
+                <div>
+                    <h5 class="card-title mb-0">Request Class Transfer</h5>
+                    <p class="text-muted mb-0 small">Move {{ student.full_name }} to another class at the same level. The request needs approval.</p>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded bg-light h-100">
+                            <p class="text-muted mb-1 small">Student</p>
+                            <h6 class="mb-0">{{ student.full_name }}</h6>
+                            <small class="text-muted">{{ student.admission_number }}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded bg-light h-100">
+                            <p class="text-muted mb-1 small">Level</p>
+                            <h6 class="mb-0">{{ student.get_current_level_display }}</h6>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded bg-light h-100">
+                            <p class="text-muted mb-1 small">Current Class</p>
+                            <h6 class="mb-0">{{ student.assigned_class.class_name }}</h6>
+                            <small class="text-muted">{{ student.assigned_class.class_code }}{% if student.assigned_class.location %} · {{ student.assigned_class.get_location_display }}{% endif %}</small>
+                        </div>
+                    </div>
+                </div>
+
+                {% if pending %}
+                <div class="alert alert-warning border-0">
+                    <i class="ri-time-line me-1"></i>
+                    A transfer request to <strong>{{ pending.to_class.class_name }}</strong> is already pending
+                    (requested {{ pending.requested_at|date:"M d, Y" }}). Cancel it before raising a new one.
+                </div>
+                <a href="{% if next %}{{ next }}{% else %}{% url 'student_detail' student.id %}{% endif %}" class="btn btn-outline-secondary">
+                    <i class="ri-arrow-left-line me-1"></i> Back
+                </a>
+                {% else %}
+                <form method="post" id="transferForm">
+                    {% csrf_token %}
+                    {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+
+                    <label class="form-label">
+                        Transfer to <span class="text-danger" aria-label="required">*</span>
+                    </label>
+                    {% if options %}
+                    <div class="row g-2 mb-4" role="radiogroup" aria-label="Target class">
+                        {% for o in options %}
+                        <div class="col-md-6">
+                            <div class="form-check border rounded p-3 ps-5 h-100{% if o.is_full %} bg-light opacity-75{% endif %}">
+                                <input class="form-check-input" type="radio" name="to_class" id="class_{{ o.id }}"
+                                       value="{{ o.id }}" required{% if o.is_full %} disabled{% endif %}>
+                                <label class="form-check-label w-100" for="class_{{ o.id }}">
+                                    <span class="d-flex flex-wrap justify-content-between gap-1 mb-1">
+                                        <strong>{{ o.label }}</strong>
+                                        {% if o.is_full %}
+                                        <span class="badge bg-danger-subtle text-danger">Full</span>
+                                        {% else %}
+                                        <span class="badge bg-primary-subtle text-primary">{{ o.seats_left }} of {{ o.max_students }} seats left</span>
+                                        {% endif %}
+                                    </span>
+                                    <small class="text-muted d-block">
+                                        {% if o.location or o.room %}<i class="ri-building-line me-1"></i>{{ o.location }}{% if o.room %} · Room {{ o.room }}{% endif %}<br>{% endif %}
+                                        {% if o.schedule %}<i class="ri-calendar-line me-1"></i>{{ o.schedule }}<br>{% endif %}
+                                        {% if o.teachers %}<i class="ri-user-star-line me-1"></i>{{ o.teachers }}{% endif %}
+                                    </small>
+                                    {% if o.match == 'full' %}
+                                    <span class="badge bg-success-subtle text-success mt-2"><i class="ri-star-line me-1"></i>Matches preference</span>
+                                    {% endif %}
+                                </label>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning border-0 mb-4">
+                        <i class="ri-error-warning-line me-1"></i>
+                        There are no other active classes at {{ student.get_current_level_display }}.
+                    </div>
+                    {% endif %}
+
+                    <div class="mb-4">
+                        <label for="reason" class="form-label">
+                            Reason <span class="text-danger" aria-label="required">*</span>
+                        </label>
+                        <textarea class="form-control" id="reason" name="reason" rows="3" required
+                                  placeholder="e.g. Parent requested Saturday classes at Kottawa"></textarea>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary"{% if not options %} disabled{% endif %}>
+                            <i class="ri-send-plane-line me-1"></i> Submit for Approval
+                        </button>
+                        <a href="{% if next %}{{ next }}{% else %}{% url 'student_detail' student.id %}{% endif %}" class="btn btn-light">Cancel</a>
+                    </div>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
