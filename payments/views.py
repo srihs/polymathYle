@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import permission_required
 from django.contrib import messages
 from django.db.models import Q
 from django.core.paginator import Paginator
@@ -10,7 +10,7 @@ from .models import PaymentTier
 
 
 @login_required
-@staff_member_required
+@permission_required('payments.view_paymenttier', raise_exception=True)
 def payment_tier_list_view(request):
     """
     List all payment tiers with filtering options.
@@ -64,7 +64,7 @@ def payment_tier_list_view(request):
 
 
 @login_required
-@staff_member_required
+@permission_required('payments.add_paymenttier', raise_exception=True)
 def payment_tier_add_view(request):
     """
     Add a new payment tier.
@@ -124,7 +124,7 @@ def payment_tier_add_view(request):
 
 
 @login_required
-@staff_member_required
+@permission_required('payments.change_paymenttier', raise_exception=True)
 def payment_tier_edit_view(request, pk):
     """
     Edit an existing payment tier.

@@ -5,7 +5,6 @@ Handles YLE Levels, Classes, Units, Lessons, and Activities.
 """
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, permission_required
-from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
 from django.db.models import Q, Count, Avg, Prefetch
 from django.core.paginator import Paginator
@@ -21,6 +20,7 @@ from students.models import Student
 # ============== YLE LEVEL VIEWS ==============
 
 @login_required
+@permission_required('courses.view_ylelevel', raise_exception=True)
 def level_list_view(request):
     """
     List all YLE levels (Starters, Movers, Flyers).
@@ -109,6 +109,7 @@ def yle_level_add_view(request):
 
 
 @login_required
+@permission_required('courses.view_ylelevel', raise_exception=True)
 def level_detail_view(request, level_id):
     """
     Detail view for a specific YLE level.
@@ -152,6 +153,7 @@ def level_detail_view(request, level_id):
 # ============== CLASS VIEWS ==============
 
 @login_required
+@permission_required('courses.view_class', raise_exception=True)
 def class_list_view(request):
     """
     List all classes with filtering by level, teacher, and status.
@@ -216,6 +218,7 @@ def class_list_view(request):
 
 
 @login_required
+@permission_required('courses.view_class', raise_exception=True)
 def class_detail_view(request, class_id):
     """
     Detail view for a class showing enrolled students and schedule.
@@ -302,7 +305,7 @@ def check_teacher_schedule_overlap(teacher_id, day, from_time, to_time, start_da
 
 
 @login_required
-@staff_member_required
+@permission_required('courses.add_class', raise_exception=True)
 def class_add_view(request):
     """
     Add a new class (staff only).
@@ -408,7 +411,7 @@ def class_add_view(request):
 
 
 @login_required
-@staff_member_required
+@permission_required('courses.change_class', raise_exception=True)
 def class_edit_view(request, class_id):
     """
     Edit class details (staff only).
@@ -613,6 +616,7 @@ def unit_add_view(request):
 
 
 @login_required
+@permission_required('courses.view_unit', raise_exception=True)
 def unit_list_view(request, level_id):
     """
     List all units for a specific YLE level.
@@ -635,6 +639,7 @@ def unit_list_view(request, level_id):
 
 
 @login_required
+@permission_required('courses.view_unit', raise_exception=True)
 def unit_detail_view(request, unit_id):
     """
     Detail view for a unit showing lessons.
@@ -678,6 +683,7 @@ def unit_detail_view(request, unit_id):
 # ============== LESSON VIEWS ==============
 
 @login_required
+@permission_required('courses.view_lesson', raise_exception=True)
 def lesson_list_view(request, unit_id):
     """
     List all lessons in a unit.
@@ -714,6 +720,7 @@ def lesson_list_view(request, unit_id):
 
 
 @login_required
+@permission_required('courses.view_lesson', raise_exception=True)
 def lesson_detail_view(request, lesson_id):
     """
     Detail view for a lesson with activities.
@@ -794,6 +801,7 @@ def lesson_detail_view(request, lesson_id):
 # ============== AJAX/API ENDPOINTS ==============
 
 @login_required
+@permission_required('courses.view_class', raise_exception=True)
 def api_class_students(request, class_id):
     """
     API endpoint to get students enrolled in a class.
@@ -807,6 +815,7 @@ def api_class_students(request, class_id):
 
 
 @login_required
+@permission_required('courses.view_unit', raise_exception=True)
 def api_level_units(request, level_id):
     """
     API endpoint to get units for a level.

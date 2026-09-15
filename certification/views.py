@@ -5,7 +5,6 @@ Handles Certificates, Achievements, Certificate Templates, and Reports.
 """
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, permission_required
-from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
 from django.db.models import Q, Count, Avg
 from django.core.paginator import Paginator
@@ -16,6 +15,36 @@ from datetime import datetime, timedelta, date
 from .models import Certificate, CertificateTemplate, Achievement
 from students.models import Student
 from courses.models import YLELevel, Unit, Lesson
+
+
+# ============== ACCESS HELPERS ==============
+# Students and guardians hold view_certificate / view_achievement for their own
+# (or their children's) records, so those permissions only grant access to all
+# records for other users (staff, teachers, custom groups).
+
+def _guardian_profile(user):
+    return getattr(user, 'guardian_profile', None)
+
+
+def _scope_to_user(queryset, user, perm):
+    """Limit a queryset with a `student` FK to what the user may see, or None if nothing."""
+    if hasattr(user, 'student'):
+        return queryset.filter(student=user.student)
+    guardian = _guardian_profile(user)
+    if guardian:
+        return queryset.filter(student__guardians=guardian)
+    if user.has_perm(perm):
+        return queryset
+    return None
+
+
+def _can_view_student_records(user, student_id, perm):
+    if hasattr(user, 'student'):
+        return user.student.id == student_id
+    guardian = _guardian_profile(user)
+    if guardian:
+        return guardian.students.filter(id=student_id).exists()
+    return user.has_perm(perm)
 
 
 # ============== CERTIFICATE VIEWS ==============
@@ -29,15 +58,12 @@ def certificate_list_view(request):
     # Determine if user is a student
     is_student = hasattr(request.user, 'student')
 
-    if is_student:
-        # Students see only their own certificates
-        certificates = Certificate.objects.filter(
-            student=request.user.student
-        ).select_related('student', 'level')
-    elif request.user.is_staff:
-        # Staff sees all certificates
-        certificates = Certificate.objects.select_related('student', 'level').all()
-    else:
+    # Students see their own, guardians their children's, others need view_certificate
+    certificates = _scope_to_user(
+        Certificate.objects.select_related('student', 'level'),
+        request.user, 'certification.view_certificate',
+    )
+    if certificates is None:
         messages.error(request, 'You do not have permission to view certificates.')
         return redirect('/')
 
@@ -111,9 +137,9 @@ def certificate_detail_view(request, certificate_id):
         id=certificate_id
     )
 
-    # Permission check: students can only view their own certificates
+    # Students: own certificates; guardians: their children's; others: view_certificate
     is_student = hasattr(request.user, 'student')
-    if is_student and certificate.student != request.user.student:
+    if not _can_view_student_records(request.user, certificate.student_id, 'certification.view_certificate'):
         messages.error(request, 'You do not have permission to view this certificate.')
         return redirect('certificate_list')
 
@@ -143,8 +169,7 @@ def certificate_download_view(request, certificate_id):
     )
 
     # Permission check
-    is_student = hasattr(request.user, 'student')
-    if is_student and certificate.student != request.user.student:
+    if not _can_view_student_records(request.user, certificate.student_id, 'certification.view_certificate'):
         messages.error(request, 'You do not have permission to download this certificate.')
         return redirect('certificate_list')
 
@@ -358,15 +383,12 @@ def achievement_list_view(request):
     """
     is_student = hasattr(request.user, 'student')
 
-    if is_student:
-        achievements = Achievement.objects.filter(
-            student=request.user.student
-        ).select_related('student', 'related_unit', 'related_lesson')
-    elif request.user.is_staff:
-        achievements = Achievement.objects.select_related(
-            'student', 'related_unit', 'related_lesson'
-        ).all()
-    else:
+    # Students see their own, guardians their children's, others need view_achievement
+    achievements = _scope_to_user(
+        Achievement.objects.select_related('student', 'related_unit', 'related_lesson'),
+        request.user, 'certification.view_achievement',
+    )
+    if achievements is None:
         messages.error(request, 'You do not have permission to view achievements.')
         return redirect('/')
 
@@ -443,13 +465,13 @@ def achievement_detail_view(request, achievement_id):
 
     # Permission check
     is_student = hasattr(request.user, 'student')
-    if is_student and achievement.student != request.user.student:
+    if not _can_view_student_records(request.user, achievement.student_id, 'certification.view_achievement'):
         messages.error(request, 'You do not have permission to view this achievement.')
         return redirect('achievement_list')
 
-    # Get other achievements of the same type for comparison (staff only)
+    # Other students' achievements of the same type (not for students or guardians)
     similar_achievements = None
-    if request.user.is_staff:
+    if not is_student and not _guardian_profile(request.user) and request.user.has_perm('certification.view_achievement'):
         similar_achievements = Achievement.objects.filter(
             achievement_type=achievement.achievement_type
         ).exclude(id=achievement.id).select_related('student')[:10]
@@ -544,7 +566,7 @@ def award_achievement_view(request):
 # ============== TEMPLATE MANAGEMENT VIEWS ==============
 
 @login_required
-@staff_member_required
+@permission_required('certification.view_certificatetemplate', raise_exception=True)
 def template_list_view(request):
     """
     List certificate templates (admin only).
@@ -596,7 +618,7 @@ def template_list_view(request):
 
 
 @login_required
-@staff_member_required
+@permission_required('certification.view_certificatetemplate', raise_exception=True)
 def template_preview_view(request, template_id):
     """
     Preview a certificate template with sample data.
@@ -768,11 +790,7 @@ def api_student_certificates(request, student_id):
     API endpoint to get certificates for a specific student.
     """
     # Permission check
-    is_student = hasattr(request.user, 'student')
-    if is_student and request.user.student.id != student_id:
-        return JsonResponse({'error': 'Permission denied'}, status=403)
-
-    if not is_student and not request.user.is_staff:
+    if not _can_view_student_records(request.user, student_id, 'certification.view_certificate'):
         return JsonResponse({'error': 'Permission denied'}, status=403)
 
     certificates = Certificate.objects.filter(student_id=student_id).values(
@@ -789,11 +807,7 @@ def api_student_achievements(request, student_id):
     API endpoint to get achievements for a specific student.
     """
     # Permission check
-    is_student = hasattr(request.user, 'student')
-    if is_student and request.user.student.id != student_id:
-        return JsonResponse({'error': 'Permission denied'}, status=403)
-
-    if not is_student and not request.user.is_staff:
+    if not _can_view_student_records(request.user, student_id, 'certification.view_achievement'):
         return JsonResponse({'error': 'Permission denied'}, status=403)
 
     achievements = Achievement.objects.filter(student_id=student_id).values(
@@ -805,7 +819,7 @@ def api_student_achievements(request, student_id):
 
 
 @login_required
-@staff_member_required
+@permission_required('certification.view_certificate', raise_exception=True)
 def api_certificate_stats(request):
     """
     API endpoint for certificate statistics (staff only).

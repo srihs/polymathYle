@@ -384,7 +384,7 @@
                                                     <i class="ri-shield-check-line"></i> Verify Certificate
                                                 </a>
                                             </li>
-                                            {% if user.is_staff %}
+                                            {% if perms.certification.view_certificate %}
                                             <li class="nav-item">
                                                 <a href="{% url 'certification_report' %}" class="nav-link">
                                                     <i class="ri-bar-chart-box-line"></i> Certification Report
@@ -436,7 +436,7 @@
                     {% endif %}
 
                     <!-- Payments Menu -->
-                    {% if user.is_staff %}
+                    {% if perms.payments.view_paymenttier %}
                     <li class="nav-item">
                         <a href="#sidebarPayments" class="nav-link" data-bs-toggle="collapse" role="button"
                            aria-expanded="false" aria-controls="sidebarPayments">
@@ -457,11 +457,13 @@
                                                     <i class="ri-list-check"></i> Payment Tier List
                                                 </a>
                                             </li>
+                                            {% if perms.payments.add_paymenttier %}
                                             <li class="nav-item">
                                                 <a href="{% url 'payment_tier_add' %}" class="nav-link">
                                                     <i class="ri-add-line"></i> Add New Payment Tier
                                                 </a>
                                             </li>
+                                            {% endif %}
                                         </ul>
                                     </div>
                                 </li>

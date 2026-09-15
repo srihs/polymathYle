@@ -27,9 +27,11 @@
                         </div>
                     </div>
                     <div class="col-auto">
+                        {% if perms.payments.add_paymenttier %}
                         <a href="{% url 'payment_tier_add' %}" class="btn btn-success">
                             <i class="ri-add-line me-1"></i> Add New Tier
                         </a>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -192,12 +194,14 @@
                                         </td>
                                         <td>
                                             <div class="d-flex justify-content-end gap-1">
+                                                {% if perms.payments.change_paymenttier %}
                                                 <a href="{% url 'payment_tier_edit' tier.id %}"
                                                    class="btn btn-sm btn-soft-warning"
                                                    title="Edit Tier"
                                                    aria-label="Edit {{ tier.name }}">
                                                     <i class="ri-edit-line"></i>
                                                 </a>
+                                                {% endif %}
                                             </div>
                                         </td>
                                     </tr>
@@ -217,9 +221,11 @@
                         <p class="text-muted mb-4">
                             Get started by creating your first payment tier to configure teacher compensation.
                         </p>
+                        {% if perms.payments.add_paymenttier %}
                         <a href="{% url 'payment_tier_add' %}" class="btn btn-success">
                             <i class="ri-add-line me-1"></i>Add New Tier
                         </a>
+                        {% endif %}
                     </div>
                 {% endif %}
             </div>
