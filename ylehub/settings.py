@@ -30,7 +30,14 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-mnsj=3i+ai4*%9(_iqu6ql9ct(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '127.0.0.1:8000', '127.0.0.1:8001']
+ALLOWED_HOSTS = ['yle.polymathcore.online','localhost', '127.0.0.1', '127.0.0.1:8000', '127.0.0.1:8001']
+CSRF_TRUSTED_ORIGINS = [
+    'https://yle.polymathcore.online',
+]
+
+# Live runs behind nginx, which terminates HTTPS and sets X-Forwarded-Proto.
+# Lets Django know the original request was HTTPS (e.g. https:// password reset links).
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 
 # Application definition
@@ -160,3 +167,20 @@ ALLOWED_UPLOAD_EXTENSIONS = ['pdf', 'jpg', 'jpeg', 'png', 'webp']
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'dashboard'
 LOGOUT_REDIRECT_URL = 'login'
+
+# Password reset links expire after this many seconds (default 1 hour)
+PASSWORD_RESET_TIMEOUT = int(os.getenv('PASSWORD_RESET_TIMEOUT', '3600'))
+
+# Email (used for password reset links)
+# Without EMAIL_HOST, emails are printed to the console/container log instead of sent
+EMAIL_HOST = os.getenv('EMAIL_HOST', '')
+EMAIL_BACKEND = os.getenv(
+    'EMAIL_BACKEND',
+    'django.core.mail.backends.smtp.EmailBackend' if EMAIL_HOST else 'django.core.mail.backends.console.EmailBackend',
+)
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'False') == 'True'
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'Polymath School of English <no-reply@polymathcore.online>')

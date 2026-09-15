@@ -1,11 +1,16 @@
 """
 Authentication views for role-based access
 """
+from django import forms
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, get_user_model
+from django.contrib.auth import views as django_auth_views
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import PasswordResetForm
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
-from django.urls import reverse
+from django.db.models import Q
+from django.urls import reverse, reverse_lazy
 
 
 def login_view(request):
@@ -41,6 +46,61 @@ def logout_view(request):
     logout(request)
     messages.info(request, 'You have been logged out successfully.')
     return redirect('login')
+
+
+class UsernameOrEmailPasswordResetForm(PasswordResetForm):
+    """
+    Password reset form that accepts either a username or an email address,
+    since users sign in with usernames (e.g. student_yle_2025_001).
+    """
+    email = forms.CharField(label='Username or email', max_length=254)
+
+    def get_users(self, email):
+        identifier = email.strip()
+        users = get_user_model()._default_manager.filter(
+            Q(username__iexact=identifier) | Q(email__iexact=identifier),
+            is_active=True,
+        ).exclude(email='')
+        # Only accounts with a usable password can reset it
+        return (user for user in users if user.has_usable_password())
+
+
+class PasswordResetRequestView(django_auth_views.PasswordResetView):
+    """Step 1: user enters username or email; a reset link is emailed if an account matches."""
+    form_class = UsernameOrEmailPasswordResetForm
+    template_name = 'auth/password_reset_form.html'
+    email_template_name = 'auth/emails/password_reset_email.txt'
+    html_email_template_name = 'auth/emails/password_reset_email.html'
+    subject_template_name = 'auth/emails/password_reset_subject.txt'
+    success_url = reverse_lazy('password_reset_done')
+
+
+class PasswordResetSentView(django_auth_views.PasswordResetDoneView):
+    """Step 2: confirmation page (same message whether or not an account matched)."""
+    template_name = 'auth/password_reset_done.html'
+
+
+class PasswordResetSetView(django_auth_views.PasswordResetConfirmView):
+    """Step 3: user follows the emailed link and chooses a new password."""
+    template_name = 'auth/password_reset_confirm.html'
+    success_url = reverse_lazy('password_reset_complete')
+
+
+class PasswordResetCompleteView(django_auth_views.PasswordResetCompleteView):
+    """Step 4: password changed; prompt to sign in."""
+    template_name = 'auth/password_reset_complete.html'
+
+
+class PasswordChangeView(LoginRequiredMixin, django_auth_views.PasswordChangeView):
+    """Logged-in users change their own password (keeps them signed in)."""
+    template_name = 'auth/password_change.html'
+    # Dashboards don't render flash messages, so return here to show the confirmation
+    success_url = reverse_lazy('password_change')
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, 'Your password has been changed successfully.')
+        return response
 
 
 @login_required

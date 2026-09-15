@@ -25,6 +25,15 @@ urlpatterns = [
     path('', auth_views.login_view, name='login'),
     path('login/', auth_views.login_view, name='login'),
     path('logout/', auth_views.logout_view, name='logout'),
+
+    # Password reset (forgot password, via emailed link)
+    path('password-reset/', auth_views.PasswordResetRequestView.as_view(), name='password_reset'),
+    path('password-reset/sent/', auth_views.PasswordResetSentView.as_view(), name='password_reset_done'),
+    path('password-reset/<uidb64>/<token>/', auth_views.PasswordResetSetView.as_view(), name='password_reset_confirm'),
+    path('password-reset/complete/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
+
+    # Password change (logged-in users)
+    path('password-change/', auth_views.PasswordChangeView.as_view(), name='password_change'),
     path('dashboard/', auth_views.dashboard_view, name='dashboard'),
 
     # Role-based dashboards
