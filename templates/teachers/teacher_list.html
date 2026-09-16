@@ -91,7 +91,7 @@
                         </h5>
                     </div>
                     <div class="col-auto">
-                        {% if perms.students.add_teacher %}
+                        {% if perms.teachers.add_teacher %}
                             <a href="{% url 'teacher_add' %}" class="btn btn-success">
                                 <i class="ri-user-add-line me-1"></i> Add New Teacher
                             </a>
@@ -331,7 +331,7 @@
                                                        aria-label="View {{ teacher.full_name }}'s profile">
                                                         <i class="ri-eye-line"></i>
                                                     </a>
-                                                    {% if perms.students.change_teacher %}
+                                                    {% if perms.teachers.change_teacher %}
                                                         <a href="{% url 'teacher_edit' teacher.id %}"
                                                            class="btn btn-sm btn-soft-warning"
                                                            title="Edit Teacher"
@@ -416,7 +416,7 @@
                                                 <a href="{% url 'teacher_detail' teacher.id %}" class="btn btn-sm btn-primary flex-grow-1">
                                                     <i class="ri-eye-line me-1"></i>View
                                                 </a>
-                                                {% if perms.students.change_teacher %}
+                                                {% if perms.teachers.change_teacher %}
                                                     <a href="{% url 'teacher_edit' teacher.id %}" class="btn btn-sm btn-outline-warning">
                                                         <i class="ri-edit-line"></i>
                                                     </a>
@@ -504,7 +504,7 @@
                                     <i class="ri-refresh-line me-1"></i>Clear Filters
                                 </a>
                             {% endif %}
-                            {% if perms.students.add_teacher %}
+                            {% if perms.teachers.add_teacher %}
                                 <a href="{% url 'teacher_add' %}" class="btn btn-success">
                                     <i class="ri-user-add-line me-1"></i>Add New Teacher
                                 </a>

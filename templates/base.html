@@ -271,7 +271,7 @@
                     {% endif %}
 
                     <!-- Academic Management Menu -->
-                    {% if perms.courses.view_ylelevel or perms.courses.view_class or perms.certification.view_certificate or perms.certification.view_achievement or perms.students.view_teacher %}
+                    {% if perms.courses.view_ylelevel or perms.courses.view_class or perms.certification.view_certificate or perms.certification.view_achievement or perms.teachers.view_teacher %}
                     <li class="nav-item">
                         <a href="#sidebarAcademic" class="nav-link" data-bs-toggle="collapse" role="button"
                            aria-expanded="false" aria-controls="sidebarAcademic">
@@ -280,7 +280,7 @@
                         <div class="collapse menu-dropdown" id="sidebarAcademic">
                             <ul class="nav nav-sm flex-column">
                                 <!-- Teachers Sub-Menu -->
-                                {% if perms.students.view_teacher %}
+                                {% if perms.teachers.view_teacher %}
                                 <li class="nav-item">
                                     <a href="#sidebarTeachersMenu" class="nav-link" data-bs-toggle="collapse" role="button"
                                        aria-expanded="false" aria-controls="sidebarTeachersMenu">
@@ -293,7 +293,7 @@
                                                     <i class="ri-team-line"></i> All Teachers
                                                 </a>
                                             </li>
-                                            {% if perms.students.add_teacher %}
+                                            {% if perms.teachers.add_teacher %}
                                             <li class="nav-item">
                                                 <a href="{% url 'teacher_add' %}" class="nav-link">
                                                     <i class="ri-user-add-line"></i> Add Teacher

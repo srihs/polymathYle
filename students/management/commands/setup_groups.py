@@ -147,7 +147,6 @@ class Command(BaseCommand):
             # Teachers - View only
             'view_teacher',
             'view_teacherdocument',
-            'view_teacherhourlyrate',
 
             # Attendance - Full access
             'view_attendance',

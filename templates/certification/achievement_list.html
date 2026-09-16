@@ -132,7 +132,7 @@
                             <h5 class="card-title mb-0">Filter Achievements</h5>
                         </div>
                     </div>
-                    {% if perms.certification.add_studentachievement %}
+                    {% if perms.certification.add_achievement %}
                     <a href="{% url 'award_achievement' %}" class="btn btn-success">
                         <i class="ri-add-line me-1"></i> Award Achievement
                     </a>
@@ -340,7 +340,7 @@
                             </div>
                             <h5 class="text-muted mb-2">No Achievements Found</h5>
                             <p class="text-muted mb-4">There are no achievements matching your criteria.</p>
-                            {% if perms.certification.add_studentachievement %}
+                            {% if perms.certification.add_achievement %}
                             <a href="{% url 'award_achievement' %}" class="btn btn-primary">
                                 <i class="ri-add-line me-1"></i> Award First Achievement
                             </a>
