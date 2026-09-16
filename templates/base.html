@@ -182,7 +182,7 @@
                     <!-- Student Management Menu -->
                     {% if perms.students.view_student or perms.students.view_application or perms.students.view_attendance or perms.students.view_classtransferrequest %}
                     <li class="nav-item">
-                        <a href="#sidebarStudents" class="nav-link" data-bs-toggle="collapse" role="button"
+                        <a href="#sidebarStudents" class="nav-link menu-link" data-bs-toggle="collapse" role="button"
                            aria-expanded="false" aria-controls="sidebarStudents">
                             <i class="ri-user-line"></i><span data-key="t-students">Student Management</span>
                         </a>
@@ -273,9 +273,9 @@
                     <!-- Academic Management Menu -->
                     {% if perms.courses.view_ylelevel or perms.courses.view_class or perms.certification.view_certificate or perms.certification.view_achievement or perms.teachers.view_teacher %}
                     <li class="nav-item">
-                        <a href="#sidebarAcademic" class="nav-link" data-bs-toggle="collapse" role="button"
+                        <a href="#sidebarAcademic" class="nav-link menu-link" data-bs-toggle="collapse" role="button"
                            aria-expanded="false" aria-controls="sidebarAcademic">
-                            <i class="ri-graduation-cap-line"></i><span data-key="t-academic">Academic Management</span>
+                            <i class="ri-medal-line"></i><span data-key="t-academic">Academic Management</span>
                         </a>
                         <div class="collapse menu-dropdown" id="sidebarAcademic">
                             <ul class="nav nav-sm flex-column">
@@ -412,7 +412,7 @@
                     <!-- Admin Menu -->
                     {% if user.is_superuser %}
                     <li class="nav-item">
-                        <a href="#sidebarAdmin" class="nav-link" data-bs-toggle="collapse" role="button"
+                        <a href="#sidebarAdmin" class="nav-link menu-link" data-bs-toggle="collapse" role="button"
                            aria-expanded="false" aria-controls="sidebarAdmin">
                             <i class="ri-settings-3-line"></i><span data-key="t-admin">Administration</span>
                         </a>
@@ -447,7 +447,7 @@
                     <!-- Payments Menu -->
                     {% if perms.payments.view_paymenttier %}
                     <li class="nav-item">
-                        <a href="#sidebarPayments" class="nav-link" data-bs-toggle="collapse" role="button"
+                        <a href="#sidebarPayments" class="nav-link menu-link" data-bs-toggle="collapse" role="button"
                            aria-expanded="false" aria-controls="sidebarPayments">
                             <i class="ri-money-dollar-circle-line"></i><span data-key="t-payments">Payments</span>
                         </a>
@@ -483,7 +483,7 @@
 
                     <!-- Reports Menu -->
                     <li class="nav-item">
-                        <a href="#sidebarReports" class="nav-link" data-bs-toggle="collapse" role="button"
+                        <a href="#sidebarReports" class="nav-link menu-link" data-bs-toggle="collapse" role="button"
                            aria-expanded="false" aria-controls="sidebarReports">
                             <i class="ri-bar-chart-box-line"></i><span data-key="t-reports">Reports</span>
                         </a>
