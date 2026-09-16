@@ -35,6 +35,7 @@ urlpatterns = [
 
     # OCR API (Staff/Admin)
     path('api/ocr/extract/', views.ocr_extract_view, name='ocr_extract'),
+    path('api/admission-number/check/', views.admission_number_check_view, name='admission_number_check'),
 
     # Attendance Management (Teachers/Staff)
     path('attendance/mark/', views.attendance_mark_view, name='attendance_mark'),

@@ -482,7 +482,7 @@
                     {% endif %}
 
                     <!-- Reports Menu -->
-                    {% if perms.certification.view_certificate or perms.certification.view_achievement or perms.students.view_upload_log %}
+                    {% if perms.certification.view_certificate or perms.certification.view_achievement or user.is_superuser %}
                     <li class="nav-item">
                         <a href="#sidebarReports" class="nav-link menu-link" data-bs-toggle="collapse" role="button"
                            aria-expanded="false" aria-controls="sidebarReports">
@@ -490,7 +490,7 @@
                         </a>
                         <div class="collapse menu-dropdown" id="sidebarReports">
                             <ul class="nav nav-sm flex-column">
-                                {% if perms.students.view_upload_log %}
+                                {% if user.is_superuser %}
                                 <li class="nav-item">
                                     <a href="{% url 'application_upload_log' %}" class="nav-link">
                                         <i class="ri-upload-cloud-line"></i> Application Upload Log

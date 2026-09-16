@@ -1,0 +1,31 @@
+{# One side (front or back) of a scanned application. Expects: side (dict or None), title, empty_text #}
+<div class="col-md-6">
+    <div class="border rounded h-100 d-flex flex-column">
+        <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom bg-light">
+            <strong class="small text-uppercase">{{ title }}</strong>
+            {% if side %}
+            <a href="{{ side.url }}" target="_blank" rel="noopener" class="btn btn-sm btn-soft-primary">
+                <i class="ri-external-link-line me-1"></i> Open
+            </a>
+            {% endif %}
+        </div>
+        <div class="p-2 flex-grow-1 d-flex align-items-center justify-content-center" style="min-height: 320px; background: #f8f9fa;">
+            {% if not side %}
+                <div class="text-center text-muted py-5">
+                    <i class="ri-image-line fs-1 d-block mb-2"></i>
+                    {{ empty_text }}
+                </div>
+            {% elif side.is_pdf %}
+                <div class="application-pdf-preview w-100" data-url="{{ side.url }}" data-title="{{ title }}">
+                    <div class="text-center text-muted py-5 pdf-loading">
+                        <span class="spinner-border spinner-border-sm me-1" role="status"></span> Loading PDF...
+                    </div>
+                </div>
+            {% else %}
+                <a href="{{ side.url }}" target="_blank" rel="noopener" class="d-block w-100 text-center">
+                    <img src="{{ side.url }}" alt="{{ title }} of the application" class="img-fluid rounded" style="max-height: 700px;">
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>

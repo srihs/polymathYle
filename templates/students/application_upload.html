@@ -433,7 +433,8 @@
                                     Admission Number
                                     <small class="text-muted">(If already assigned)</small>
                                 </label>
-                                <input type="text" class="form-control" id="admission_number" name="admission_number" placeholder="e.g., YLE-2021-0001">
+                                <input type="text" class="form-control" id="admission_number" name="admission_number" placeholder="e.g., YLE-2021-0001" autocomplete="off">
+                                <div class="invalid-feedback" id="admissionNumberFeedback"></div>
                             </div>
                             <div class="col-md-4">
                                 <label for="application_date" class="form-label">
@@ -659,8 +660,13 @@
                             </div>
                             <div>
                                 <h6 class="form-section-title">Additional Documents</h6>
-                                <small class="text-muted">Birth certificate, photo, passport, etc. (optional)</small>
+                                <small class="text-muted">The backside of the application is required. Birth certificate, photo, passport, etc. are optional.</small>
                             </div>
+                        </div>
+                        <div class="alert alert-warning border-0 py-2 small" id="backsideHint" role="note">
+                            <i class="ri-information-line me-1"></i>
+                            Upload the <strong>backside of the application</strong> in one of the slots below and set its type to
+                            <strong>Backside of the Application</strong>.
                         </div>
                         <div class="row g-3">
                             <div class="col-md-8">
@@ -888,6 +894,28 @@
         </div>
     </div>
 </div>
+
+<!-- Message modal (replaces browser alert/confirm on this page) -->
+<div class="modal fade" id="uploadMessageModal" tabindex="-1" aria-labelledby="uploadMessageModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-body text-center p-4">
+                <div class="avatar-md mx-auto mb-3">
+                    <span class="avatar-title rounded-circle fs-2" id="uploadMessageModalIcon">
+                        <i class="ri-error-warning-line"></i>
+                    </span>
+                </div>
+                <h5 class="mb-2" id="uploadMessageModalTitle">Attention</h5>
+                <p class="text-muted mb-0" id="uploadMessageModalText"></p>
+            </div>
+            <div class="modal-footer border-0 justify-content-center pt-0 pb-4">
+                <button type="button" class="btn btn-light" id="uploadMessageModalCancel" data-bs-dismiss="modal" style="display: none;">Cancel</button>
+                <button type="button" class="btn btn-primary px-4" id="uploadMessageModalOk">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
@@ -998,13 +1026,13 @@ $(document).ready(function() {
         // Validate file type
         const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
         if (!validTypes.includes(file.type)) {
-            alert('Please upload a valid image (JPG, PNG) or PDF file.');
+            showUploadMessage('Unsupported file', 'Please upload a valid image (JPG, PNG) or PDF file.', 'warning');
             return;
         }
 
         // Validate file size (max 10MB)
         if (file.size > 10 * 1024 * 1024) {
-            alert('File size must be less than 10MB.');
+            showUploadMessage('File too large', 'File size must be less than 10MB.', 'warning');
             return;
         }
 
@@ -1049,7 +1077,7 @@ $(document).ready(function() {
                 .then(showPreview)
                 .catch(function(err) {
                     console.error('PDF preview failed:', err);
-                    alert('Could not preview this PDF. It may be corrupted or password protected.');
+                    showUploadMessage('PDF preview unavailable', 'Could not preview this PDF. It may be corrupted or password protected.', 'danger');
                 });
             return;
         }
@@ -1165,7 +1193,7 @@ $(document).ready(function() {
         console.log('Checking uploaded file:', uploadedFile);
         if (!uploadedFile) {
             console.error('ERROR: No file uploaded');
-            alert('Please upload a scanned application form first.');
+            showUploadMessage('Scanned application required', 'Please upload the scanned application form (front) first.', 'warning');
             return false;
         }
         console.log('File check passed:', uploadedFile.name);
@@ -1226,6 +1254,36 @@ $(document).ready(function() {
             }
         });
 
+        // Admission number must not already be in use (checked live; also enforced on the server)
+        if ($('#admission_number').data('duplicate')) {
+            isValid = false;
+            $('#admission_number').addClass('is-invalid');
+        }
+
+        // Backside of the application is required (one additional document typed as backside)
+        const backsideSlots = [
+            { file: $('#id_document1'), type: $('#id_document1_type') },
+            { file: $('#id_document2'), type: $('#id_document2_type') }
+        ].filter(function(slot) {
+            return slot.type.val() === 'APPLICATION_BACKSIDE' && slot.file[0] && slot.file[0].files.length > 0;
+        });
+        if (backsideSlots.length !== 1) {
+            isValid = false;
+            $('#id_document1, #id_document1_type').addClass('is-invalid');
+            $('#backsideHint').removeClass('alert-warning').addClass('alert-danger');
+            showUploadMessage(
+                backsideSlots.length === 0 ? 'Backside of the application required' : 'Only one backside allowed',
+                backsideSlots.length === 0
+                    ? 'Please upload the backside of the application in Additional Documents and set its type to "Backside of the Application".'
+                    : 'Only one additional document can be the backside of the application.',
+                'warning',
+                function() { $('#id_document1').trigger('focus'); }
+            );
+        } else {
+            $('#id_document1, #id_document1_type, #id_document2, #id_document2_type').removeClass('is-invalid');
+            $('#backsideHint').removeClass('alert-danger').addClass('alert-warning');
+        }
+
         if (!isValid) {
             console.error('Validation failed, scrolling to first error');
             // Scroll to first error
@@ -1279,11 +1337,60 @@ $(document).ready(function() {
         console.log('- home_address:', $('#home_address').val());
         console.log('- whatsapp_number:', $('#whatsapp_number').val());
 
-        // Submit the form
-        console.log('Submitting form now...');
-        this.submit();
-        console.log('Form submit() called - page should reload/redirect');
+        // Submit in the background: on errors the page (scan, extracted data, files) stays intact
+        const formElement = this;
+        $('#serverErrors').remove();
+        $form.find('.is-invalid').removeClass('is-invalid');
+
+        fetch(formElement.action, {
+            method: 'POST',
+            body: new FormData(formElement),
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            credentials: 'same-origin'
+        }).then(function(response) {
+            return response.json().catch(function() {
+                throw new Error('The server returned an unexpected response (status ' + response.status + ').');
+            });
+        }).then(function(result) {
+            if (result.ok) {
+                window.location.href = result.redirect;
+                return;
+            }
+            showServerErrors(result.errors || ['The application could not be saved.'], result.field_errors || {});
+            resetSubmitButton();
+        }).catch(function(error) {
+            showServerErrors([error.message || 'Could not reach the server. Your data is still on the page; please try again.'], {});
+            resetSubmitButton();
+        });
     });
+
+    function resetSubmitButton() {
+        $('#submitBtn').prop('disabled', false);
+        $('#submitSpinner').addClass('d-none');
+        $('#submitIcon').removeClass('d-none');
+        $('#submitText').text('Save Application');
+    }
+
+    function showServerErrors(errors, fieldErrors) {
+        const $box = $('<div id="serverErrors" class="alert alert-danger" role="alert"></div>');
+        $box.append($('<strong></strong>').text('The application was not saved. Nothing on this page was lost - fix the following and save again:'));
+        const $list = $('<ul class="mb-0 mt-2"></ul>');
+        errors.forEach(function(message) { $list.append($('<li></li>').text(message)); });
+        $box.append($list);
+        $form.prepend($box);
+
+        Object.keys(fieldErrors).forEach(function(name) {
+            $form.find('[name="' + name + '"]').addClass('is-invalid');
+            if (name === 'document1' || name === 'document2' || name.indexOf('document') === 0) {
+                $('#backsideHint').removeClass('alert-warning').addClass('alert-danger');
+            }
+        });
+        if (errors.some(function(message) { return /backside/i.test(message); })) {
+            $('#id_document1, #id_document1_type').addClass('is-invalid');
+            $('#backsideHint').removeClass('alert-warning').addClass('alert-danger');
+        }
+        $('html, body').animate({ scrollTop: $box.offset().top - 100 }, 300);
+    }
 
     // Real-time validation
     $form.find('input, select, textarea').on('blur', function() {
@@ -1304,9 +1411,87 @@ $(document).ready(function() {
     // Cancel Button
     // ========================================
     $('#cancelBtn').on('click', function() {
-        if (confirm('Are you sure you want to cancel? All entered data will be lost.')) {
-            window.location.href = "{% url 'application_list' %}";
+        showUploadModal({
+            title: 'Discard this application?',
+            message: 'All entered data and uploaded files on this page will be lost.',
+            type: 'danger',
+            okText: 'Discard',
+            okClass: 'btn-danger',
+            cancelText: 'Keep editing',
+            onConfirm: function() { window.location.href = "{% url 'application_list' %}"; }
+        });
+    });
+
+    // ========================================
+    // Modal messages (instead of browser alert/confirm)
+    // ========================================
+    const MODAL_STYLES = {
+        danger: { icon: 'ri-error-warning-line', css: 'bg-danger-subtle text-danger', button: 'btn-danger' },
+        warning: { icon: 'ri-alert-line', css: 'bg-warning-subtle text-warning', button: 'btn-warning' },
+        info: { icon: 'ri-information-line', css: 'bg-info-subtle text-info', button: 'btn-primary' }
+    };
+
+    // Modals must sit directly under <body>; inside the page layout they render beneath the backdrop
+    $('#uploadMessageModal').appendTo(document.body);
+
+    function showUploadModal(options) {
+        const style = MODAL_STYLES[options.type] || MODAL_STYLES.warning;
+        const modalEl = document.getElementById('uploadMessageModal');
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+
+        $('#uploadMessageModalTitle').text(options.title || 'Attention');
+        $('#uploadMessageModalText').text(options.message || '');
+        $('#uploadMessageModalIcon').attr('class', 'avatar-title rounded-circle fs-2 ' + style.css)
+            .html('<i class="' + style.icon + '"></i>');
+        $('#uploadMessageModalOk').attr('class', 'btn px-4 ' + (options.okClass || style.button))
+            .text(options.okText || 'OK');
+        $('#uploadMessageModalCancel').toggle(!!options.cancelText).text(options.cancelText || 'Cancel');
+
+        let confirmed = false;
+        $('#uploadMessageModalOk').off('click').on('click', function() {
+            confirmed = true;
+            modal.hide();
+        });
+        $(modalEl).off('hidden.bs.modal').one('hidden.bs.modal', function() {
+            if (confirmed && options.onConfirm) {
+                options.onConfirm();
+            }
+            if (options.onClose) {
+                options.onClose(confirmed);
+            }
+        });
+        modal.show();
+    }
+
+    function showUploadMessage(title, message, type, onClose) {
+        showUploadModal({ title: title, message: message, type: type || 'warning', onClose: onClose });
+    }
+
+    // ========================================
+    // Admission number duplicate check
+    // ========================================
+    let admissionCheckTimer = null;
+    function checkAdmissionNumber() {
+        const $input = $('#admission_number');
+        const value = $input.val().trim();
+        if (!value) {
+            $input.removeClass('is-invalid').data('duplicate', false);
+            return;
         }
+        $.getJSON("{% url 'admission_number_check' %}", { number: value }).done(function(result) {
+            if ($input.val().trim() !== value) return;  // user kept typing
+            if (result.available) {
+                $input.removeClass('is-invalid').data('duplicate', false);
+            } else {
+                $input.addClass('is-invalid').data('duplicate', true);
+                $('#admissionNumberFeedback').text(result.message);
+            }
+        });
+    }
+    // Runs on typing, on leaving the field, and after OCR fills it in
+    $('#admission_number').on('input change blur', function() {
+        clearTimeout(admissionCheckTimer);
+        admissionCheckTimer = setTimeout(checkAdmissionNumber, 400);
     });
 
     // ========================================
@@ -1436,6 +1621,11 @@ $(document).ready(function() {
 
                     // Highlight filled fields briefly
                     highlightField($input);
+
+                    // Re-check values that have live validation (e.g. duplicate admission number)
+                    if (ocrField === 'admission_number') {
+                        $input.trigger('change');
+                    }
 
                     // Trigger age calculation if date of birth was populated
                     if (ocrField === 'date_of_birth') {

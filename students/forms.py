@@ -180,7 +180,9 @@ class ApplicationForm(forms.ModelForm):
             }),
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, require_backside=False, **kwargs):
+        # Scanned (uploaded) applications must include the backside of the paper form
+        self.require_backside = require_backside
         super().__init__(*args, **kwargs)
         # Scans and supporting documents may be PDFs or images
         for name in ('application_form_scan', 'document1', 'document2'):
@@ -189,6 +191,32 @@ class ApplicationForm(forms.ModelForm):
                     FileExtensionValidator(settings.ALLOWED_UPLOAD_EXTENSIONS),
                     validate_upload_size,
                 ]
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if not self.require_backside:
+            return cleaned_data
+
+        backside = Application.BACKSIDE_DOCUMENT_TYPE
+        has_backside = any(
+            cleaned_data.get(file_field) and cleaned_data.get(type_field) == backside
+            for file_field, type_field in (('document1', 'document1_type'), ('document2', 'document2_type'))
+        )
+        if not has_backside:
+            raise forms.ValidationError(
+                'Please upload the backside of the application as an additional document '
+                'and set its type to "Backside of the Application".',
+                code='backside_required',
+            )
+        both_backside = all(
+            cleaned_data.get(type_field) == backside for type_field in ('document1_type', 'document2_type')
+        )
+        if both_backside:
+            raise forms.ValidationError(
+                'Only one additional document can be the backside of the application.',
+                code='backside_duplicate',
+            )
+        return cleaned_data
 
     def clean_terms_accepted(self):
         """
@@ -205,6 +233,20 @@ class ApplicationForm(forms.ModelForm):
                 raise forms.ValidationError('You must accept the terms and conditions to submit this application.')
 
         return terms
+
+    def clean_admission_number(self):
+        """Admission numbers must be unique across applications and students (ignoring case and spacing)."""
+        number = Application.normalize_admission_number(self.cleaned_data.get('admission_number'))
+        if not number:
+            return None
+        owner = Application.find_admission_number_owner(number, exclude_application_id=self.instance.pk)
+        if owner:
+            reference = getattr(owner, 'reference_number', None) or owner.admission_number
+            raise forms.ValidationError(
+                f'Admission number {number} is already used by {owner.full_name} ({reference}).',
+                code='duplicate_admission_number',
+            )
+        return number
 
     def clean_date_of_birth(self):
         """Validate date of birth - student should be between 4 and 18 years old"""

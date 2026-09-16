@@ -743,8 +743,11 @@ def application_upload_view(request):
     """
     Upload and process scanned application forms
     """
+    # The upload page submits in the background so validation errors don't wipe the form
+    is_background_submit = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+
     if request.method == 'POST':
-        form = ApplicationForm(request.POST, request.FILES)
+        form = ApplicationForm(request.POST, request.FILES, require_backside=True)
         if form.is_valid():
             application = form.save(commit=False)
 
@@ -761,15 +764,33 @@ def application_upload_view(request):
             application.save()
 
             messages.success(request, f'Application {application.reference_number} saved successfully!')
-            return redirect('application_review', application_id=application.id)
+            review_url = reverse('application_review', args=[application.id])
+            if is_background_submit:
+                return JsonResponse({'ok': True, 'redirect': review_url})
+            return redirect(review_url)
         else:
             # Log form errors for debugging
             import logging
             logger = logging.getLogger(__name__)
             logger.error(f'Application form validation failed: {form.errors.as_json()}')
+            error_list = list(form.non_field_errors())
+            field_errors = {}
+            for field_name, errors in form.errors.items():
+                if field_name != '__all__':
+                    label = form.fields[field_name].label if field_name in form.fields else field_name
+                    field_errors[field_name] = list(errors)
+                    error_list.append(f'{label}: {" ".join(errors)}')
+
+            if is_background_submit:
+                # The page stays as it is (scan, extracted data, selected files), so nothing is lost
+                return JsonResponse({'ok': False, 'errors': error_list, 'field_errors': field_errors}, status=400)
+
             messages.error(request, 'Please correct the errors in the form.')
+            for error in error_list:
+                messages.error(request, error)
     else:
-        form = ApplicationForm()
+        # Document 1 is normally the backside of the paper application
+        form = ApplicationForm(initial={'document1_type': Application.BACKSIDE_DOCUMENT_TYPE})
 
     return render(request, 'students/application_upload.html', {
         'form': form
@@ -804,6 +825,24 @@ def attendance_scan_view(request, admission_number):
         'found': student is not None,
     }
     return render(request, 'students/attendance_scan_result.html', context)
+
+
+@login_required
+@permission_required('students.add_application', raise_exception=True)
+def admission_number_check_view(request):
+    """Check whether an admission number is already used, before the user submits the upload form."""
+    number = Application.normalize_admission_number(request.GET.get('number'))
+    if not number:
+        return JsonResponse({'number': '', 'available': True})
+    owner = Application.find_admission_number_owner(number)
+    if not owner:
+        return JsonResponse({'number': number, 'available': True})
+    reference = getattr(owner, 'reference_number', None) or owner.admission_number
+    return JsonResponse({
+        'number': number,
+        'available': False,
+        'message': f'Admission number {number} is already used by {owner.full_name} ({reference}).',
+    })
 
 
 @login_required
@@ -1072,9 +1111,10 @@ def class_promote_view(request, class_id):
 # ============== APPLICATION UPLOAD LOG ==============
 
 @login_required
-@permission_required('students.view_upload_log', raise_exception=True)
 def application_upload_log_view(request):
-    """Which scanned applications were uploaded, by whom, and how many per user."""
+    """Which scanned applications were uploaded, by whom, and how many per user. Superusers only."""
+    if not request.user.is_superuser:
+        raise PermissionDenied
     from django.contrib.auth.models import User
 
     all_uploads = Application.objects.filter(application_type='OFFLINE').select_related('uploaded_by')

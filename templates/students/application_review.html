@@ -194,6 +194,28 @@
 <div class="row">
     <!-- Left Column - Student Information -->
     <div class="col-xl-8">
+        <!-- Application Form (front and back) -->
+        {% if application.application_type == 'OFFLINE' or application.application_form_scan %}
+        {% with sides=application.form_sides %}
+        <div class="card">
+            <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <h5 class="card-title mb-0">
+                    <i class="ri-file-copy-2-line me-2 text-primary"></i>Application Form
+                </h5>
+                {% if not sides.back %}
+                <span class="badge bg-warning-subtle text-warning"><i class="ri-error-warning-line me-1"></i>Backside missing</span>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    {% include "students/_application_side.html" with side=sides.front title="Front" empty_text="No scan uploaded" %}
+                    {% include "students/_application_side.html" with side=sides.back title="Back" empty_text="No backside uploaded" %}
+                </div>
+            </div>
+        </div>
+        {% endwith %}
+        {% endif %}
+
         <!-- Personal Information -->
         <div class="card">
             <div class="card-header">
@@ -646,7 +668,7 @@
         {% endif %}
 
         <!-- Documents -->
-        {% if application.signature_image or application.application_form_scan %}
+        {% if application.signature_image or application.application_form_scan or application.other_documents %}
         <div class="card">
             <div class="card-header">
                 <h5 class="card-title mb-0">
@@ -665,13 +687,34 @@
                     </div>
                 {% endif %}
                 {% if application.application_form_scan %}
+                    <div class="mb-3">
+                        <h6 class="text-uppercase fw-semibold mb-2 small text-muted">
+                            <i class="ri-file-download-line me-1"></i>Application Form
+                        </h6>
+                        <div class="d-grid gap-2">
+                            <a href="{{ application.application_form_scan.url }}" target="_blank" class="btn btn-soft-primary">
+                                <i class="ri-download-line me-1"></i> Download Front
+                            </a>
+                            {% if application.backside_document %}
+                            <a href="{{ application.backside_document.url }}" target="_blank" class="btn btn-soft-primary">
+                                <i class="ri-download-line me-1"></i> Download Back
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+                {% if application.other_documents %}
                     <div>
                         <h6 class="text-uppercase fw-semibold mb-2 small text-muted">
-                            <i class="ri-file-download-line me-1"></i>Application Form Scan
+                            <i class="ri-attachment-line me-1"></i>Additional Documents
                         </h6>
-                        <a href="{{ application.application_form_scan.url }}" target="_blank" class="btn btn-soft-primary w-100">
-                            <i class="ri-download-line me-1"></i> Download Application Form
-                        </a>
+                        <div class="d-grid gap-2">
+                            {% for doc in application.other_documents %}
+                            <a href="{{ doc.url }}" target="_blank" class="btn btn-soft-secondary text-start">
+                                <i class="ri-file-line me-1"></i> {{ doc.label }} <small class="text-muted">({{ doc.filename }})</small>
+                            </a>
+                            {% endfor %}
+                        </div>
                     </div>
                 {% endif %}
             </div>
@@ -752,4 +795,40 @@
     font-size: 22px;
 }
 </style>
+
+{% if application.form_sides.front.is_pdf or application.form_sides.back.is_pdf %}
+<script src="{% static 'assets/libs/pdfjs/pdf.min.js' %}"></script>
+<script>
+// Render PDF sides of the application inline (embedding PDFs in frames is blocked by X-Frame-Options)
+(function() {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = "{% static 'assets/libs/pdfjs/pdf.worker.min.js' %}";
+    document.querySelectorAll('.application-pdf-preview').forEach(function(container) {
+        pdfjsLib.getDocument(container.dataset.url).promise.then(function(pdf) {
+            container.innerHTML = '';
+            var renderPage = function(pageNumber) {
+                return pdf.getPage(pageNumber).then(function(page) {
+                    var viewport = page.getViewport({ scale: 1.5 });
+                    var canvas = document.createElement('canvas');
+                    canvas.width = viewport.width;
+                    canvas.height = viewport.height;
+                    canvas.className = 'img-fluid rounded mb-2 d-block mx-auto';
+                    canvas.setAttribute('aria-label', container.dataset.title + ' of the application, page ' + pageNumber);
+                    container.appendChild(canvas);
+                    return page.render({ canvasContext: canvas.getContext('2d'), viewport: viewport }).promise;
+                });
+            };
+            // Scans are usually 1-2 pages; render them in order
+            var chain = Promise.resolve();
+            for (var i = 1; i <= Math.min(pdf.numPages, 5); i++) {
+                chain = chain.then(renderPage.bind(null, i));
+            }
+            return chain;
+        }).catch(function(err) {
+            console.error('PDF preview failed', err);
+            container.innerHTML = '<div class="text-center text-muted py-5"><i class="ri-file-pdf-line fs-1 d-block mb-2"></i>Preview unavailable. Use Open to view the PDF.</div>';
+        });
+    });
+})();
+</script>
+{% endif %}
 {% endblock %}

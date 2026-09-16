@@ -1,3 +1,5 @@
+import os
+
 from django.db import models
 from django.contrib.auth.models import User
 from datetime import date
@@ -172,12 +174,51 @@ class Application(models.Model):
 
     class Meta:
         ordering = ['-application_date']
-        permissions = [
-            ('view_upload_log', 'Can view application upload log'),
-        ]
 
     def __str__(self):
         return f"{self.full_name} - {self.admission_number or 'Pending'} ({self.status})"
+
+    # A paper application has two sides: the main scan (front) and an additional
+    # document typed "Backside of the Application".
+    BACKSIDE_DOCUMENT_TYPE = 'APPLICATION_BACKSIDE'
+
+    @staticmethod
+    def _file_info(field_file, label):
+        name = field_file.name.lower()
+        return {
+            'label': label,
+            'file': field_file,
+            'url': field_file.url,
+            'filename': os.path.basename(field_file.name),
+            'is_pdf': name.endswith('.pdf'),
+        }
+
+    @property
+    def backside_document(self):
+        """The file of the additional document marked as the backside, or None."""
+        for field_file, doc_type in ((self.document1, self.document1_type), (self.document2, self.document2_type)):
+            if field_file and doc_type == self.BACKSIDE_DOCUMENT_TYPE:
+                return field_file
+        return None
+
+    @property
+    def form_sides(self):
+        """Front and back of the scanned application for display (None where missing)."""
+        back = self.backside_document
+        return {
+            'front': self._file_info(self.application_form_scan, 'Front') if self.application_form_scan else None,
+            'back': self._file_info(back, 'Back') if back else None,
+        }
+
+    @property
+    def other_documents(self):
+        """Additional documents that are not the backside of the application."""
+        docs = []
+        for field_file, doc_type in ((self.document1, self.document1_type), (self.document2, self.document2_type)):
+            if field_file and doc_type != self.BACKSIDE_DOCUMENT_TYPE:
+                label = dict(self.DOCUMENT_TYPE_CHOICES).get(doc_type, 'Document')
+                docs.append(self._file_info(field_file, label))
+        return docs
 
     def calculate_age(self):
         """Auto-calculate age from date of birth"""
@@ -207,22 +248,40 @@ class Application(models.Model):
             self.admission_number = self.generate_admission_number()
             super().save(update_fields=['admission_number'])
 
+    @staticmethod
+    def normalize_admission_number(value):
+        """Trim, collapse inner whitespace and upper-case, so 'yle-2021-001 ' matches 'YLE-2021-001'."""
+        return ' '.join((value or '').split()).upper()
+
+    @classmethod
+    def find_admission_number_owner(cls, value, exclude_application_id=None):
+        """The application or student already using this admission number (case-insensitive), or None."""
+        number = cls.normalize_admission_number(value)
+        if not number:
+            return None
+        apps = cls.objects.filter(admission_number__iexact=number)
+        if exclude_application_id:
+            apps = apps.exclude(pk=exclude_application_id)
+        app = apps.first()
+        if app:
+            return app
+        student = Student.objects.filter(admission_number__iexact=number)
+        if exclude_application_id:
+            student = student.exclude(application_id=exclude_application_id)
+        return student.first()
+
     def generate_admission_number(self):
-        """Generate unique admission number"""
+        """Generate the next unused admission number (format: FCE-YEAR-XXXX)."""
         from datetime import datetime
         year = datetime.now().year
-        # Format: FCE-YEAR-XXXX
-        last_app = Application.objects.filter(
-            admission_number__startswith=f'FCE-{year}'
-        ).order_by('-admission_number').first()
-
-        if last_app and last_app.admission_number:
-            last_num = int(last_app.admission_number.split('-')[-1])
-            new_num = last_num + 1
-        else:
-            new_num = 1
-
-        return f'FCE-{year}-{new_num:04d}'
+        prefix = f'FCE-{year}-'
+        existing = Application.objects.filter(admission_number__istartswith=prefix).values_list('admission_number', flat=True)
+        numbers = [int(n[len(prefix):]) for n in existing if n[len(prefix):].isdigit()]
+        new_num = max(numbers, default=0) + 1
+        # Skip any number already taken by an application or student (e.g. typed in manually)
+        while Application.find_admission_number_owner(f'{prefix}{new_num:04d}', exclude_application_id=self.pk):
+            new_num += 1
+        return f'{prefix}{new_num:04d}'
 
     def generate_qr_code(self, base_url):
         """
