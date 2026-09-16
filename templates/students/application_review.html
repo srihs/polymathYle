@@ -460,6 +460,17 @@
                                 </th>
                                 <td class="fw-medium">{{ application.get_application_type_display }}</td>
                             </tr>
+                            {% if application.application_type == 'OFFLINE' %}
+                            <tr>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-upload-cloud-line me-2"></i>Uploaded By
+                                </th>
+                                <td class="fw-medium">
+                                    {% if application.uploaded_by %}{{ application.uploaded_by.get_full_name|default:application.uploaded_by.username }}{% else %}<span class="text-muted">Not recorded</span>{% endif %}
+                                    <small class="text-muted d-block">{{ application.created_at|date:"M d, Y H:i" }}</small>
+                                </td>
+                            </tr>
+                            {% endif %}
                             <tr>
                                 <th class="ps-0 text-muted">
                                     <i class="ri-flag-line me-2"></i>Status

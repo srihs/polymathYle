@@ -13,15 +13,15 @@ class BaselineTestInline(admin.StackedInline):
 
 @admin.register(Application)
 class ApplicationAdmin(admin.ModelAdmin):
-    list_display = ('reference_number', 'full_name', 'admission_number', 'status', 'application_date', 'application_type')
-    list_filter = ('status', 'application_type', 'gender', 'application_date')
+    list_display = ('reference_number', 'full_name', 'admission_number', 'status', 'application_date', 'application_type', 'uploaded_by')
+    list_filter = ('status', 'application_type', 'gender', 'application_date', 'uploaded_by')
     search_fields = ('full_name', 'name_with_initials', 'admission_number', 'reference_number', 'student_email')
-    readonly_fields = ('age', 'created_at', 'updated_at')
+    readonly_fields = ('age', 'uploaded_by', 'created_at', 'updated_at')
     inlines = [BaselineTestInline]
     fieldsets = (
         ('Application Info', {
             'fields': ('reference_number', 'admission_number', 'receipt_number', 'status', 'application_type',
-                      'processing_date', 'processed_by')
+                      'uploaded_by', 'created_at', 'processing_date', 'processed_by')
         }),
         ('Student Personal Information', {
             'fields': ('name_with_initials', 'full_name', 'nationality', 'date_of_birth',

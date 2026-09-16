@@ -13,10 +13,10 @@ class Application(models.Model):
     Based on Polymath College application form structure
     """
     DOCUMENT_TYPE_CHOICES = (
+        ('APPLICATION_BACKSIDE', 'Backside of the Application'),
         ('BIRTH_CERTIFICATE', 'Birth Certificate'),
         ('PHOTO', 'Photo'),
         ('PASSPORT', 'Passport'),
-        ('VACCINATION', 'Vaccination Record'),
         ('OTHER', 'Other'),
     )
 
@@ -157,12 +157,24 @@ class Application(models.Model):
         help_text="Percentage of handwritten content detected (0-100)"
     )
 
+    # Who uploaded a scanned (offline) application; the upload time is created_at
+    uploaded_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='uploaded_applications'
+    )
+
     # Meta
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ['-application_date']
+        permissions = [
+            ('view_upload_log', 'Can view application upload log'),
+        ]
 
     def __str__(self):
         return f"{self.full_name} - {self.admission_number or 'Pending'} ({self.status})"

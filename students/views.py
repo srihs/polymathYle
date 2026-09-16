@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.db import transaction
 from django.db.models import Avg, Count, Q
 from django.urls import reverse
+from django.utils import timezone
 from urllib.parse import urlencode
 from datetime import datetime, timedelta, date
 from .models import (
@@ -17,7 +18,7 @@ from .class_allocation import (
 from courses.models import YLELevel
 from django.core.paginator import Paginator
 from django.core.exceptions import PermissionDenied
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 import json
@@ -749,6 +750,7 @@ def application_upload_view(request):
 
             # Set application type to OFFLINE for scanned forms
             application.application_type = 'OFFLINE'
+            application.uploaded_by = request.user
 
             # Set application date if not provided
             if not application.application_date:
@@ -1064,4 +1066,81 @@ def class_promote_view(request, class_id):
         'students': class_obj.enrolled_students.filter(is_active=True).order_by('full_name'),
         'target_level': target_level,
         'target_options': target_options,
+    })
+
+
+# ============== APPLICATION UPLOAD LOG ==============
+
+@login_required
+@permission_required('students.view_upload_log', raise_exception=True)
+def application_upload_log_view(request):
+    """Which scanned applications were uploaded, by whom, and how many per user."""
+    from django.contrib.auth.models import User
+
+    all_uploads = Application.objects.filter(application_type='OFFLINE').select_related('uploaded_by')
+    uploads = all_uploads
+
+    # Date range on upload time (created_at); invalid dates are ignored
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+    try:
+        if date_from:
+            uploads = uploads.filter(created_at__date__gte=datetime.strptime(date_from, '%Y-%m-%d').date())
+        if date_to:
+            uploads = uploads.filter(created_at__date__lte=datetime.strptime(date_to, '%Y-%m-%d').date())
+    except ValueError:
+        messages.warning(request, 'Invalid date format. Showing all dates.')
+        date_from = date_to = ''
+        uploads = all_uploads
+
+    # Per-user totals for the selected dates (before the user filter)
+    users_by_id = {u.id: u for u in User.objects.filter(uploaded_applications__in=uploads).distinct()}
+    summary = [
+        {'user': users_by_id.get(row['uploaded_by']), 'user_id': row['uploaded_by'], 'total': row['total']}
+        for row in uploads.values('uploaded_by').annotate(total=Count('id')).order_by('-total')
+    ]
+    total_uploads = sum(r['total'] for r in summary)
+
+    user_filter = request.GET.get('user', '')
+    if user_filter == 'unknown':
+        uploads = uploads.filter(uploaded_by__isnull=True)
+    elif user_filter.isdigit():
+        uploads = uploads.filter(uploaded_by_id=int(user_filter))
+    else:
+        user_filter = ''
+
+    uploads = uploads.order_by('-created_at')
+
+    if request.GET.get('export') == 'csv':
+        import csv
+        response = HttpResponse(content_type='text/csv; charset=utf-8')
+        response['Content-Disposition'] = 'attachment; filename="application_upload_log.csv"'
+        response.write('\ufeff')
+        writer = csv.writer(response)
+        writer.writerow(['Uploaded At', 'Uploaded By', 'Reference Number', 'Student Name', 'Status'])
+        for app in uploads:
+            uploader = app.uploaded_by
+            writer.writerow([
+                timezone.localtime(app.created_at).strftime('%Y-%m-%d %H:%M'),
+                (uploader.get_full_name() or uploader.username) if uploader else 'Not recorded',
+                app.reference_number or '', app.full_name, app.get_status_display(),
+            ])
+        return response
+
+    page_obj = Paginator(uploads, 25).get_page(request.GET.get('page'))
+    filter_query = urlencode({k: v for k, v in {
+        'date_from': date_from, 'date_to': date_to, 'user': user_filter,
+    }.items() if v})
+
+    return render(request, 'students/application_upload_log.html', {
+        'page_obj': page_obj,
+        'uploads': page_obj.object_list,
+        'summary': summary,
+        'total_uploads': total_uploads,
+        'uploaders': User.objects.filter(uploaded_applications__isnull=False).distinct().order_by('username'),
+        'has_unrecorded': all_uploads.filter(uploaded_by__isnull=True).exists(),
+        'date_from': date_from,
+        'date_to': date_to,
+        'user_filter': user_filter,
+        'filter_query': filter_query,
     })

@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block PageTitle %}Application Upload Log - Polymath School of English{% endblock %}
+{% block pageTitle %}Application Upload Log{% endblock %}
+{% block Title %}Reports{% endblock %}
+{% block functionTitle %}Application Upload Log{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label for="date_from" class="form-label">Uploaded from</label>
+                <input type="date" class="form-control" id="date_from" name="date_from" value="{{ date_from }}">
+            </div>
+            <div class="col-md-3">
+                <label for="date_to" class="form-label">Uploaded to</label>
+                <input type="date" class="form-control" id="date_to" name="date_to" value="{{ date_to }}">
+            </div>
+            <div class="col-md-3">
+                <label for="user" class="form-label">Uploaded by</label>
+                <select class="form-select" id="user" name="user">
+                    <option value="">All users</option>
+                    {% for u in uploaders %}
+                    <option value="{{ u.id }}" {% if user_filter == u.id|stringformat:"s" %}selected{% endif %}>{{ u.get_full_name|default:u.username }}</option>
+                    {% endfor %}
+                    {% if has_unrecorded %}
+                    <option value="unknown" {% if user_filter == "unknown" %}selected{% endif %}>Not recorded (before tracking)</option>
+                    {% endif %}
+                </select>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary flex-grow-1"><i class="ri-filter-line me-1"></i> Apply</button>
+                <a href="{% url 'application_upload_log' %}" class="btn btn-light" title="Reset filters"><i class="ri-refresh-line"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xl-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="ri-user-line me-2 text-primary"></i>Uploads per User</h5>
+                <p class="text-muted small mb-0">{% if date_from or date_to %}{{ date_from|default:"Start" }} to {{ date_to|default:"today" }}{% else %}All dates{% endif %}</p>
+            </div>
+            <div class="card-body">
+                {% if summary %}
+                <table class="table table-sm align-middle mb-0">
+                    <thead class="table-light">
+                        <tr><th>User</th><th class="text-end">Applications</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for row in summary %}
+                        <tr>
+                            <td>
+                                <a href="?{% if date_from %}date_from={{ date_from }}&amp;{% endif %}{% if date_to %}date_to={{ date_to }}&amp;{% endif %}user={% if row.user %}{{ row.user.id }}{% else %}unknown{% endif %}">
+                                    {% if row.user %}{{ row.user.get_full_name|default:row.user.username }}{% else %}<span class="text-muted">Not recorded</span>{% endif %}
+                                </a>
+                            </td>
+                            <td class="text-end fw-semibold">{{ row.total }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr class="table-light"><th>Total</th><th class="text-end">{{ total_uploads }}</th></tr>
+                    </tfoot>
+                </table>
+                {% else %}
+                <p class="text-muted mb-0">No uploads in this period.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-8">
+        <div class="card">
+            <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <h5 class="card-title mb-0">
+                    <i class="ri-upload-cloud-line me-2 text-primary"></i>Uploaded Applications
+                    <span class="badge bg-primary-subtle text-primary ms-1">{{ page_obj.paginator.count }}</span>
+                </h5>
+                <a href="?{% if filter_query %}{{ filter_query }}&amp;{% endif %}export=csv" class="btn btn-sm btn-outline-primary">
+                    <i class="ri-download-line me-1"></i> Export CSV
+                </a>
+            </div>
+            <div class="card-body">
+                {% if uploads %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Uploaded</th>
+                                <th>Uploaded By</th>
+                                <th>Application</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for app in uploads %}
+                            <tr>
+                                <td><small>{{ app.created_at|date:"M d, Y H:i" }}</small></td>
+                                <td>{% if app.uploaded_by %}{{ app.uploaded_by.get_full_name|default:app.uploaded_by.username }}{% else %}<span class="text-muted">Not recorded</span>{% endif %}</td>
+                                <td>
+                                    {% if perms.students.change_application %}
+                                    <a href="{% url 'application_review' app.id %}" class="fw-medium">{{ app.full_name }}</a>
+                                    {% else %}
+                                    <span class="fw-medium">{{ app.full_name }}</span>
+                                    {% endif %}
+                                    <small class="text-muted d-block">{{ app.reference_number|default:"-" }}</small>
+                                </td>
+                                <td><span class="badge bg-light text-body">{{ app.get_status_display }}</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {% if page_obj.has_other_pages %}
+                <nav class="mt-3" aria-label="Upload log pages">
+                    <ul class="pagination pagination-sm justify-content-end mb-0">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item"><a class="page-link" href="?{% if filter_query %}{{ filter_query }}&amp;{% endif %}page={{ page_obj.previous_page_number }}">Previous</a></li>
+                        {% endif %}
+                        <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+                        {% if page_obj.has_next %}
+                        <li class="page-item"><a class="page-link" href="?{% if filter_query %}{{ filter_query }}&amp;{% endif %}page={{ page_obj.next_page_number }}">Next</a></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="ri-inbox-line fs-1 text-muted"></i>
+                    <p class="text-muted mb-0 mt-2">No uploaded applications match these filters.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
