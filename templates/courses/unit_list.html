@@ -26,57 +26,7 @@
             </div>
         </div>
     </div>
-    <div class="col-xl-3 col-md-6">
-        <div class="card card-animate bg-info">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <p class="fw-medium text-white-75 mb-0">Starters Units</p>
-                        <h2 class="mt-2 mb-0 text-white">{{ starters_units|default:0 }}</h2>
-                    </div>
-                    <div class="avatar-sm flex-shrink-0">
-                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
-                            <i class="ri-seedling-line text-white"></i>
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-xl-3 col-md-6">
-        <div class="card card-animate bg-warning">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <p class="fw-medium text-white-75 mb-0">Movers Units</p>
-                        <h2 class="mt-2 mb-0 text-white">{{ movers_units|default:0 }}</h2>
-                    </div>
-                    <div class="avatar-sm flex-shrink-0">
-                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
-                            <i class="ri-run-line text-white"></i>
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-xl-3 col-md-6">
-        <div class="card card-animate bg-success">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <p class="fw-medium text-white-75 mb-0">Flyers Units</p>
-                        <h2 class="mt-2 mb-0 text-white">{{ flyers_units|default:0 }}</h2>
-                    </div>
-                    <div class="avatar-sm flex-shrink-0">
-                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
-                            <i class="ri-rocket-line text-white"></i>
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    {% include "partials/_level_count_card.html" with title="Units by Level" col=9 %}
 </div>
 
 <!-- Filter Section -->

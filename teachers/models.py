@@ -30,10 +30,8 @@ class Teacher(models.Model):
     )
     years_of_experience = models.IntegerField(default=0)
 
-    # SPECIALIZATIONS - YLE Levels
-    teaches_starters = models.BooleanField(default=False)
-    teaches_movers = models.BooleanField(default=False)
-    teaches_flyers = models.BooleanField(default=False)
+    # SPECIALIZATIONS - CEFR levels this teacher can teach (Pre A1 ... B2)
+    levels = models.ManyToManyField('courses.YLELevel', blank=True, related_name='teachers')
 
     # EMPLOYMENT
     date_joined = models.DateField()
@@ -77,15 +75,11 @@ class Teacher(models.Model):
         return f"{self.full_name} ({self.employee_id})"
 
     def get_specializations(self):
-        """Return list of levels teacher can teach"""
-        levels = []
-        if self.teaches_starters:
-            levels.append('Starters')
-        if self.teaches_movers:
-            levels.append('Movers')
-        if self.teaches_flyers:
-            levels.append('Flyers')
-        return levels
+        """Names of the active CEFR levels this teacher teaches, in level order."""
+        return [level.name for level in self.ordered_levels()]
+
+    def ordered_levels(self):
+        return self.levels.filter(is_active=True).order_by('order', 'id')
 
 class TeacherDocument(models.Model):
     """

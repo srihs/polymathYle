@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load yle_levels %}
 
 {% block PageTitle %}{{ achievement.title }} - Achievement - PolymathYLE{% endblock %}
 {% block pageTitle %}Achievement Details{% endblock %}
@@ -119,7 +120,7 @@
                     <div class="col-md-4">
                         <div class="d-flex align-items-center p-3 border rounded h-100">
                             <div class="avatar-sm flex-shrink-0 me-3">
-                                <span class="avatar-title bg-{% if achievement.level.name == 'Starters' %}info{% elif achievement.level.name == 'Movers' %}warning{% else %}success{% endif %}-subtle text-{% if achievement.level.name == 'Starters' %}info{% elif achievement.level.name == 'Movers' %}warning{% else %}success{% endif %} rounded-circle">
+                                <span class="avatar-title bg-{{ achievement.level|level_color }}-subtle text-{{ achievement.level|level_color }} rounded-circle">
                                     <i class="ri-stack-line"></i>
                                 </span>
                             </div>
@@ -217,7 +218,7 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <span class="badge bg-{% if recipient.student.current_level == 'STARTERS' %}info{% elif recipient.student.current_level == 'MOVERS' %}warning{% else %}success{% endif %}-subtle text-{% if recipient.student.current_level == 'STARTERS' %}info{% elif recipient.student.current_level == 'MOVERS' %}warning{% else %}success{% endif %}">
+                                    <span class="badge bg-{{ recipient.student.current_level|level_color }}-subtle text-{{ recipient.student.current_level|level_color }}">
                                         {{ recipient.student.get_current_level_display }}
                                     </span>
                                 </td>

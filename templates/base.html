@@ -271,7 +271,7 @@
                     {% endif %}
 
                     <!-- Academic Management Menu -->
-                    {% if perms.courses.view_ylelevel or perms.courses.view_class or perms.certification.view_certificate or perms.certification.view_achievement or perms.teachers.view_teacher %}
+                    {% if perms.courses.view_course or perms.courses.view_ylelevel or perms.courses.view_class or perms.certification.view_certificate or perms.certification.view_achievement or perms.teachers.view_teacher %}
                     <li class="nav-item">
                         <a href="#sidebarAcademic" class="nav-link menu-link" data-bs-toggle="collapse" role="button"
                            aria-expanded="false" aria-controls="sidebarAcademic">
@@ -311,7 +311,7 @@
                                 {% endif %}
 
                                 <!-- Courses Sub-Menu -->
-                                {% if perms.courses.view_ylelevel %}
+                                {% if perms.courses.view_course %}
                                 <li class="nav-item">
                                     <a href="#sidebarCoursesMenu" class="nav-link" data-bs-toggle="collapse" role="button"
                                        aria-expanded="false" aria-controls="sidebarCoursesMenu">
@@ -320,13 +320,13 @@
                                     <div class="collapse menu-dropdown" id="sidebarCoursesMenu">
                                         <ul class="nav nav-sm flex-column">
                                             <li class="nav-item">
-                                                <a href="{% url 'level_list' %}" class="nav-link">
+                                                <a href="{% url 'course_list' %}" class="nav-link">
                                                     <i class="ri-stack-line"></i> Course List
                                                 </a>
                                             </li>
-                                            {% if perms.courses.add_ylelevel %}
+                                            {% if perms.courses.add_course %}
                                             <li class="nav-item">
-                                                <a href="{% url 'yle_level_add' %}" class="nav-link">
+                                                <a href="{% url 'course_add' %}" class="nav-link">
                                                     <i class="ri-add-circle-line"></i> Add New Course
                                                 </a>
                                             </li>

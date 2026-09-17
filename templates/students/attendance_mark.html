@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load yle_levels %}
 
 {% block PageTitle %}Mark Attendance - Polymath School of English{% endblock %}
 {% block pageTitle %}Mark Attendance{% endblock %}
@@ -163,19 +164,7 @@
                     <div class="col">
                         <div class="d-flex align-items-center">
                             <div class="avatar-sm me-3">
-                                {% if selected_class.level == 'STARTERS' %}
-                                    <span class="avatar-title bg-info-subtle text-info rounded-circle">
-                                        <i class="ri-seedling-line fs-4"></i>
-                                    </span>
-                                {% elif selected_class.level == 'MOVERS' %}
-                                    <span class="avatar-title bg-warning-subtle text-warning rounded-circle">
-                                        <i class="ri-run-line fs-4"></i>
-                                    </span>
-                                {% else %}
-                                    <span class="avatar-title bg-success-subtle text-success rounded-circle">
-                                        <i class="ri-rocket-line fs-4"></i>
-                                    </span>
-                                {% endif %}
+                                <span class="avatar-title bg-{{ selected_class.level|level_color }}-subtle text-{{ selected_class.level|level_color }} rounded-circle"><i class="{{ selected_class.level|level_icon }} fs-4"></i></span>
                             </div>
                             <div>
                                 <h5 class="card-title mb-0">{{ selected_class.class_name }}</h5>

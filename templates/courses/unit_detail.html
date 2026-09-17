@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load yle_levels %}
 
 {% block PageTitle %}{{ unit.title }} - Polymath School of English{% endblock %}
 {% block pageTitle %}{{ unit.title }}{% endblock %}
@@ -35,19 +36,7 @@
                             <div>
                                 <div class="d-flex align-items-center mb-2">
                                     <span class="badge bg-primary me-2">Unit {{ unit.order }}</span>
-                                    {% if unit.level.short_code == 'STARTERS' %}
-                                    <span class="badge bg-info-subtle text-info">
-                                        <i class="ri-seedling-line me-1"></i>Starters
-                                    </span>
-                                    {% elif unit.level.short_code == 'MOVERS' %}
-                                    <span class="badge bg-warning-subtle text-warning">
-                                        <i class="ri-run-line me-1"></i>Movers
-                                    </span>
-                                    {% else %}
-                                    <span class="badge bg-success-subtle text-success">
-                                        <i class="ri-rocket-line me-1"></i>Flyers
-                                    </span>
-                                    {% endif %}
+                                    <span class="badge bg-{{ unit.level|level_color }}-subtle text-{{ unit.level|level_color }}"><i class="{{ unit.level|level_icon }} me-1"></i>{{ unit.level|level_name }}</span>
                                 </div>
                                 <h3 class="mb-1">{{ unit.title }}</h3>
                                 <p class="text-muted mb-2">{{ unit.level.name }} ({{ unit.level.cefr_level }})</p>
@@ -270,7 +259,7 @@
                     <span class="badge bg-primary-subtle text-primary ms-2">{{ lessons.count|default:0 }}</span>
                 </h5>
                 <div class="d-flex gap-2">
-                    <a href="{% url 'lesson_list' %}?unit={{ unit.id }}" class="btn btn-sm btn-outline-primary">
+                    <a href="{% url 'lesson_list' unit.id %}" class="btn btn-sm btn-outline-primary">
                         <i class="ri-eye-line me-1"></i> View All
                     </a>
                     {% if perms.courses.add_lesson %}

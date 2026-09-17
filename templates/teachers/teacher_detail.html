@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load yle_levels %}
 
 {% block PageTitle %}{{ teacher.full_name }} - Teacher Profile - Polymath School of English{% endblock %}
 {% block pageTitle %}Teacher Profile{% endblock %}
@@ -242,46 +243,27 @@
                 </h5>
             </div>
             <div class="card-body">
-                <h6 class="text-uppercase fw-semibold text-muted mb-3 small">Cambridge YLE Levels</h6>
+                <h6 class="text-uppercase fw-semibold text-muted mb-3 small">CEFR Levels</h6>
                 <div class="d-flex flex-wrap gap-2 mb-4">
-                    {% if teacher.teaches_starters %}
-                        <div class="d-flex align-items-center p-2 border rounded bg-info-subtle">
-                            <i class="ri-seedling-line fs-4 text-info me-2"></i>
+                    {% for level in teacher.ordered_levels %}
+                        <div class="d-flex align-items-center p-2 border rounded bg-{{ level|level_color }}-subtle">
+                            <i class="{{ level|level_icon }} fs-4 text-{{ level|level_color }} me-2"></i>
                             <div>
-                                <strong class="d-block">Pre A1 Starters</strong>
-                                <small class="text-muted">Ages 6-8</small>
+                                <strong class="d-block">{{ level.name }}</strong>
+                                {% if level.age_range_min or level.age_range_max %}<small class="text-muted">Ages {{ level.age_range_min }}-{{ level.age_range_max }}</small>{% endif %}
                             </div>
                         </div>
-                    {% endif %}
-                    {% if teacher.teaches_movers %}
-                        <div class="d-flex align-items-center p-2 border rounded bg-warning-subtle">
-                            <i class="ri-run-line fs-4 text-warning me-2"></i>
-                            <div>
-                                <strong class="d-block">A1 Movers</strong>
-                                <small class="text-muted">Ages 8-10</small>
-                            </div>
-                        </div>
-                    {% endif %}
-                    {% if teacher.teaches_flyers %}
-                        <div class="d-flex align-items-center p-2 border rounded bg-success-subtle">
-                            <i class="ri-rocket-line fs-4 text-success me-2"></i>
-                            <div>
-                                <strong class="d-block">A2 Flyers</strong>
-                                <small class="text-muted">Ages 10-12</small>
-                            </div>
-                        </div>
-                    {% endif %}
-                    {% if not teacher.teaches_starters and not teacher.teaches_movers and not teacher.teaches_flyers %}
+                    {% empty %}
                         <div class="text-center w-100 py-3">
                             <i class="ri-information-line fs-3 text-muted"></i>
-                            <p class="text-muted mb-0">No YLE level specializations set</p>
+                            <p class="text-muted mb-0">No CEFR levels set</p>
                             {% if perms.teachers.change_teacher %}
                                 <a href="{% url 'teacher_edit' teacher.id %}" class="btn btn-sm btn-outline-primary mt-2">
                                     <i class="ri-add-line me-1"></i>Add Levels
                                 </a>
                             {% endif %}
                         </div>
-                    {% endif %}
+                    {% endfor %}
                 </div>
 
                 <h6 class="text-uppercase fw-semibold text-muted mb-3 small">Language Skills</h6>
@@ -375,13 +357,7 @@
                                             </div>
                                         </td>
                                         <td>
-                                            {% if class.level == 'STARTERS' %}
-                                                <span class="badge bg-info-subtle text-info">Starters</span>
-                                            {% elif class.level == 'MOVERS' %}
-                                                <span class="badge bg-warning-subtle text-warning">Movers</span>
-                                            {% else %}
-                                                <span class="badge bg-success-subtle text-success">Flyers</span>
-                                            {% endif %}
+                                            <span class="badge bg-{{ class.level|level_color }}-subtle text-{{ class.level|level_color }}">{{ class.level|level_name }}</span>
                                         </td>
                                         <td class="text-center">
                                             <span class="badge bg-primary">{{ class.enrolled_students.count }}</span>

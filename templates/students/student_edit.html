@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load yle_levels %}
 
 {% block PageTitle %}Edit {{ student.full_name }} - Polymath School of English{% endblock %}
 {% block pageTitle %}Edit Student Profile{% endblock %}
@@ -334,13 +335,7 @@
                         <h5 class="card-title mb-0">Edit Student Profile</h5>
                         <div class="d-flex align-items-center gap-2 mt-1">
                             <span class="badge bg-primary-subtle text-primary">{{ student.admission_number }}</span>
-                            {% if student.current_level == 'STARTERS' %}
-                                <span class="badge bg-info-subtle text-info">Starters</span>
-                            {% elif student.current_level == 'MOVERS' %}
-                                <span class="badge bg-warning-subtle text-warning">Movers</span>
-                            {% elif student.current_level == 'FLYERS' %}
-                                <span class="badge bg-success-subtle text-success">Flyers</span>
-                            {% endif %}
+                            <span class="badge bg-{{ student.current_level|level_color }}-subtle text-{{ student.current_level|level_color }}">{{ student.current_level|level_name }}</span>
                             {% if student.is_active %}
                                 <span class="badge bg-success-subtle text-success">Active</span>
                             {% else %}
@@ -618,25 +613,30 @@
                                 <i class="ri-medal-line text-primary me-2"></i>
                                 Academic Information
                             </h5>
-                            <p class="text-muted mb-0">Update YLE level and class assignment</p>
+                            <p class="text-muted mb-0">Update course and class assignment</p>
                         </div>
 
                         <div class="row g-3 mb-4">
                             <div class="col-md-6">
-                                <label for="current_level" class="form-label">
-                                    Current YLE Level <span class="text-danger">*</span>
+                                <label for="current_course" class="form-label">
+                                    Current Course <span class="text-danger">*</span>
                                 </label>
-                                <select class="form-select" id="current_level" name="current_level" required{% if student.assigned_class %} disabled{% endif %}>
-                                    {% for level in levels %}
-                                    <option value="{{ level.short_code }}" {% if student.current_level == level.short_code %}selected{% endif %}>{{ level.name }}</option>
+                                <select class="form-select" id="current_course" name="current_course" required{% if student.assigned_class %} disabled{% endif %}>
+                                    <option value="">Select course</option>
+                                    {% for group in course_groups %}
+                                    <optgroup label="{{ group.level.name }}">
+                                        {% for course in group.courses %}
+                                        <option value="{{ course.id }}" {% if student.current_course_id == course.id %}selected{% endif %}>{{ course.name }} ({{ group.level.name }})</option>
+                                        {% endfor %}
+                                    </optgroup>
                                     {% endfor %}
-                                    {% if student.level and not student.level.is_active or not student.level %}
-                                    <option value="{{ student.current_level }}" selected>{{ student.get_current_level_display }} (inactive)</option>
+                                    {% if student.current_course and not student.current_course.is_active %}
+                                    <option value="{{ student.current_course_id }}" selected>{{ student.current_course.name }} (inactive)</option>
                                     {% endif %}
                                 </select>
                                 {% if student.assigned_class %}
                                 <div class="form-text">
-                                    <i class="ri-lock-line me-1"></i>The level is locked while the student has a class. It changes through promotion.
+                                    <i class="ri-lock-line me-1"></i>The course is locked while the student has a class. It changes through promotion.
                                 </div>
                                 {% endif %}
                             </div>
@@ -652,46 +652,18 @@
                                     <select class="form-select" id="assigned_class" name="assigned_class">
                                         <option value="">Not Assigned</option>
                                         {% for option in class_options %}
-                                            <option value="{{ option.id }}" data-level="{{ option.level }}"{% if option.is_full %} disabled{% endif %}>
+                                            <option value="{{ option.id }}" data-course="{{ option.course_id }}"{% if option.is_full %} disabled{% endif %}>
                                                 {{ option.label }}{% if option.location %} · {{ option.location }}{% endif %}{% if option.schedule %} · {{ option.schedule }}{% endif %} · {% if option.is_full %}Full{% else %}{{ option.seats_left }} seat{{ option.seats_left|pluralize }} left{% endif %}{% if option.match == 'full' %} · Matches preference{% endif %}
                                             </option>
                                         {% endfor %}
                                     </select>
                                     <div class="form-text">
-                                        <i class="ri-information-line me-1"></i>Only classes for the selected level are shown. Once saved, the class is locked.
+                                        <i class="ri-information-line me-1"></i>Only classes for the selected course are shown. Once saved, the class is locked.
                                     </div>
                                 {% endif %}
                             </div>
                         </div>
 
-                        <!-- Level Visual Cards (from Academic Management -> YLE Levels) -->
-                        {% if not student.assigned_class %}
-                        <p class="text-muted small mb-3">Or select a level visually:</p>
-                        <div class="row g-3">
-                            {% for level in levels %}
-                            <div class="col-md-4">
-                                <div class="form-check form-check-card h-100">
-                                    <input class="form-check-input yle-level-radio" type="radio" name="yle_level_display"
-                                           id="level_{{ level.short_code|lower }}" value="{{ level.short_code }}"
-                                           {% if student.current_level == level.short_code %}checked{% endif %}>
-                                    <label class="form-check-label d-block p-3 border rounded cursor-pointer h-100 {% if student.current_level == level.short_code %}border-primary bg-primary-subtle{% endif %}" for="level_{{ level.short_code|lower }}">
-                                        <div class="d-flex align-items-center">
-                                            <div class="avatar-sm me-3 flex-shrink-0">
-                                                <span class="avatar-title text-white rounded" style="background-color: {{ level.color_theme|default:'#405189' }};">
-                                                    <i class="{{ level.icon|default:'ri-medal-line' }} fs-4"></i>
-                                                </span>
-                                            </div>
-                                            <div>
-                                                <h6 class="mb-1">{{ level.name }}</h6>
-                                                <p class="text-muted mb-0 small">{% if level.cefr_level %}CEFR {{ level.cefr_level }} · {% endif %}Ages {{ level.age_range_min }}-{{ level.age_range_max }} · {{ level.class_count }} class{{ level.class_count|pluralize:"es" }}</p>
-                                            </div>
-                                        </div>
-                                    </label>
-                                </div>
-                            </div>
-                            {% endfor %}
-                        </div>
-                        {% endif %}
 
                         <!-- Step 3 Note -->
                         <div class="alert alert-light border mt-4 mb-0" role="note">
@@ -700,10 +672,10 @@
                                     <i class="ri-lightbulb-line fs-4 text-warning"></i>
                                 </div>
                                 <div class="flex-grow-1 ms-3">
-                                    <h6 class="mb-1">YLE Level Progression</h6>
+                                    <h6 class="mb-1">Course Progression</h6>
                                     <p class="mb-0 small text-muted">
-                                        Change the level when the student progresses through Cambridge assessments.
-                                        Ensure the assigned class matches the student's level.
+                                        The course changes through promotion to the next course once the student has a class.
+                                        Only classes of the student's course can be assigned.
                                     </p>
                                 </div>
                             </div>
@@ -830,7 +802,7 @@
                                     </div>
                                     <div class="col-md-6">
                                         <small class="text-muted d-block">YLE Level</small>
-                                        <strong id="review-level">{{ student.get_current_level_display }}</strong>
+                                        <strong id="review-level">{{ student.current_course.name|default:student.get_current_level_display }}</strong>
                                     </div>
                                     <div class="col-md-6">
                                         <small class="text-muted d-block">Assigned Class</small>
@@ -928,13 +900,7 @@
                         <tr>
                             <td class="text-muted"><i class="ri-medal-line me-1"></i> Level</td>
                             <td class="text-end">
-                                {% if student.current_level == 'STARTERS' %}
-                                    <span class="badge bg-info-subtle text-info">Starters</span>
-                                {% elif student.current_level == 'MOVERS' %}
-                                    <span class="badge bg-warning-subtle text-warning">Movers</span>
-                                {% elif student.current_level == 'FLYERS' %}
-                                    <span class="badge bg-success-subtle text-success">Flyers</span>
-                                {% endif %}
+                                <span class="badge bg-{{ student.current_level|level_color }}-subtle text-{{ student.current_level|level_color }}">{{ student.current_level|level_name }}</span>
                             </td>
                         </tr>
                         <tr>
@@ -1073,7 +1039,7 @@ $(document).ready(function() {
     var stepFields = {
         1: ['full_name', 'name_with_initials'],
         2: ['primary_contact_number', 'home_address'],
-        3: ['current_level'],
+        3: ['current_course'],
         4: [] // Profile picture and status are optional
     };
 
@@ -1095,20 +1061,6 @@ $(document).ready(function() {
     // ========================================
     // YLE Level Card Selection
     // ========================================
-    $('.yle-level-radio').on('change', function() {
-        var level = $(this).val();
-        $('#current_level').val(level);
-
-        // Update card styles
-        $('.yle-level-radio').siblings('label').removeClass('border-primary bg-primary-subtle');
-        $(this).siblings('label').addClass('border-primary bg-primary-subtle');
-    });
-
-    // Sync select dropdown with YLE level cards
-    $('#current_level').on('change', function() {
-        var level = $(this).val();
-        $('input[name="yle_level_display"][value="' + level + '"]').prop('checked', true).trigger('change');
-    });
 
     // ========================================
     // Navigation Functions
@@ -1376,8 +1328,8 @@ $(document).ready(function() {
         $('#review-whatsapp').text($('#whatsapp_number').val() || '-');
 
         // Get level display name
-        var levelVal = $('#current_level').val();
-        var levelDisplay = levelVal ? $('#current_level option:selected').text() : '-';
+        var levelVal = $('#current_course').val();
+        var levelDisplay = levelVal ? $('#current_course option:selected').text() : '-';
         $('#review-level').text(levelDisplay);
 
         // Get class display name (locked classes render as a read-only input)
@@ -1392,16 +1344,16 @@ $(document).ready(function() {
     function filterClassesByLevel() {
         var $select = $('select#assigned_class');
         if (!$select.length) return;
-        var level = $('#current_level').val();
-        $select.find('option[data-level]').each(function() {
-            var matches = $(this).data('level') === level;
+        var level = $('#current_course').val();
+        $select.find('option[data-course]').each(function() {
+            var matches = String($(this).data('course')) === level;
             $(this).prop('hidden', !matches);
             if (!matches && $(this).is(':selected')) {
                 $select.val('');
             }
         });
     }
-    $('#current_level, .yle-level-radio').on('change', filterClassesByLevel);
+    $('#current_course').on('change', filterClassesByLevel);
     filterClassesByLevel();
 
     // ========================================

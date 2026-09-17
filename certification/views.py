@@ -67,6 +67,12 @@ def certificate_list_view(request):
         messages.error(request, 'You do not have permission to view certificates.')
         return redirect('/')
 
+    # Summary cards: everything this user may see, before search/filters
+    visible_certificates = certificates
+    level_counts_map = dict(
+        visible_certificates.filter(level__isnull=False).values_list('level_id').annotate(n=Count('id')).values_list('level_id', 'n')
+    )
+
     # Search
     search_query = request.GET.get('search', '')
     if search_query:
@@ -84,8 +90,10 @@ def certificate_list_view(request):
 
     # Filter by level
     level_filter = request.GET.get('level', '')
-    if level_filter:
-        certificates = certificates.filter(level_id=level_filter)
+    if level_filter.isdigit():
+        certificates = certificates.filter(level_id=int(level_filter))
+    elif level_filter:
+        certificates = certificates.filter(level__short_code__iexact=level_filter)
 
     # Filter by date range
     date_from = request.GET.get('date_from', '')
@@ -106,7 +114,7 @@ def certificate_list_view(request):
     page_obj = paginator.get_page(page_number)
 
     # Get filter options
-    levels = YLELevel.objects.filter(is_active=True)
+    levels = YLELevel.objects.filter(is_active=True).order_by('order', 'id')
 
     context = {
         'page_obj': page_obj,
@@ -120,6 +128,8 @@ def certificate_list_view(request):
         'levels': levels,
         'certificate_types': Certificate.CERTIFICATE_TYPE_CHOICES,
         'total_count': certificates.count(),
+        'total_certificates': visible_certificates.count(),
+        'level_counts': [{'level': level, 'count': level_counts_map.get(level.id, 0)} for level in levels],
         'is_student': is_student,
     }
 
@@ -359,7 +369,7 @@ def certificate_issue_view(request):
     from datetime import date
 
     students = Student.objects.filter(is_active=True).order_by('full_name')
-    levels = YLELevel.objects.filter(is_active=True)
+    levels = YLELevel.objects.filter(is_active=True).order_by('order', 'id')
     templates = CertificateTemplate.objects.filter(is_active=True)
 
     context = {
@@ -632,7 +642,7 @@ def template_preview_view(request, template_id):
         'title': 'Sample Certificate Title',
         'description': 'This is a sample certificate description for preview purposes.',
         'issue_date': date.today().strftime('%B %d, %Y'),
-        'level_name': 'A1 Movers',
+        'level_name': 'A1',
         'listening_shields': 4,
         'reading_shields': 5,
         'writing_shields': 3,
@@ -703,6 +713,45 @@ def certification_report_view(request):
         # Move to next month
         current_date = month_end
 
+    # Breakdown for every active level (tiles and charts)
+    from django.db.models.functions import TruncMonth
+    report_levels = list(YLELevel.objects.filter(is_active=True).order_by('order', 'id'))
+    leveled = certificates_qs.filter(level__isnull=False)
+    counts_by_level = dict(leveled.values_list('level_id').annotate(n=Count('id')).values_list('level_id', 'n'))
+    shields_by_level = dict(
+        leveled.values_list('level_id').annotate(a=Avg('shields_earned')).values_list('level_id', 'a')
+    )
+    month_keys = []
+    month_cursor = date_from.replace(day=1)
+    while month_cursor <= date_to:
+        month_keys.append(month_cursor)
+        month_cursor = (month_cursor.replace(year=month_cursor.year + 1, month=1) if month_cursor.month == 12
+                        else month_cursor.replace(month=month_cursor.month + 1))
+    monthly_counts = {}
+    for row in leveled.annotate(month=TruncMonth('issue_date')).values('month', 'level_id').annotate(n=Count('id')):
+        month = row['month'].date() if hasattr(row['month'], 'date') else row['month']
+        monthly_counts[(month.replace(day=1), row['level_id'])] = row['n']
+
+    level_stats = [
+        {
+            'level': level,
+            'count': counts_by_level.get(level.id, 0),
+            'avg_shields': round(float(shields_by_level.get(level.id) or 0), 1),
+        }
+        for level in report_levels
+    ]
+    level_chart_data = {
+        'labels': [level.name for level in report_levels],
+        'colors': [level.color_theme or '#405189' for level in report_levels],
+        'counts': [row['count'] for row in level_stats],
+        'avg_shields': [row['avg_shields'] for row in level_stats],
+        'months': [m.strftime('%b %Y') for m in month_keys],
+        'monthly': [
+            {'name': level.name, 'data': [monthly_counts.get((m, level.id), 0) for m in month_keys]}
+            for level in report_levels
+        ],
+    }
+
     # Achievement statistics
     total_achievements = achievements_qs.count()
     achievements_by_type = achievements_qs.values('achievement_type').annotate(
@@ -735,7 +784,7 @@ def certification_report_view(request):
     ).order_by('-certificate_count')[:10]
 
     # Get levels for filter
-    levels = YLELevel.objects.filter(is_active=True)
+    levels = YLELevel.objects.filter(is_active=True).order_by('order', 'id')
 
     context = {
         'date_from': date_from,
@@ -749,6 +798,8 @@ def certification_report_view(request):
         'total_certificates': total_certificates,
         'certificates_by_type': certificates_by_type,
         'certificates_by_level': certificates_by_level,
+        'level_stats': level_stats,
+        'level_chart_data': level_chart_data,
         'monthly_certificates': monthly_certificates,
         'recent_certificates': recent_certificates,
         'top_students': top_students,
@@ -789,7 +840,7 @@ def _report_filters(request):
         issue_date__gte=date_from,
         issue_date__lte=date_to
     )
-    # The report form sends level short codes (STARTERS, MOVERS, FLYERS); accept ids too
+    # The report form sends level short codes (e.g. PRE_A1, B2); accept ids too
     if level_filter.isdigit():
         certificates_qs = certificates_qs.filter(level_id=level_filter)
     elif level_filter:

@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load yle_levels %}
 
 {% block PageTitle %}Staff Dashboard - Polymath School of English{% endblock %}
 
@@ -333,21 +334,7 @@
                                             </div>
                                         </td>
                                         <td>
-                                            {% if student.current_level == 'STARTERS' %}
-                                                <span class="badge bg-info-subtle text-info">
-                                                    <i class="ri-seedling-line me-1"></i>Starters
-                                                </span>
-                                            {% elif student.current_level == 'MOVERS' %}
-                                                <span class="badge bg-warning-subtle text-warning">
-                                                    <i class="ri-run-line me-1"></i>Movers
-                                                </span>
-                                            {% elif student.current_level == 'FLYERS' %}
-                                                <span class="badge bg-success-subtle text-success">
-                                                    <i class="ri-rocket-line me-1"></i>Flyers
-                                                </span>
-                                            {% else %}
-                                                <span class="badge bg-secondary-subtle text-secondary">{{ student.get_current_level_display }}</span>
-                                            {% endif %}
+                                            <span class="badge bg-{{ student.current_level|level_color }}-subtle text-{{ student.current_level|level_color }}"><i class="{{ student.current_level|level_icon }} me-1"></i>{{ student.current_level|level_name }}</span>
                                         </td>
                                         <td>
                                             <small class="text-muted">{{ student.enrollment_date|date:"M d, Y" }}</small>

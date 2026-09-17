@@ -82,13 +82,14 @@ class CertificateTemplate(models.Model):
     description = models.TextField()
 
     TEMPLATE_TYPE_CHOICES = [
-        ('STARTERS', 'Pre A1 Starters'),
-        ('MOVERS', 'A1 Movers'),
-        ('FLYERS', 'A2 Flyers'),
+        ('LEVEL', 'Level Completion'),
         ('SKILL', 'Skill Mastery'),
         ('ACHIEVEMENT', 'Special Achievement'),
     ]
     template_type = models.CharField(max_length=50, choices=TEMPLATE_TYPE_CHOICES)
+    # Level for level-completion templates (any level from Academic Management -> YLE Levels)
+    level = models.ForeignKey('courses.YLELevel', on_delete=models.SET_NULL, null=True, blank=True,
+                              related_name='certificate_templates')
 
     # Template files
     html_template = models.TextField()  # HTML template with placeholders

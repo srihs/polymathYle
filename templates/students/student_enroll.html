@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load yle_levels %}
 
 {% block PageTitle %}Enroll Student - Polymath School of English{% endblock %}
 {% block pageTitle %}Enroll Student{% endblock %}
@@ -365,8 +366,8 @@ legend {
                             <i class="ri-check-line step-check"></i>
                         </div>
                         <div class="wizard-step-label">
-                            <span class="step-title">YLE Level</span>
-                            <span class="step-subtitle d-none d-md-block">Select Level</span>
+                            <span class="step-title">Course</span>
+                            <span class="step-subtitle d-none d-md-block">Select Course</span>
                         </div>
                     </div>
                     <div class="wizard-step-connector"></div>
@@ -578,72 +579,70 @@ legend {
                         </div>
                     </div>
 
-                    <!-- Step 2: YLE Level Selection -->
+                    <!-- Step 2: Course Selection -->
                     <div class="wizard-panel" id="step2-panel" role="tabpanel" aria-labelledby="step2">
                         <div class="step-header mb-4">
                             <h5 class="mb-1">
                                 <i class="ri-medal-line text-primary me-2"></i>
-                                Cambridge YLE Level Selection
+                                Course Selection
                             </h5>
-                            <p class="text-muted mb-0">Select the initial YLE level for this student</p>
+                            <p class="text-muted mb-0">Select the course (under its CEFR level) and class for this student</p>
                         </div>
 
                         <div class="alert alert-info border-0 mb-4">
                             <div class="d-flex">
                                 <i class="ri-information-line fs-4 me-3"></i>
                                 <div>
-                                    <strong>Level Selection</strong>
-                                    <p class="mb-0 small">Select the initial YLE level based on placement test or age-appropriate assessment. Level can be changed later from the student profile.</p>
+                                    <strong>Course Selection</strong>
+                                    <p class="mb-0 small">Select the course based on placement test or age-appropriate assessment. Once a class is assigned, the course changes only through promotion.</p>
                                 </div>
                             </div>
                         </div>
 
                         <label class="form-label mb-3">
-                            Assign Initial Level <span class="text-danger" aria-label="required">*</span>
+                            Assign Course <span class="text-danger" aria-label="required">*</span>
                         </label>
 
-                        <!-- Level Cards (from Academic Management -> YLE Levels) -->
-                        <div class="row g-3 mb-0">
-                            {% for level in levels %}
+                        <!-- Course Cards, grouped by CEFR level -->
+                        {% for group in course_groups %}
+                        <h6 class="text-uppercase fw-semibold small mt-3 mb-2 text-{{ group.level|level_color }}">
+                            <i class="{{ group.level|level_icon }} me-1"></i>{{ group.level.name }}
+                        </h6>
+                        <div class="row g-3 mb-2">
+                            {% for course in group.courses %}
                             <div class="col-md-4">
                                 <div class="form-check form-check-card h-100">
-                                    <input class="form-check-input yle-level-radio" type="radio" name="current_level"
-                                           id="level_{{ level.short_code|lower }}" value="{{ level.short_code }}"
-                                           data-name="{{ level.name }}"
-                                           {% if level.short_code == suggested_level %}checked{% endif %}>
-                                    <label class="form-check-label d-block p-3 border rounded cursor-pointer h-100" for="level_{{ level.short_code|lower }}">
-                                        <div class="text-center">
-                                            <div class="avatar-md mx-auto mb-3">
-                                                <span class="avatar-title text-white rounded-circle fs-2" style="background-color: {{ level.color_theme|default:'#405189' }};">
-                                                    <i class="{{ level.icon|default:'ri-medal-line' }}"></i>
-                                                </span>
+                                    <input class="form-check-input yle-level-radio" type="radio" name="current_course"
+                                           id="course_{{ course.id }}" value="{{ course.id }}"
+                                           data-name="{{ course.name }} ({{ group.level.name }})"
+                                           {% if course.id == suggested_course %}checked{% endif %}>
+                                    <label class="form-check-label d-block p-3 border rounded cursor-pointer h-100" for="course_{{ course.id }}">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <h5 class="mb-1">{{ course.name }}</h5>
+                                                <span class="badge bg-{{ group.level|level_color }}-subtle text-{{ group.level|level_color }}">{{ group.level.name }}</span>
                                             </div>
-                                            <h5 class="mb-1">{{ level.name }}</h5>
-                                            {% if level.cefr_level %}<p class="text-muted mb-2 small">CEFR {{ level.cefr_level }}</p>{% endif %}
-                                            <span class="badge bg-light text-body">Ages {{ level.age_range_min }}-{{ level.age_range_max }}</span>
-                                            <span class="badge {% if level.class_count %}bg-primary-subtle text-primary{% else %}bg-danger-subtle text-danger{% endif %} ms-1">
-                                                <i class="ri-team-line me-1"></i>{{ level.class_count }} class{{ level.class_count|pluralize:"es" }}
+                                            <span class="badge {% if course.class_count %}bg-primary-subtle text-primary{% else %}bg-danger-subtle text-danger{% endif %}">
+                                                <i class="ri-team-line me-1"></i>{{ course.class_count }} class{{ course.class_count|pluralize:"es" }}
                                             </span>
-                                            {% if level.short_code == suggested_level and application.age %}
-                                            <span class="badge bg-success-subtle text-success ms-1">Suits age {{ application.age }}</span>
-                                            {% endif %}
                                         </div>
-                                        {% if level.description %}
-                                        <hr class="my-3">
-                                        <p class="text-muted small mb-0">{{ level.description }}</p>
+                                        {% if course.age_range_min or course.age_range_max %}
+                                        <small class="text-muted d-block mt-2">Ages {{ course.age_range_min|default:"?" }}-{{ course.age_range_max|default:"?" }}</small>
+                                        {% endif %}
+                                        {% if course.id == suggested_course and application.age %}
+                                        <span class="badge bg-success-subtle text-success mt-2">Suits age {{ application.age }}</span>
                                         {% endif %}
                                     </label>
                                 </div>
                             </div>
-                            {% empty %}
-                            <div class="col-12">
-                                <div class="alert alert-warning border-0 mb-0">
-                                    <i class="ri-error-warning-line me-1"></i>
-                                    No active levels. Add levels in Academic Management &rarr; YLE Levels before enrolling students.
-                                </div>
-                            </div>
                             {% endfor %}
                         </div>
+                        {% empty %}
+                        <div class="alert alert-warning border-0 mb-0">
+                            <i class="ri-error-warning-line me-1"></i>
+                            No active courses. Add courses in Academic Management &rarr; Courses before enrolling students.
+                        </div>
+                        {% endfor %}
 
                         <!-- Class Allocation -->
                         <fieldset class="mt-4">
@@ -651,7 +650,7 @@ legend {
                                 <i class="ri-team-line me-2"></i>Class Allocation
                             </legend>
                             <p class="text-muted small mb-3">
-                                Classes for the selected level. Classes that match the parent's preferred days and times are listed first.
+                                Classes for the selected course. Classes that match the parent's preferred days and times are listed first.
                                 <strong>Once enrolled, the class can only be changed through a transfer request or promotion.</strong>
                             </p>
 
@@ -786,7 +785,7 @@ legend {
                                         <strong>{{ application.age }} years old</strong>
                                     </div>
                                     <div class="col-md-4">
-                                        <small class="text-muted d-block">Selected YLE Level</small>
+                                        <small class="text-muted d-block">Selected Course</small>
                                         <strong id="review-yle-level">-</strong>
                                     </div>
                                     <div class="col-md-4">
@@ -864,7 +863,7 @@ $(document).ready(function() {
     // ========================================
     var stepFields = {
         1: [], // Application summary - read only, no validation needed
-        2: ['current_level'], // YLE level selection - radio buttons, one is always selected
+        2: ['current_course'], // Course selection - radio buttons
         3: ['password'] // Account setup - password required
     };
 
@@ -1136,7 +1135,7 @@ $(document).ready(function() {
     // ========================================
     function updateReviewSummary() {
         // Update YLE Level
-        var $selectedLevel = $('input[name="current_level"]:checked');
+        var $selectedLevel = $('input[name="current_course"]:checked');
         $('#review-yle-level').text($selectedLevel.length ? $selectedLevel.data('name') : '-');
 
         // Update Class
@@ -1162,9 +1161,9 @@ $(document).ready(function() {
     }
 
     function renderClassOptions() {
-        var level = $('input[name="current_level"]:checked').val();
+        var level = $('input[name="current_course"]:checked').val();
         var previous = $('input[name="assigned_class"]:checked').val();
-        var forLevel = classOptions.filter(function(o) { return o.level === level; });
+        var forLevel = classOptions.filter(function(o) { return String(o.course_id) === level; });
         var available = forLevel.filter(function(o) { return !o.is_full; });
         var $container = $('#classOptions').empty();
 
@@ -1215,13 +1214,13 @@ $(document).ready(function() {
             $('#noClassAvailable').hide();
         } else {
             $('#noClassMessage').text(forLevel.length
-                ? 'All classes for this level are full.'
-                : 'There are no active classes for this level yet.');
+                ? 'All classes for this course are full.'
+                : 'There are no active classes for this course yet.');
             $('#noClassAvailable').show();
         }
     }
 
-    $('input[name="current_level"]').on('change', renderClassOptions);
+    $('input[name="current_course"]').on('change', renderClassOptions);
     renderClassOptions();
 
     // ========================================

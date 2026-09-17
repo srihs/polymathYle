@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load yle_levels %}
 
 {% block PageTitle %}Teachers - Polymath School of English{% endblock %}
 {% block pageTitle %}Teacher Management{% endblock %}
@@ -138,12 +139,12 @@
                             </select>
                         </div>
                         <div class="col-lg-2 col-md-6">
-                            <label for="specialization" class="form-label">YLE Level</label>
-                            <select class="form-select" id="specialization" name="specialization" aria-label="Filter by YLE level">
+                            <label for="specialization" class="form-label">CEFR Level</label>
+                            <select class="form-select" id="specialization" name="specialization" aria-label="Filter by CEFR level">
                                 <option value="">All Levels</option>
-                                <option value="STARTERS" {% if specialization == 'STARTERS' %}selected{% endif %}>Pre A1 Starters</option>
-                                <option value="MOVERS" {% if specialization == 'MOVERS' %}selected{% endif %}>A1 Movers</option>
-                                <option value="FLYERS" {% if specialization == 'FLYERS' %}selected{% endif %}>A2 Flyers</option>
+                                {% for level in levels %}
+                                <option value="{{ level.id }}" {% if specialization == level.id|stringformat:"s" %}selected{% endif %}>{{ level.name }}</option>
+                                {% endfor %}
                             </select>
                         </div>
                         <div class="col-lg-2 col-md-6">
@@ -268,24 +269,13 @@
                                             </td>
                                             <td>
                                                 <div class="d-flex flex-wrap gap-1">
-                                                    {% if teacher.teaches_starters %}
-                                                        <span class="badge bg-info-subtle text-info" title="Pre A1 Starters">
-                                                            <i class="ri-seedling-line"></i> S
+                                                    {% for level in teacher.ordered_levels %}
+                                                        <span class="badge bg-{{ level|level_color }}-subtle text-{{ level|level_color }}" title="{{ level.name }}">
+                                                            <i class="{{ level|level_icon }}"></i> {{ level.name }}
                                                         </span>
-                                                    {% endif %}
-                                                    {% if teacher.teaches_movers %}
-                                                        <span class="badge bg-warning-subtle text-warning" title="A1 Movers">
-                                                            <i class="ri-run-line"></i> M
-                                                        </span>
-                                                    {% endif %}
-                                                    {% if teacher.teaches_flyers %}
-                                                        <span class="badge bg-success-subtle text-success" title="A2 Flyers">
-                                                            <i class="ri-rocket-line"></i> F
-                                                        </span>
-                                                    {% endif %}
-                                                    {% if not teacher.teaches_starters and not teacher.teaches_movers and not teacher.teaches_flyers %}
+                                                    {% empty %}
                                                         <span class="text-muted small">Not set</span>
-                                                    {% endif %}
+                                                    {% endfor %}
                                                 </div>
                                             </td>
                                             <td>
@@ -403,10 +393,7 @@
                                                     <div class="col-4">
                                                         <p class="text-muted mb-1 small">Levels</p>
                                                         <h6 class="mb-0">
-                                                            {% if teacher.teaches_starters %}<span class="text-info">S</span>{% endif %}
-                                                            {% if teacher.teaches_movers %}<span class="text-warning">M</span>{% endif %}
-                                                            {% if teacher.teaches_flyers %}<span class="text-success">F</span>{% endif %}
-                                                            {% if not teacher.teaches_starters and not teacher.teaches_movers and not teacher.teaches_flyers %}-{% endif %}
+                                                            {% for level in teacher.ordered_levels %}<span class="text-{{ level|level_color }}">{{ level.name }}</span>{% if not forloop.last %}, {% endif %}{% empty %}-{% endfor %}
                                                         </h6>
                                                     </div>
                                                 </div>

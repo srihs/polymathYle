@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load yle_levels %}
 
 {% block PageTitle %}Lessons - Polymath School of English{% endblock %}
 {% block pageTitle %}Lessons{% endblock %}
@@ -100,7 +101,7 @@
                 </div>
             </div>
             <div class="card-body">
-                <form method="get" action="{% url 'lesson_list' %}" id="filterForm">
+                <form method="get" action="{% url 'lesson_list' unit.id %}" id="filterForm">
                     <div class="row g-3 align-items-end">
                         <div class="col-lg-3 col-md-6">
                             <label for="search" class="form-label">Search</label>
@@ -163,7 +164,7 @@
                                 <button type="submit" class="btn btn-primary">
                                     <i class="ri-search-line"></i>
                                 </button>
-                                <a href="{% url 'lesson_list' %}" class="btn btn-outline-secondary" title="Reset">
+                                <a href="{% url 'lesson_list' unit.id %}" class="btn btn-outline-secondary" title="Reset">
                                     <i class="ri-refresh-line"></i>
                                 </a>
                             </div>
@@ -244,13 +245,7 @@
                                     <a href="{% url 'unit_detail' lesson.unit.id %}" class="badge bg-primary-subtle text-primary text-decoration-none">
                                         {{ lesson.unit.title|truncatewords:3 }}
                                     </a>
-                                    {% if lesson.unit.level.short_code == 'STARTERS' %}
-                                    <span class="badge bg-info-subtle text-info">Starters</span>
-                                    {% elif lesson.unit.level.short_code == 'MOVERS' %}
-                                    <span class="badge bg-warning-subtle text-warning">Movers</span>
-                                    {% else %}
-                                    <span class="badge bg-success-subtle text-success">Flyers</span>
-                                    {% endif %}
+                                    <span class="badge bg-{{ lesson.unit.level|level_color }}-subtle text-{{ lesson.unit.level|level_color }}">{{ lesson.unit.level|level_name }}</span>
                                 </div>
 
                                 <!-- Skills -->
@@ -344,7 +339,7 @@
                     </p>
                     <div class="d-flex justify-content-center gap-2">
                         {% if search_query or level_filter or unit_filter or type_filter or skill_filter %}
-                        <a href="{% url 'lesson_list' %}" class="btn btn-outline-primary">
+                        <a href="{% url 'lesson_list' unit.id %}" class="btn btn-outline-primary">
                             <i class="ri-refresh-line me-1"></i>Clear Filters
                         </a>
                         {% endif %}

@@ -17,7 +17,7 @@
                 </div>
                 <div>
                     <h5 class="card-title mb-0">Request Class Transfer</h5>
-                    <p class="text-muted mb-0 small">Move {{ student.full_name }} to another class at the same level. The request needs approval.</p>
+                    <p class="text-muted mb-0 small">Move {{ student.full_name }} to another class of the same course. The request needs approval.</p>
                 </div>
             </div>
             <div class="card-body">
@@ -31,8 +31,9 @@
                     </div>
                     <div class="col-md-4">
                         <div class="p-3 border rounded bg-light h-100">
-                            <p class="text-muted mb-1 small">Level</p>
-                            <h6 class="mb-0">{{ student.get_current_level_display }}</h6>
+                            <p class="text-muted mb-1 small">Course</p>
+                            <h6 class="mb-0">{{ student.current_course.name|default:student.get_current_level_display }}</h6>
+                            {% if student.current_course %}<small class="text-muted">{{ student.get_current_level_display }}</small>{% endif %}
                         </div>
                     </div>
                     <div class="col-md-4">
@@ -93,7 +94,7 @@
                     {% else %}
                     <div class="alert alert-warning border-0 mb-4">
                         <i class="ri-error-warning-line me-1"></i>
-                        There are no other active classes at {{ student.get_current_level_display }}.
+                        There are no other active classes for {{ student.current_course.name|default:student.get_current_level_display }}.
                     </div>
                     {% endif %}
 

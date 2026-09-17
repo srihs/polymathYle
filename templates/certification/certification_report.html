@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load yle_levels %}
 
 {% block PageTitle %}Certification Report - PolymathYLE{% endblock %}
 {% block pageTitle %}Certification Report{% endblock %}
@@ -60,9 +61,9 @@
                         <label for="level" class="form-label">Level</label>
                         <select class="form-select" id="level" name="level">
                             <option value="">All Levels</option>
-                            <option value="STARTERS" {% if request.GET.level == 'STARTERS' %}selected{% endif %}>Pre A1 Starters</option>
-                            <option value="MOVERS" {% if request.GET.level == 'MOVERS' %}selected{% endif %}>A1 Movers</option>
-                            <option value="FLYERS" {% if request.GET.level == 'FLYERS' %}selected{% endif %}>A2 Flyers</option>
+                            {% for level in levels %}
+                            <option value="{{ level.short_code }}" {% if request.GET.level|upper == level.short_code|upper %}selected{% endif %}>{{ level.name }}</option>
+                            {% endfor %}
                         </select>
                     </div>
                     <div class="col-md-3">
@@ -242,23 +243,15 @@
             <div class="card-body">
                 <div id="level-distribution-chart" style="min-height: 300px;"></div>
                 <div class="row g-3 mt-3">
+                    {% for row in level_stats %}
                     <div class="col-4 text-center">
-                        <div class="p-2 bg-info-subtle rounded">
-                            <h5 class="mb-1 text-info">{{ starters_count|default:0 }}</h5>
-                            <small class="text-muted">Starters</small>
+                        <div class="p-2 bg-{{ row.level|level_color }}-subtle rounded h-100">
+                            <h5 class="mb-1 text-{{ row.level|level_color }}">{{ row.count }}</h5>
+                            <small class="text-muted">{{ row.level.name }}</small>
                         </div>
                     </div>
-                    <div class="col-4 text-center">
-                        <div class="p-2 bg-warning-subtle rounded">
-                            <h5 class="mb-1 text-warning">{{ movers_count|default:0 }}</h5>
-                            <small class="text-muted">Movers</small>
-                        </div>
-                    </div>
-                    <div class="col-4 text-center">
-                        <div class="p-2 bg-success-subtle rounded">
-                            <h5 class="mb-1 text-success">{{ flyers_count|default:0 }}</h5>
-                            <small class="text-muted">Flyers</small>
-                        </div>
+                    {% endfor %}
+                </div>
                     </div>
                 </div>
             </div>
@@ -430,20 +423,14 @@
                     {% for cert in recent_certificates %}
                     <div class="d-flex align-items-center p-3 border rounded card-animate">
                         <div class="avatar-sm flex-shrink-0 me-3">
-                            <span class="avatar-title bg-{% if cert.level == 'STARTERS' %}info{% elif cert.level == 'MOVERS' %}warning{% else %}success{% endif %}-subtle text-{% if cert.level == 'STARTERS' %}info{% elif cert.level == 'MOVERS' %}warning{% else %}success{% endif %} rounded-circle">
-                                {% if cert.level == 'STARTERS' %}
-                                <i class="ri-seedling-line"></i>
-                                {% elif cert.level == 'MOVERS' %}
-                                <i class="ri-run-line"></i>
-                                {% else %}
-                                <i class="ri-rocket-line"></i>
-                                {% endif %}
+                            <span class="avatar-title bg-{{ cert.level|level_color }}-subtle text-{{ cert.level|level_color }} rounded-circle">
+                                <i class="{{ cert.level|level_icon }}"></i>
                             </span>
                         </div>
                         <div class="flex-grow-1">
                             <h6 class="mb-1">{{ cert.student.full_name }}</h6>
                             <div class="d-flex flex-wrap gap-2">
-                                <span class="badge bg-{% if cert.level == 'STARTERS' %}info{% elif cert.level == 'MOVERS' %}warning{% else %}success{% endif %}-subtle text-{% if cert.level == 'STARTERS' %}info{% elif cert.level == 'MOVERS' %}warning{% else %}success{% endif %}">
+                                <span class="badge bg-{{ cert.level|level_color }}-subtle text-{{ cert.level|level_color }}">
                                     {{ cert.level.name|default:'-' }}
                                 </span>
                                 <small class="text-muted">
@@ -469,6 +456,7 @@
 </div>
 {% endblock %}
 
+{{ level_chart_data|json_script:"level-chart-data" }}
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script>
@@ -502,18 +490,12 @@ $(document).ready(function() {
         });
     });
 
+    // Per-level chart data for every active level
+    var levelChartData = JSON.parse(document.getElementById('level-chart-data').textContent);
+
     // Monthly Certificates Chart
     var monthlyOptions = {
-        series: [{
-            name: 'Starters',
-            data: {{ monthly_starters|default:"[0,0,0,0,0,0,0,0,0,0,0,0]"|safe }}
-        }, {
-            name: 'Movers',
-            data: {{ monthly_movers|default:"[0,0,0,0,0,0,0,0,0,0,0,0]"|safe }}
-        }, {
-            name: 'Flyers',
-            data: {{ monthly_flyers|default:"[0,0,0,0,0,0,0,0,0,0,0,0]"|safe }}
-        }],
+        series: levelChartData.monthly,
         chart: {
             type: 'bar',
             height: 350,
@@ -522,7 +504,7 @@ $(document).ready(function() {
                 show: false
             }
         },
-        colors: ['#0dcaf0', '#ffc107', '#198754'],
+        colors: levelChartData.colors,
         plotOptions: {
             bar: {
                 horizontal: false,
@@ -534,7 +516,7 @@ $(document).ready(function() {
             enabled: false
         },
         xaxis: {
-            categories: {{ months|default:"['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']"|safe }}
+            categories: levelChartData.months
         },
         legend: {
             position: 'top'
@@ -549,13 +531,13 @@ $(document).ready(function() {
 
     // Level Distribution Chart
     var levelOptions = {
-        series: [{{ starters_count|default:0 }}, {{ movers_count|default:0 }}, {{ flyers_count|default:0 }}],
+        series: levelChartData.counts,
         chart: {
             type: 'donut',
             height: 280
         },
-        labels: ['Starters', 'Movers', 'Flyers'],
-        colors: ['#0dcaf0', '#ffc107', '#198754'],
+        labels: levelChartData.labels,
+        colors: levelChartData.colors,
         legend: {
             show: false
         },
@@ -585,7 +567,7 @@ $(document).ready(function() {
     var shieldsByLevelOptions = {
         series: [{
             name: 'Average Shields',
-            data: [{{ starters_avg_shields|default:0 }}, {{ movers_avg_shields|default:0 }}, {{ flyers_avg_shields|default:0 }}]
+            data: levelChartData.avg_shields
         }],
         chart: {
             type: 'bar',
@@ -594,7 +576,7 @@ $(document).ready(function() {
                 show: false
             }
         },
-        colors: ['#0dcaf0', '#ffc107', '#198754'],
+        colors: levelChartData.colors,
         plotOptions: {
             bar: {
                 horizontal: true,
@@ -613,7 +595,7 @@ $(document).ready(function() {
             offsetX: 30
         },
         xaxis: {
-            categories: ['Pre A1 Starters', 'A1 Movers', 'A2 Flyers'],
+            categories: levelChartData.labels,
             max: 20
         },
         legend: {

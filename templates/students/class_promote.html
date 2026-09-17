@@ -16,16 +16,16 @@
         <div>
             <h5 class="card-title mb-0">Promote Students</h5>
             <p class="text-muted mb-0 small">
-                {{ class_obj.class_name }} ({{ class_obj.class_code }}) · {{ class_obj.level.name }}
-                {% if target_level %}<i class="ri-arrow-right-line mx-1"></i><strong>{{ target_level.name }}</strong>{% endif %}
+                {{ class_obj.class_name }} ({{ class_obj.class_code }}) · {{ class_obj.course.name|default:class_obj.level.name }}
+                {% if target_course %}<i class="ri-arrow-right-line mx-1"></i><strong>{{ target_course.name }}</strong> ({{ target_course.level.name }}){% endif %}
             </p>
         </div>
     </div>
     <div class="card-body">
-        {% if not target_level %}
+        {% if not target_course %}
             <div class="alert alert-info border-0 mb-0">
                 <i class="ri-information-line me-1"></i>
-                {{ class_obj.level.name }} is the highest active level, so there is no level to promote to.
+                {% if class_obj.course %}{{ class_obj.course.name }} is the last course{% else %}This class has no course{% endif %}, so there is no course to promote to.
             </div>
         {% elif not students %}
             <div class="alert alert-info border-0 mb-0">
@@ -52,7 +52,7 @@
                                 <span class="fw-medium">{{ s.full_name }}</span>
                                 <small class="text-muted d-block">{{ s.admission_number }}</small>
                             </span>
-                            <span class="badge bg-light text-body">{{ s.get_current_level_display }}</span>
+                            <span class="badge bg-light text-body">{{ s.current_course.name|default:s.get_current_level_display }}</span>
                         </label>
                         {% endfor %}
                     </div>
@@ -60,7 +60,7 @@
                 </div>
 
                 <div class="col-lg-6">
-                    <h6 class="text-uppercase fw-semibold text-muted small mb-2">2. Choose a {{ target_level.name }} class</h6>
+                    <h6 class="text-uppercase fw-semibold text-muted small mb-2">2. Choose a {{ target_course.name }} class</h6>
                     {% if target_options %}
                     <div class="d-grid gap-2" role="radiogroup" aria-label="Target class">
                         {% for o in target_options %}
@@ -87,7 +87,7 @@
                     {% else %}
                     <div class="alert alert-warning border-0">
                         <i class="ri-error-warning-line me-1"></i>
-                        There are no active {{ target_level.name }} classes. Create one first.
+                        There are no active {{ target_course.name }} classes. Create one first.
                     </div>
                     {% endif %}
 

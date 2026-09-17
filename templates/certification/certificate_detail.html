@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load yle_levels %}
 
 {% block PageTitle %}Certificate - {{ certificate.certificate_number }} - PolymathYLE{% endblock %}
 {% block pageTitle %}Certificate Details{% endblock %}
@@ -28,7 +29,7 @@
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0 me-3">
                             <div class="avatar-sm">
-                                <span class="avatar-title bg-{% if certificate.level == 'STARTERS' %}info{% elif certificate.level == 'MOVERS' %}warning{% else %}success{% endif %}-subtle text-{% if certificate.level == 'STARTERS' %}info{% elif certificate.level == 'MOVERS' %}warning{% else %}success{% endif %} rounded-circle">
+                                <span class="avatar-title bg-{{ certificate.level|level_color }}-subtle text-{{ certificate.level|level_color }} rounded-circle">
                                     <i class="ri-award-fill"></i>
                                 </span>
                             </div>
@@ -55,28 +56,22 @@
                         <!-- Certificate Header -->
                         <div class="text-center mb-4">
                             <img src="{% static 'assets/images/logo-dark.png' %}" alt="PolymathYLE Logo" style="height: 60px;" class="mb-3">
-                            <h2 class="text-{% if certificate.level == 'STARTERS' %}info{% elif certificate.level == 'MOVERS' %}warning{% else %}success{% endif %} mb-2">
+                            <h2 class="text-{{ certificate.level|level_color }} mb-2">
                                 Certificate of {{ certificate.get_certificate_type_display }}
                             </h2>
                             <p class="text-muted mb-0">Cambridge Young Learners English</p>
                         </div>
 
                         <!-- Decorative Line -->
-                        <hr class="border-{% if certificate.level == 'STARTERS' %}info{% elif certificate.level == 'MOVERS' %}warning{% else %}success{% endif %} opacity-50">
+                        <hr class="border-{{ certificate.level|level_color }} opacity-50">
 
                         <!-- Student Info -->
                         <div class="text-center my-4">
                             <p class="lead mb-1">This is to certify that</p>
                             <h3 class="fw-bold text-dark mb-1">{{ certificate.student.full_name }}</h3>
                             <p class="text-muted">has successfully completed the</p>
-                            <h4 class="fw-semibold text-{% if certificate.level == 'STARTERS' %}info{% elif certificate.level == 'MOVERS' %}warning{% else %}success{% endif %}">
-                                {% if certificate.level == 'STARTERS' %}
-                                    <i class="ri-seedling-line me-2"></i>Pre A1 Starters
-                                {% elif certificate.level == 'MOVERS' %}
-                                    <i class="ri-run-line me-2"></i>A1 Movers
-                                {% else %}
-                                    <i class="ri-rocket-line me-2"></i>A2 Flyers
-                                {% endif %}
+                            <h4 class="fw-semibold text-{{ certificate.level|level_color }}">
+                                <i class="{{ certificate.level|level_icon }} me-2"></i>{{ certificate.level|level_name }}
                             </h4>
                             <p class="text-muted">examination</p>
                         </div>
@@ -168,7 +163,7 @@
                             </div>
                             <!-- Total Shields -->
                             <div class="text-center mt-3 pt-3 border-top">
-                                <span class="badge bg-{% if certificate.level == 'STARTERS' %}info{% elif certificate.level == 'MOVERS' %}warning{% else %}success{% endif %} fs-6 px-4 py-2">
+                                <span class="badge bg-{{ certificate.level|level_color }} fs-6 px-4 py-2">
                                     Total Shields: {{ certificate.total_shields }}/20
                                 </span>
                             </div>
@@ -291,7 +286,7 @@
                                     <i class="ri-medal-line me-2"></i>Level
                                 </th>
                                 <td>
-                                    <span class="badge bg-{% if certificate.student.current_level == 'STARTERS' %}info{% elif certificate.student.current_level == 'MOVERS' %}warning{% else %}success{% endif %}-subtle text-{% if certificate.student.current_level == 'STARTERS' %}info{% elif certificate.student.current_level == 'MOVERS' %}warning{% else %}success{% endif %}">
+                                    <span class="badge bg-{{ certificate.student.current_level|level_color }}-subtle text-{{ certificate.student.current_level|level_color }}">
                                         {{ certificate.student.get_current_level_display }}
                                     </span>
                                 </td>
@@ -331,14 +326,8 @@
 
                     <div class="d-flex align-items-center p-3 bg-light rounded">
                         <div class="avatar-xs flex-shrink-0 me-3">
-                            <span class="avatar-title bg-{% if certificate.level == 'STARTERS' %}info{% elif certificate.level == 'MOVERS' %}warning{% else %}success{% endif %}-subtle text-{% if certificate.level == 'STARTERS' %}info{% elif certificate.level == 'MOVERS' %}warning{% else %}success{% endif %} rounded-circle">
-                                {% if certificate.level == 'STARTERS' %}
-                                <i class="ri-seedling-line"></i>
-                                {% elif certificate.level == 'MOVERS' %}
-                                <i class="ri-run-line"></i>
-                                {% else %}
-                                <i class="ri-rocket-line"></i>
-                                {% endif %}
+                            <span class="avatar-title bg-{{ certificate.level|level_color }}-subtle text-{{ certificate.level|level_color }} rounded-circle">
+                                <i class="{{ certificate.level|level_icon }}"></i>
                             </span>
                         </div>
                         <div>

@@ -19,7 +19,7 @@
                     </div>
                     <div>
                         <h5 class="card-title mb-0">Add New Class</h5>
-                        <p class="text-muted mb-0 small">Create a new class section for a YLE level</p>
+                        <p class="text-muted mb-0 small">Create a new class for a course</p>
                     </div>
                 </div>
             </div>
@@ -77,13 +77,17 @@
                             <div class="col-md-6">
                                 <div class="input-group has-validation">
                                     <span class="input-group-text"><i class="ri-stack-line"></i></span>
-                                    <select class="form-select" id="level" name="level" required>
-                                        <option value="" disabled selected>Select YLE Level *</option>
-                                        {% for level in levels %}
-                                        <option value="{{ level.id }}">{{ level.name }} ({{ level.cefr_level }})</option>
+                                    <select class="form-select" id="course" name="course" required>
+                                        <option value="" disabled {% if not selected_course %}selected{% endif %}>Select Course *</option>
+                                        {% for group in course_groups %}
+                                        <optgroup label="{{ group.level.name }}">
+                                            {% for course in group.courses %}
+                                            <option value="{{ course.id }}" {% if selected_course == course.id|stringformat:"s" %}selected{% endif %}>{{ course.name }} ({{ group.level.name }})</option>
+                                            {% endfor %}
+                                        </optgroup>
                                         {% endfor %}
                                     </select>
-                                    <div class="invalid-feedback">Please select a YLE level.</div>
+                                    <div class="invalid-feedback">Please select a course.</div>
                                 </div>
                             </div>
                         </div>
@@ -216,6 +220,24 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<style>
+/* Select2 course picker: fill the input group and follow Bootstrap validation colours */
+.input-group > .select2-container--bootstrap-5 {
+    flex: 1 1 auto;
+    width: 1% !important;
+}
+.input-group > .select2-container--bootstrap-5 .select2-selection {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+.was-validated select:invalid + .select2-container--bootstrap-5 .select2-selection {
+    border-color: var(--bs-form-invalid-border-color, #dc3545);
+}
+.was-validated select:valid + .select2-container--bootstrap-5 .select2-selection {
+    border-color: var(--bs-form-valid-border-color, #198754);
+}
+</style>
 <!-- Teacher data for JavaScript -->
 <script type="application/json" id="teacherData">
 [{% for teacher in teachers %}{"id": {{ teacher.id }}, "name": "{{ teacher.full_name|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}]
@@ -225,6 +247,15 @@ $(document).ready(function() {
     // Parse teacher data
     const teachers = JSON.parse(document.getElementById('teacherData').textContent);
     let scheduleCount = 0;
+
+    // Searchable course picker (type a course or CEFR level name)
+    if ($.fn.select2) {
+        $('#course').select2({
+            theme: 'bootstrap-5',
+            placeholder: 'Search course or level...',
+            width: '100%',
+        });
+    }
 
     // Schedule item template
     function createScheduleItem(index) {
@@ -316,7 +347,7 @@ $(document).ready(function() {
     function updatePreview() {
         const className = $('#class_name').val() || 'Class Name';
         const classCode = $('#class_code').val() || 'CODE';
-        const levelText = $('#level option:selected').text() || 'Level';
+        const levelText = $('#course').val() ? $('#course option:selected').text() : 'Course';
         const maxStudents = $('#max_students').val() || '0';
 
         $('#previewName').text(className);
@@ -328,10 +359,10 @@ $(document).ready(function() {
         );
 
         // Update preview color based on level
-        const levelId = $('#level').val();
+        const levelId = $('#course').val();
         if (levelId) {
             // Get color from level (you can store it as data attribute)
-            const selectedLevel = $('#level option:selected');
+            const selectedLevel = $('#course option:selected');
             // Default colors for levels - you can customize
             const colors = ['#3498db', '#f39c12', '#27ae60', '#660066'];
             const colorIndex = levelId % colors.length;
@@ -341,7 +372,7 @@ $(document).ready(function() {
     }
 
     // Bind preview updates
-    $('#class_name, #class_code, #level, #location, #max_students').on('input change', updatePreview);
+    $('#class_name, #class_code, #course, #location, #max_students').on('input change', updatePreview);
 
     // Auto-uppercase class code
     $('#class_code').on('input', function() {
@@ -403,6 +434,7 @@ $(document).ready(function() {
             scheduleCount = 0;
             // Add one default item
             $('#addScheduleBtn').trigger('click');
+            $('#course').trigger('change.select2');
             updatePreview();
             updateProgress();
             form.classList.remove('was-validated');
@@ -415,7 +447,7 @@ $(document).ready(function() {
         const sections = 3;
 
         // Check Basic Info (class_name, class_code, level)
-        if ($('#class_name').val() && $('#class_code').val() && $('#level').val()) {
+        if ($('#class_name').val() && $('#class_code').val() && $('#course').val()) {
             progress += 1;
             $('.badge').eq(0).removeClass('bg-primary-subtle text-primary').addClass('bg-success text-white');
         } else {
@@ -448,7 +480,7 @@ $(document).ready(function() {
     }
 
     // Bind progress update to input changes
-    $('#class_name, #class_code, #level, #location, #max_students').on('input change', updateProgress);
+    $('#class_name, #class_code, #course, #location, #max_students').on('input change', updateProgress);
     $(document).on('input change', 'select[name="schedule_day"], input[name="schedule_from_time"], input[name="schedule_to_time"]', updateProgress);
 
     // Initial updates

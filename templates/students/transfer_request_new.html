@@ -51,7 +51,7 @@
                             <span class="fw-medium">{{ s.full_name }}</span>
                             <small class="text-muted d-block">{{ s.admission_number }}</small>
                         </td>
-                        <td><span class="badge bg-light text-body">{{ s.get_current_level_display }}</span></td>
+                        <td><span class="badge bg-light text-body">{{ s.current_course.name|default:s.get_current_level_display }}</span></td>
                         <td>
                             {{ s.assigned_class.class_name }}
                             <small class="text-muted d-block">{{ s.assigned_class.class_code }}{% if s.assigned_class.location %} · {{ s.assigned_class.get_location_display }}{% endif %}</small>

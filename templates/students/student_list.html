@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load yle_levels %}
 
 {% block PageTitle %}Students - Polymath School of English{% endblock %}
 {% block pageTitle %}Student Management{% endblock %}
@@ -43,40 +44,7 @@
             </div>
         </div>
     </div>
-    <div class="col-xl-3 col-md-6">
-        <div class="card card-animate bg-info">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <p class="fw-medium text-white-75 mb-0">Starters Level</p>
-                        <h2 class="mt-2 mb-0 text-white">{{ starters_count|default:0 }}</h2>
-                    </div>
-                    <div class="avatar-sm flex-shrink-0">
-                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
-                            <i class="ri-seedling-line text-white"></i>
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-xl-3 col-md-6">
-        <div class="card card-animate bg-warning">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <p class="fw-medium text-white-75 mb-0">Movers & Flyers</p>
-                        <h2 class="mt-2 mb-0 text-white">{{ movers_flyers_count|default:0 }}</h2>
-                    </div>
-                    <div class="avatar-sm flex-shrink-0">
-                        <span class="avatar-title bg-white bg-opacity-25 rounded-circle fs-3">
-                            <i class="ri-rocket-line text-white"></i>
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    {% include "partials/_level_count_card.html" with title="Students by Level" col=6 %}
 </div>
 
 <!-- Search and Filter Section -->
@@ -127,6 +95,19 @@
                                 <option value="">All Levels</option>
                                 {% for level in levels %}
                                 <option value="{{ level.short_code }}" {% if level_filter == level.short_code %}selected{% endif %}>{{ level.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <label for="course" class="form-label">Course</label>
+                            <select class="form-select" id="course" name="course" aria-label="Filter by course">
+                                <option value="">All Courses</option>
+                                {% for group in course_groups %}
+                                <optgroup label="{{ group.level.name }}">
+                                    {% for course in group.courses %}
+                                    <option value="{{ course.id }}" {% if course_filter == course.id|stringformat:"s" %}selected{% endif %}>{{ course.name }}</option>
+                                    {% endfor %}
+                                </optgroup>
                                 {% endfor %}
                             </select>
                         </div>
@@ -222,7 +203,7 @@
                                         </th>
                                         <th scope="col">
                                             <a href="?sort={% if sort_by == 'current_level' and sort_order == 'asc' %}-{% endif %}current_level&{{ request.GET.urlencode }}" class="text-dark text-decoration-none">
-                                                YLE Level
+                                                Course
                                                 {% if sort_by == 'current_level' %}
                                                     <i class="ri-arrow-{% if sort_order == 'asc' %}up{% else %}down{% endif %}-s-line"></i>
                                                 {% else %}
@@ -279,23 +260,7 @@
                                                 </div>
                                             </td>
                                             <td>
-                                                {% if student.current_level == 'STARTERS' %}
-                                                    <span class="badge bg-info-subtle text-info" title="Pre A1 Starters">
-                                                        <i class="ri-seedling-line me-1"></i>Starters
-                                                    </span>
-                                                {% elif student.current_level == 'MOVERS' %}
-                                                    <span class="badge bg-warning-subtle text-warning" title="A1 Movers">
-                                                        <i class="ri-run-line me-1"></i>Movers
-                                                    </span>
-                                                {% elif student.current_level == 'FLYERS' %}
-                                                    <span class="badge bg-success-subtle text-success" title="A2 Flyers">
-                                                        <i class="ri-rocket-line me-1"></i>Flyers
-                                                    </span>
-                                                {% else %}
-                                                    <span class="badge bg-primary-subtle text-primary" title="{{ student.get_current_level_display }}">
-                                                        <i class="{{ student.level.icon|default:'ri-medal-line' }} me-1"></i>{{ student.get_current_level_display }}
-                                                    </span>
-                                                {% endif %}
+                                                <span class="badge bg-{{ student.current_level|level_color }}-subtle text-{{ student.current_level|level_color }}" title="{{ student.current_level|level_name }}"><i class="{{ student.current_level|level_icon }} me-1"></i>{{ student.current_course.name|default:student.current_level|level_name }}</span>{% if student.current_course %}<small class="d-block text-muted mt-1">{{ student.current_level|level_name }}</small>{% endif %}
                                             </td>
                                             <td>
                                                 {% if student.assigned_class %}
@@ -397,15 +362,7 @@
                                                     <div class="col-4">
                                                         <p class="text-muted mb-1 small">Level</p>
                                                         <h6 class="mb-0">
-                                                            {% if student.current_level == 'STARTERS' %}
-                                                                <span class="text-info">Starters</span>
-                                                            {% elif student.current_level == 'MOVERS' %}
-                                                                <span class="text-warning">Movers</span>
-                                                            {% elif student.current_level == 'FLYERS' %}
-                                                                <span class="text-success">Flyers</span>
-                                                            {% else %}
-                                                                <span class="text-primary">{{ student.get_current_level_display }}</span>
-                                                            {% endif %}
+                                                            <span class="text-{{ student.current_level|level_color }}">{% if student.current_course %}{{ student.current_course.name }} · {% endif %}{{ student.current_level|level_name }}</span>
                                                         </h6>
                                                     </div>
                                                     <div class="col-4">
@@ -505,14 +462,14 @@
                         </div>
                         <h5>No Students Found</h5>
                         <p class="text-muted mb-4">
-                            {% if search_query or status_filter or level_filter or class_filter %}
+                            {% if search_query or status_filter or level_filter or course_filter or class_filter %}
                                 No students match your current filter criteria.
                             {% else %}
                                 Get started by processing student applications.
                             {% endif %}
                         </p>
                         <div class="d-flex justify-content-center gap-2">
-                            {% if search_query or status_filter or level_filter or class_filter %}
+                            {% if search_query or status_filter or level_filter or course_filter or class_filter %}
                                 <a href="{% url 'student_list' %}" class="btn btn-outline-primary">
                                     <i class="ri-refresh-line me-1"></i>Clear Filters
                                 </a>
@@ -560,7 +517,7 @@ $(document).ready(function() {
     }
 
     // Auto-submit form on filter change
-    $('#level, #status, #class_id').on('change', function() {
+    $('#level, #course, #status, #class_id').on('change', function() {
         $('#filterForm').submit();
     });
 

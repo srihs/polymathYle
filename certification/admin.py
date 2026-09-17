@@ -38,14 +38,14 @@ class CertificateAdmin(admin.ModelAdmin):
 
 @admin.register(CertificateTemplate)
 class CertificateTemplateAdmin(admin.ModelAdmin):
-    list_display = ['name', 'template_type', 'is_active', 'created_at']
-    list_filter = ['template_type', 'is_active']
+    list_display = ['name', 'template_type', 'level', 'is_active', 'created_at']
+    list_filter = ['template_type', 'level', 'is_active']
     search_fields = ['name', 'description']
     readonly_fields = ['created_at', 'updated_at']
 
     fieldsets = (
         ('Template Info', {
-            'fields': ('name', 'description', 'template_type', 'is_active')
+            'fields': ('name', 'description', 'template_type', 'level', 'is_active')
         }),
         ('Design', {
             'fields': ('html_template', 'css_styles', 'layout_settings')

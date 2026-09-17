@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block PageTitle %}{% if course %}Edit {{ course.name }}{% else %}Add Course{% endif %} - Polymath School of English{% endblock %}
+{% block pageTitle %}{% if course %}Edit Course{% else %}Add Course{% endif %}{% endblock %}
+{% block Title %}Courses{% endblock %}
+{% block functionTitle %}{% if course %}{{ course.name }}{% else %}Add Course{% endif %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-xl-8 col-lg-10">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="ri-book-open-line me-2 text-primary"></i>{% if course %}Edit {{ course.name }}{% else %}Add a Course{% endif %}
+                </h5>
+                <p class="text-muted small mb-0">A course (e.g. Pre1, Pre2, Pre3) belongs to a CEFR level. Students move through courses in order.</p>
+            </div>
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="name" class="form-label">Course name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="name" name="name" value="{{ data.name|default:'' }}" placeholder="e.g. Pre1" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="code" class="form-label">Course code <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control text-uppercase" id="code" name="code" value="{{ data.code|default:'' }}" placeholder="e.g. PRE1" required>
+                            <div class="form-text">Short unique code.</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="level" class="form-label">CEFR level <span class="text-danger">*</span></label>
+                            <select class="form-select" id="level" name="level" required>
+                                <option value="">Choose a level...</option>
+                                {% for level in levels %}
+                                <option value="{{ level.id }}" {% if data.level_id|stringformat:"s" == level.id|stringformat:"s" %}selected{% endif %}>{{ level.name }}</option>
+                                {% endfor %}
+                            </select>
+                            {% if course and course.classes.exists %}
+                            <div class="form-text text-warning"><i class="ri-alert-line me-1"></i>Changing the level also moves this course's classes and students to the new level.</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="order" class="form-label">Order within the level</label>
+                            <input type="number" class="form-control" id="order" name="order" value="{{ data.order|default_if_none:'' }}" min="0" placeholder="1">
+                            <div class="form-text">Pre1 = 1, Pre2 = 2... Promotion follows this order.</div>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="age_range_min" class="form-label">Min age</label>
+                            <input type="number" class="form-control" id="age_range_min" name="age_range_min" value="{{ data.age_range_min|default_if_none:'' }}" min="3" max="99">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="age_range_max" class="form-label">Max age</label>
+                            <input type="number" class="form-control" id="age_range_max" name="age_range_max" value="{{ data.age_range_max|default_if_none:'' }}" min="3" max="99">
+                        </div>
+                        <div class="col-md-6 d-flex align-items-end">
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" id="is_active" name="is_active" {% if data.is_active %}checked{% endif %}>
+                                <label class="form-check-label" for="is_active">Active</label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="3">{{ data.description|default:'' }}</textarea>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary"><i class="ri-save-line me-1"></i> {% if course %}Save Changes{% else %}Create Course{% endif %}</button>
+                        <a href="{% if course %}{% url 'course_detail' course.id %}{% else %}{% url 'course_list' %}{% endif %}" class="btn btn-light">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

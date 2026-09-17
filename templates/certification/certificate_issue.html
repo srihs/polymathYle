@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load yle_levels %}
 
 {% block PageTitle %}Issue Certificate - PolymathYLE{% endblock %}
 {% block pageTitle %}Issue Certificate{% endblock %}
@@ -98,17 +99,13 @@
                                 <label for="level" class="form-label">
                                     YLE Level <span class="text-danger">*</span>
                                 </label>
-                                <select class="form-select" id="level" name="level" required>
+                                <select class="form-select" id="level" name="level_id" required>
                                     <option value="">Select level...</option>
-                                    <option value="STARTERS" {% if form.level.value == 'STARTERS' %}selected{% endif %}>
-                                        Pre A1 Starters
+                                    {% for level in levels %}
+                                    <option value="{{ level.id }}" data-color="{{ level|level_color }}" {% if request.POST.level_id == level.id|stringformat:"s" %}selected{% endif %}>
+                                        {{ level.name }}
                                     </option>
-                                    <option value="MOVERS" {% if form.level.value == 'MOVERS' %}selected{% endif %}>
-                                        A1 Movers
-                                    </option>
-                                    <option value="FLYERS" {% if form.level.value == 'FLYERS' %}selected{% endif %}>
-                                        A2 Flyers
-                                    </option>
+                                    {% endfor %}
                                 </select>
                             </div>
                             <div class="col-md-6">
@@ -385,7 +382,9 @@ function updatePreview() {
     var type = typeSelect.options[typeSelect.selectedIndex]?.text || '';
     var levelSelect = document.getElementById('level');
     var level = levelSelect.value;
-    var levelText = levelSelect.options[levelSelect.selectedIndex]?.text || '';
+    var levelOption = levelSelect.options[levelSelect.selectedIndex];
+    var levelText = level ? (levelOption?.text || '').trim() : '';
+    var levelColor = (level && levelOption?.dataset.color) || 'secondary';
     var date = document.getElementById('issue_date').value;
 
     var listening = document.getElementById('listening_shields').value;
@@ -405,10 +404,7 @@ function updatePreview() {
         // Update level badge
         var levelBadge = document.getElementById('preview-level-badge');
         levelBadge.textContent = levelText || 'Level';
-        levelBadge.className = 'badge fs-6 px-3 py-2 bg-' +
-            (level === 'STARTERS' ? 'info' : level === 'MOVERS' ? 'warning' : level === 'FLYERS' ? 'success' : 'secondary') +
-            '-subtle text-' +
-            (level === 'STARTERS' ? 'info' : level === 'MOVERS' ? 'warning' : level === 'FLYERS' ? 'success' : 'secondary');
+        levelBadge.className = 'badge fs-6 px-3 py-2 bg-' + levelColor + '-subtle text-' + levelColor;
 
         // Update shields
         document.getElementById('preview-listening').textContent = listening + '/5';

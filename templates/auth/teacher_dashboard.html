@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load yle_levels %}
 
 {% block PageTitle %}Teacher Dashboard - Polymath School of English{% endblock %}
 
@@ -216,19 +217,9 @@
                                                 <span class="badge bg-primary-subtle text-primary">{{ class.class_code }}</span>
                                             </div>
                                             {% if class.level %}
-                                                {% if class.level.name == 'Starters' or 'starters' in class.level.name|lower %}
-                                                    <span class="badge bg-info-subtle text-info" title="Pre A1 Starters">
-                                                        <i class="ri-seedling-line"></i>
-                                                    </span>
-                                                {% elif class.level.name == 'Movers' or 'movers' in class.level.name|lower %}
-                                                    <span class="badge bg-warning-subtle text-warning" title="A1 Movers">
-                                                        <i class="ri-run-line"></i>
-                                                    </span>
-                                                {% elif class.level.name == 'Flyers' or 'flyers' in class.level.name|lower %}
-                                                    <span class="badge bg-success-subtle text-success" title="A2 Flyers">
-                                                        <i class="ri-rocket-line"></i>
-                                                    </span>
-                                                {% endif %}
+                                                <span class="badge bg-{{ class.level|level_color }}-subtle text-{{ class.level|level_color }}" title="{{ class.level.name }}">
+                                                    <i class="{{ class.level|level_icon }}"></i>
+                                                </span>
                                             {% endif %}
                                         </div>
 

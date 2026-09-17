@@ -5,6 +5,16 @@ from django.db.models import Avg, Count, Q
 from django.core.paginator import Paginator
 from datetime import datetime, timedelta
 
+from courses.models import YLELevel
+
+
+def _active_levels():
+    return YLELevel.objects.filter(is_active=True).order_by('order', 'id')
+
+
+def _posted_level_ids(request):
+    return {int(i) for i in request.POST.getlist('levels') if str(i).isdigit()}
+
 
 @login_required
 @permission_required('teachers.view_teacher', raise_exception=True)
@@ -41,12 +51,8 @@ def teacher_list_view(request):
 
     # Filter by specialization
     specialization = request.GET.get('specialization', '')
-    if specialization == 'STARTERS':
-        teachers = teachers.filter(teaches_starters=True)
-    elif specialization == 'MOVERS':
-        teachers = teachers.filter(teaches_movers=True)
-    elif specialization == 'FLYERS':
-        teachers = teachers.filter(teaches_flyers=True)
+    if specialization.isdigit():
+        teachers = teachers.filter(levels__id=int(specialization)).distinct()
 
     # Sorting
     sort_by = request.GET.get('sort', 'full_name')
@@ -65,6 +71,7 @@ def teacher_list_view(request):
         'status_filter': status_filter,
         'employment_filter': employment_filter,
         'specialization': specialization,
+        'levels': _active_levels(),
         'sort_by': sort_by,
         'total_count': teachers.count(),
     }
@@ -126,17 +133,17 @@ def teacher_add_view(request):
         # Validate required fields
         if not all([username, email, employee_id, full_name]):
             messages.error(request, 'Please fill in all required fields.')
-            return render(request, 'teachers/teacher_add.html')
+            return render(request, 'teachers/teacher_add.html', {'levels': _active_levels(), 'teacher_level_ids': _posted_level_ids(request)})
 
         # Check if username exists
         if User.objects.filter(username=username).exists():
             messages.error(request, 'Username already exists!')
-            return render(request, 'teachers/teacher_add.html')
+            return render(request, 'teachers/teacher_add.html', {'levels': _active_levels(), 'teacher_level_ids': _posted_level_ids(request)})
 
         # Check if employee_id exists
         if Teacher.objects.filter(employee_id=employee_id).exists():
             messages.error(request, 'Employee ID already exists!')
-            return render(request, 'teachers/teacher_add.html')
+            return render(request, 'teachers/teacher_add.html', {'levels': _active_levels(), 'teacher_level_ids': _posted_level_ids(request)})
 
         try:
             with transaction.atomic():
@@ -162,13 +169,11 @@ def teacher_add_view(request):
                     bio=request.POST.get('bio', ''),
                     qualifications=request.POST.get('qualifications', ''),
                     years_of_experience=int(request.POST.get('years_of_experience') or 0),
-                    teaches_starters=request.POST.get('teaches_starters') == 'on',
-                    teaches_movers=request.POST.get('teaches_movers') == 'on',
-                    teaches_flyers=request.POST.get('teaches_flyers') == 'on',
                     date_joined=request.POST.get('date_joined'),
                     employment_type=request.POST.get('employment_type', 'FULL_TIME'),
                     is_active=True,
                 )
+                teacher.levels.set(YLELevel.objects.filter(id__in=_posted_level_ids(request), is_active=True))
 
                 # Handle profile picture
                 if 'profile_picture' in request.FILES:
@@ -183,7 +188,7 @@ def teacher_add_view(request):
         except Exception as e:
             messages.error(request, f'Error creating teacher: {str(e)}')
 
-    return render(request, 'teachers/teacher_add.html')
+    return render(request, 'teachers/teacher_add.html', {'levels': _active_levels(), 'teacher_level_ids': _posted_level_ids(request)})
 
 
 @login_required
@@ -205,10 +210,11 @@ def teacher_edit_view(request, teacher_id):
         teacher.qualifications = request.POST.get('qualifications', teacher.qualifications)
         teacher.years_of_experience = int(request.POST.get('years_of_experience', teacher.years_of_experience))
 
-        # Update specializations (YLE levels only - teachers teach all skills)
-        teacher.teaches_starters = request.POST.get('teaches_starters') == 'on'
-        teacher.teaches_movers = request.POST.get('teaches_movers') == 'on'
-        teacher.teaches_flyers = request.POST.get('teaches_flyers') == 'on'
+        # CEFR levels the teacher is qualified for (inactive levels are not shown, so keep them as they were)
+        teacher.levels.set(
+            list(YLELevel.objects.filter(id__in=_posted_level_ids(request), is_active=True))
+            + list(teacher.levels.filter(is_active=False))
+        )
 
         # Update employment details
         teacher.employment_type = request.POST.get('employment_type', teacher.employment_type)
@@ -224,6 +230,8 @@ def teacher_edit_view(request, teacher_id):
 
     context = {
         'teacher': teacher,
+        'levels': _active_levels(),
+        'teacher_level_ids': set(teacher.levels.values_list('id', flat=True)),
     }
 
     return render(request, 'teachers/teacher_edit.html', context)

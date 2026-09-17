@@ -6,6 +6,7 @@ Handles YLE Levels, Classes, Units, Lessons, and Activities.
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
+from django.db import transaction
 from django.db.models import Q, Count, Avg, Prefetch
 from django.core.paginator import Paginator
 from django.http import JsonResponse, Http404
@@ -13,102 +14,39 @@ from django.utils import timezone
 from datetime import datetime, timedelta
 import logging
 
-from .models import YLELevel, Class, Unit, Lesson, Activity
+from .models import YLELevel, Course, Class, Unit, Lesson, Activity
 from teachers.models import Teacher
 from students.models import Student
 
 logger = logging.getLogger(__name__)
 
 
+def _course_groups(include_inactive_ids=()):
+    """Active CEFR levels with their active courses, for grouped course pickers."""
+    groups = []
+    for level in YLELevel.objects.filter(is_active=True).order_by('order', 'id'):
+        courses = [
+            c for c in level.courses.order_by('order', 'id')
+            if c.is_active or c.id in include_inactive_ids
+        ]
+        if courses:
+            groups.append({'level': level, 'courses': courses})
+    return groups
+
+
 # ============== YLE LEVEL VIEWS ==============
 
 @login_required
-@permission_required('courses.view_ylelevel', raise_exception=True)
 def level_list_view(request):
-    """
-    List all YLE levels (Starters, Movers, Flyers).
-    Shows active levels with counts of units and classes.
-    """
-    levels = YLELevel.objects.filter(is_active=True).annotate(
-        unit_count=Count('units', filter=Q(units__is_active=True)),
-        class_count=Count('classes', filter=Q(classes__is_active=True)),
-        student_count=Count(
-            'classes__enrolled_students',
-            filter=Q(classes__is_active=True, classes__enrolled_students__is_active=True)
-        )
-    ).order_by('order')
-
-    context = {
-        'levels': levels,
-    }
-
-    return render(request, 'courses/level_list.html', context)
+    """CEFR levels are fixed; the level list now lives on the course list (courses grouped by level)."""
+    return redirect('course_list')
 
 
 @login_required
-@permission_required('courses.add_ylelevel', raise_exception=True)
 def yle_level_add_view(request):
-    """
-    Add a new YLE level (admin/staff only).
-    """
-    if request.method == 'POST':
-        # Get form data
-        name = request.POST.get('name', '').strip()
-        short_code = request.POST.get('short_code', '').strip().upper()
-        cefr_level = request.POST.get('cefr_level', '').strip()
-        description = request.POST.get('description', '').strip()
-        order = request.POST.get('order', '0')
-        icon = request.POST.get('icon', 'ri-medal-line').strip()
-        color_theme = request.POST.get('color_theme', '#660066').strip()
-        is_active = request.POST.get('is_active') == 'on'
-
-        # Validate required fields (cefr_level is optional)
-        if not all([name, short_code, description, icon, color_theme]):
-            messages.error(request, 'Please fill in all required fields.')
-            return redirect('yle_level_add')
-
-        # Check for duplicate short code
-        if YLELevel.objects.filter(short_code=short_code).exists():
-            messages.error(request, f'A YLE level with short code "{short_code}" already exists.')
-            return redirect('yle_level_add')
-
-        try:
-            level_order = int(order)
-
-            # Create YLE Level with default values for age and duration
-            new_level = YLELevel.objects.create(
-                name=name,
-                short_code=short_code,
-                cefr_level=cefr_level,
-                description=description,
-                age_range_min=6,
-                age_range_max=12,
-                duration_minutes=60,
-                order=level_order,
-                icon=icon,
-                color_theme=color_theme,
-                is_active=is_active,
-            )
-
-            messages.success(request, f'YLE Level "{new_level.name}" created successfully!')
-            return redirect('level_detail', level_id=new_level.id)
-
-        except ValueError as e:
-            messages.error(request, f'Invalid data provided: {str(e)}')
-            return redirect('yle_level_add')
-        except Exception as e:
-            messages.error(request, f'An error occurred while creating the level: {str(e)}')
-            return redirect('yle_level_add')
-
-    # GET request - show form
-    # Get existing levels count for order suggestion
-    levels_count = YLELevel.objects.count()
-
-    context = {
-        'levels_count': levels_count,
-    }
-
-    return render(request, 'courses/yle_level_add.html', context)
+    """CEFR levels are a fixed list (Pre A1 to B2); what staff add here are courses under a level."""
+    messages.info(request, 'CEFR levels are fixed. Add a course under a level instead.')
+    return redirect('course_add')
 
 
 @login_required
@@ -161,7 +99,7 @@ def class_list_view(request):
     """
     List all classes with filtering by level, teacher, and status.
     """
-    classes = Class.objects.select_related('level', 'teacher').all()
+    classes = Class.objects.select_related('level', 'course', 'teacher').all()
 
     # Search
     search_query = request.GET.get('search', '')
@@ -202,7 +140,7 @@ def class_list_view(request):
     page_obj = paginator.get_page(page_number)
 
     # Get filter options
-    levels = YLELevel.objects.filter(is_active=True)
+    levels = YLELevel.objects.filter(is_active=True).order_by('order', 'id')
     teachers = Teacher.objects.filter(is_active=True)
 
     context = {
@@ -341,9 +279,10 @@ def class_add_view(request):
         max_students = request.POST.get('max_students', 25)
         room_number = request.POST.get('room_number', '')
         location = request.POST.get('location', '')
+        course_id = request.POST.get('course', '')
 
         # Validate required fields (name the missing ones so the user knows what to fix)
-        required = {'Class name': class_name, 'Class code': class_code, 'YLE level': level_id, 'Location': location}
+        required = {'Class name': class_name, 'Class code': class_code, 'Course': course_id, 'Location': location}
         missing = [label for label, value in required.items() if not (value or '').strip()]
         if missing:
             logger.warning('Class add rejected, missing fields: %s', missing)
@@ -359,8 +298,12 @@ def class_add_view(request):
             messages.error(request, f'Class code "{class_code}" already exists.')
             return redirect('class_add')
 
-        # Get related objects
-        level = get_object_or_404(YLELevel, id=level_id)
+        # Get related objects (the class's CEFR level follows its course)
+        course = Course.objects.select_related('level').filter(id=course_id, is_active=True).first() if str(course_id).isdigit() else None
+        if not course:
+            messages.error(request, 'Please select an active course.')
+            return redirect('class_add')
+        level = course.level
 
         # Parse schedule from form (now includes per-schedule teacher)
         schedule = []
@@ -411,6 +354,7 @@ def class_add_view(request):
 
         # Create class (teacher field no longer used - teachers are per-schedule)
         new_class = Class.objects.create(
+            course=course,
             level=level,
             class_name=class_name,
             class_code=class_code.upper(),
@@ -425,11 +369,11 @@ def class_add_view(request):
         return redirect('class_detail', class_id=new_class.id)
 
     # GET request - show form
-    levels = YLELevel.objects.filter(is_active=True)
     teachers = Teacher.objects.filter(is_active=True)
 
     context = {
-        'levels': levels,
+        'course_groups': _course_groups(),
+        'selected_course': request.GET.get('course', ''),
         'teachers': teachers,
         'locations': Class.LOCATION_CHOICES,
     }
@@ -459,10 +403,19 @@ def class_edit_view(request, class_id):
                 return redirect('class_edit', class_id=class_id)
             class_obj.class_code = new_class_code
 
-        # Update level
-        level_id = request.POST.get('level')
-        if level_id:
-            class_obj.level = get_object_or_404(YLELevel, id=level_id)
+        # Update course (the class's CEFR level follows it). A class with students keeps its course:
+        # students move between courses through transfers and promotion.
+        course_id = request.POST.get('course')
+        if course_id and str(course_id) != str(class_obj.course_id):
+            new_course = Course.objects.select_related('level').filter(id=course_id, is_active=True).first() if str(course_id).isdigit() else None
+            if not new_course:
+                messages.error(request, 'Please select an active course.')
+                return redirect('class_edit', class_id=class_id)
+            if class_obj.enrolled_students.filter(is_active=True).exists():
+                messages.error(request, 'This class has students, so its course cannot be changed. Use promotion or transfers to move students.')
+                return redirect('class_edit', class_id=class_id)
+            class_obj.course = new_course
+            class_obj.level = new_course.level
 
         # Update other fields
         class_obj.max_students = int(request.POST.get('max_students', class_obj.max_students))
@@ -528,18 +481,19 @@ def class_edit_view(request, class_id):
 
         class_obj.schedule = schedule
 
-        class_obj.save(update_fields=['class_name', 'class_code', 'level', 'max_students',
+        class_obj.save(update_fields=['class_name', 'class_code', 'course', 'level', 'max_students',
                                        'location', 'room_number', 'is_active', 'schedule'])
         messages.success(request, f'Class "{class_obj.class_name}" updated successfully!')
         return redirect('class_detail', class_id=class_obj.id)
 
     # GET request - show form
-    levels = YLELevel.objects.filter(is_active=True)
     teachers = Teacher.objects.filter(is_active=True)
 
     context = {
         'class': class_obj,
-        'levels': levels,
+        'course_groups': _course_groups(),
+        'selected_course': str(class_obj.course_id or ''),
+        'course_locked': class_obj.enrolled_students.filter(is_active=True).exists(),
         'teachers': teachers,
         'locations': Class.LOCATION_CHOICES,
     }
@@ -658,9 +612,14 @@ def unit_list_view(request, level_id):
         lesson_count=Count('lessons', filter=Q(lessons__is_active=True))
     ).order_by('order')
 
+    all_levels = YLELevel.objects.filter(is_active=True).annotate(
+        unit_count=Count('units', filter=Q(units__is_active=True))
+    ).order_by('order', 'id')
+
     context = {
         'level': level,
         'units': units,
+        'level_counts': [{'level': l, 'count': l.unit_count} for l in all_levels],
     }
 
     return render(request, 'courses/unit_list.html', context)
@@ -854,3 +813,149 @@ def api_level_units(request, level_id):
     )
 
     return JsonResponse({'units': list(units)})
+
+
+# ============== COURSE VIEWS ==============
+# Courses (e.g. Pre1, Pre2, Pre3) belong to a CEFR level. Classes run a course and
+# students progress course by course.
+
+def _course_form_data(request, course=None):
+    data = {
+        'name': request.POST.get('name', '').strip(),
+        'code': request.POST.get('code', '').strip().upper(),
+        'level_id': request.POST.get('level', ''),
+        'order': request.POST.get('order', '').strip(),
+        'description': request.POST.get('description', '').strip(),
+        'age_range_min': request.POST.get('age_range_min', '').strip(),
+        'age_range_max': request.POST.get('age_range_max', '').strip(),
+        'is_active': request.POST.get('is_active') == 'on',
+    }
+    errors = []
+    if not data['name']:
+        errors.append('Course name is required.')
+    if not data['code']:
+        errors.append('Course code is required.')
+    elif Course.objects.filter(code__iexact=data['code']).exclude(pk=getattr(course, 'pk', None)).exists():
+        errors.append(f'Course code "{data["code"]}" is already used.')
+    level = YLELevel.objects.filter(pk=data['level_id']).first() if str(data['level_id']).isdigit() else None
+    if not level:
+        errors.append('Please choose the CEFR level.')
+    for field, label in (('order', 'Order'), ('age_range_min', 'Minimum age'), ('age_range_max', 'Maximum age')):
+        value = data[field]
+        if value and not value.lstrip('-').isdigit():
+            errors.append(f'{label} must be a whole number.')
+    if (data['age_range_min'].isdigit() and data['age_range_max'].isdigit()
+            and int(data['age_range_min']) > int(data['age_range_max'])):
+        errors.append('Minimum age cannot be greater than maximum age.')
+    return data, level, errors
+
+
+def _apply_course_data(course, data, level):
+    course.name = data['name']
+    course.code = data['code']
+    course.level = level
+    course.order = int(data['order']) if data['order'] else 0
+    course.description = data['description']
+    course.age_range_min = int(data['age_range_min']) if data['age_range_min'] else None
+    course.age_range_max = int(data['age_range_max']) if data['age_range_max'] else None
+    course.is_active = data['is_active']
+
+
+@login_required
+@permission_required('courses.view_course', raise_exception=True)
+def course_list_view(request):
+    """Courses grouped by CEFR level, with class and student counts per course and teacher counts per level."""
+    show_inactive = request.GET.get('inactive') == '1'
+    courses = Course.objects.select_related('level').annotate(
+        class_count=Count('classes', filter=Q(classes__is_active=True), distinct=True),
+        student_count=Count('students', filter=Q(students__is_active=True), distinct=True),
+    ).order_by('level__order', 'level__id', 'order', 'id')
+    if not show_inactive:
+        courses = courses.filter(is_active=True)
+
+    by_level = {}
+    for course in courses:
+        by_level.setdefault(course.level_id, []).append(course)
+    levels = YLELevel.objects.filter(is_active=True).annotate(
+        teacher_count=Count('teachers', filter=Q(teachers__is_active=True), distinct=True)
+    ).order_by('order', 'id')
+    groups = [{'level': level, 'courses': by_level.get(level.id, [])} for level in levels]
+
+    return render(request, 'courses/course_list.html', {
+        'groups': groups,
+        'show_inactive': show_inactive,
+        'total_courses': sum(len(g['courses']) for g in groups),
+        'total_classes': sum(c.class_count for g in groups for c in g['courses']),
+        'total_students': sum(c.student_count for g in groups for c in g['courses']),
+    })
+
+
+@login_required
+@permission_required('courses.add_course', raise_exception=True)
+def course_add_view(request):
+    levels = YLELevel.objects.filter(is_active=True).order_by('order', 'id')
+    data = {'level_id': request.GET.get('level', ''), 'is_active': True, 'order': ''}
+
+    if request.method == 'POST':
+        data, level, errors = _course_form_data(request)
+        if not errors:
+            course = Course()
+            _apply_course_data(course, data, level)
+            course.save()
+            messages.success(request, f'Course "{course.name}" created under {level.name}.')
+            return redirect('course_detail', course_id=course.id)
+        for error in errors:
+            messages.error(request, error)
+
+    if not data.get('order') and str(data.get('level_id', '')).isdigit():
+        last = Course.objects.filter(level_id=int(data['level_id'])).order_by('-order').first()
+        data['order'] = (last.order + 1) if last else 1
+
+    return render(request, 'courses/course_form.html', {'levels': levels, 'data': data, 'course': None})
+
+
+@login_required
+@permission_required('courses.change_course', raise_exception=True)
+def course_edit_view(request, course_id):
+    course = get_object_or_404(Course.objects.select_related('level'), id=course_id)
+    levels = YLELevel.objects.filter(is_active=True).order_by('order', 'id')
+    data = {
+        'name': course.name, 'code': course.code, 'level_id': course.level_id, 'order': course.order,
+        'description': course.description, 'age_range_min': course.age_range_min or '',
+        'age_range_max': course.age_range_max or '', 'is_active': course.is_active,
+    }
+
+    if request.method == 'POST':
+        data, level, errors = _course_form_data(request, course)
+        if not errors:
+            level_changed = course.level_id != level.id
+            _apply_course_data(course, data, level)
+            with transaction.atomic():
+                course.save()
+                if level_changed:
+                    # Keep classes and students of this course on the course's CEFR level
+                    Class.objects.filter(course=course).update(level=level)
+                    Student.objects.filter(current_course=course).update(current_level=level.short_code)
+            messages.success(request, f'Course "{course.name}" updated.')
+            return redirect('course_detail', course_id=course.id)
+        for error in errors:
+            messages.error(request, error)
+
+    return render(request, 'courses/course_form.html', {'levels': levels, 'data': data, 'course': course})
+
+
+@login_required
+@permission_required('courses.view_course', raise_exception=True)
+def course_detail_view(request, course_id):
+    course = get_object_or_404(Course.objects.select_related('level'), id=course_id)
+    classes = course.classes.select_related('level').annotate(
+        active_students=Count('enrolled_students', filter=Q(enrolled_students__is_active=True))
+    ).order_by('-is_active', 'class_name')
+    students = course.students.filter(is_active=True).select_related('assigned_class').order_by('full_name')
+    return render(request, 'courses/course_detail.html', {
+        'course': course,
+        'classes': classes,
+        'students': students,
+        'teachers': course.level.teachers.filter(is_active=True).order_by('full_name'),
+        'next_course': course.next_course(),
+    })

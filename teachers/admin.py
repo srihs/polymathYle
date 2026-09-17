@@ -16,7 +16,8 @@ class TeacherAdmin(admin.ModelAdmin):
         'employee_id', 'full_name', 'employment_type',
         'years_of_experience', 'is_active', 'date_joined'
     ]
-    list_filter = ['employment_type', 'is_active', 'teaches_starters', 'teaches_movers', 'teaches_flyers']
+    list_filter = ['employment_type', 'is_active', 'levels']
+    filter_horizontal = ['levels']
     search_fields = ['full_name', 'employee_id', 'email', 'contact_number']
     readonly_fields = ['created_at', 'updated_at', 'total_classes_taught']
 
@@ -33,8 +34,8 @@ class TeacherAdmin(admin.ModelAdmin):
         ('Qualifications', {
             'fields': ('qualifications', 'years_of_experience')
         }),
-        ('YLE Level Specializations', {
-            'fields': ('teaches_starters', 'teaches_movers', 'teaches_flyers')
+        ('CEFR Level Specializations', {
+            'fields': ('levels',)
         }),
         ('Employment', {
             'fields': ('employment_type', 'date_joined', 'is_active')

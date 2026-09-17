@@ -1,0 +1,22 @@
+{% load yle_levels %}
+{# Counts per YLE level. Expects: level_counts (list of {level, count}), title, col (Bootstrap xl columns) #}
+<div class="col-xl-{{ col|default:9 }} col-md-12">
+    <div class="card card-animate">
+        <div class="card-body">
+            <p class="text-uppercase fw-medium text-muted text-truncate mb-3">{{ title }}</p>
+            <div class="d-flex flex-wrap gap-2">
+                {% for row in level_counts %}
+                <div class="d-flex align-items-center border rounded px-3 py-2 bg-{{ row.level|level_color }}-subtle">
+                    <i class="{{ row.level|level_icon }} text-{{ row.level|level_color }} fs-4 me-2"></i>
+                    <div>
+                        <h5 class="mb-0 text-{{ row.level|level_color }}">{{ row.count }}</h5>
+                        <small class="text-muted">{{ row.level.name }}</small>
+                    </div>
+                </div>
+                {% empty %}
+                <span class="text-muted">No active levels.</span>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load yle_levels %}
 
 {% block PageTitle %}{{ class.class_name }} - Polymath School of English{% endblock %}
 {% block pageTitle %}Class Details{% endblock %}
@@ -27,24 +28,12 @@
                         <div class="d-flex flex-wrap justify-content-between align-items-start">
                             <div>
                                 <h3 class="mb-1">{{ class.class_name }}</h3>
-                                <p class="text-muted mb-2">{{ class.level.name }} - {{ class.level.cefr_level }}</p>
+                                <p class="text-muted mb-2">{% if class.course %}{{ class.course.name }} · {% endif %}{{ class.level.name }}</p>
                                 <div class="d-flex flex-wrap gap-2">
                                     <span class="badge bg-primary-subtle text-primary">
                                         <i class="ri-code-line me-1"></i>{{ class.class_code }}
                                     </span>
-                                    {% if class.level.short_code == 'STARTERS' %}
-                                    <span class="badge bg-info-subtle text-info">
-                                        <i class="ri-seedling-line me-1"></i>Starters
-                                    </span>
-                                    {% elif class.level.short_code == 'MOVERS' %}
-                                    <span class="badge bg-warning-subtle text-warning">
-                                        <i class="ri-run-line me-1"></i>Movers
-                                    </span>
-                                    {% else %}
-                                    <span class="badge bg-success-subtle text-success">
-                                        <i class="ri-rocket-line me-1"></i>Flyers
-                                    </span>
-                                    {% endif %}
+                                    <span class="badge bg-{{ class.level|level_color }}-subtle text-{{ class.level|level_color }}"><i class="{{ class.level|level_icon }} me-1"></i>{{ class.level|level_name }}</span>
                                     {% if class.is_active %}
                                     <span class="badge bg-success-subtle text-success">
                                         <i class="ri-check-line me-1"></i>Active
@@ -178,6 +167,14 @@
                                 </th>
                                 <td class="fw-medium">
                                     <span class="badge bg-primary">{{ class.class_code }}</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0 text-muted">
+                                    <i class="ri-book-2-line me-2"></i>Course
+                                </th>
+                                <td class="fw-medium">
+                                    {% if class.course %}{% if perms.courses.view_course %}<a href="{% url 'course_detail' class.course.id %}">{{ class.course.name }}</a>{% else %}{{ class.course.name }}{% endif %}{% else %}<span class="text-muted">Not set</span>{% endif %}
                                 </td>
                             </tr>
                             <tr>

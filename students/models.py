@@ -339,21 +339,9 @@ class BaselineTest(models.Model):
     percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0)
 
     # Level recommendation and assignment
-    LEVEL_CHOICES = [
-        ('STARTERS', 'Pre A1 Starters'),
-        ('MOVERS', 'A1 Movers'),
-        ('FLYERS', 'A2 Flyers'),
-    ]
-    recommended_level = models.CharField(
-        max_length=20,
-        choices=LEVEL_CHOICES,
-        blank=True
-    )
-    assigned_level = models.CharField(
-        max_length=20,
-        choices=LEVEL_CHOICES,
-        blank=True
-    )
+    # Short codes of courses.YLELevel (level list managed in Academic Management -> YLE Levels)
+    recommended_level = models.CharField(max_length=20, blank=True)
+    assigned_level = models.CharField(max_length=20, blank=True)
 
     # Notes
     notes = models.TextField(blank=True, help_text="Test observations or special remarks")
@@ -381,11 +369,11 @@ class BaselineTest(models.Model):
         # Auto-recommend level based on percentage
         if not self.recommended_level:
             if self.percentage >= 70:
-                self.recommended_level = 'FLYERS'
+                self.recommended_level = 'A2'
             elif self.percentage >= 40:
-                self.recommended_level = 'MOVERS'
+                self.recommended_level = 'A1'
             else:
-                self.recommended_level = 'STARTERS'
+                self.recommended_level = 'PRE_A1'
 
         super().save(*args, **kwargs)
 
@@ -479,11 +467,15 @@ class Student(models.Model):
     current_school = models.CharField(max_length=200, blank=True)
 
     # LEVEL ASSIGNMENT
-    # Short code of a courses.YLELevel (e.g. STARTERS, KET, FCE); the level list is managed
+    # Short code of a courses.YLELevel (CEFR: PRE_A1, A1, A2, B1, B2); the level list is managed
     # in Academic Management -> YLE Levels, so no fixed choices here.
     current_level = models.CharField(
         max_length=20,
-        default='STARTERS'
+        default='PRE_A1'
+    )
+    # Course the student is currently in (e.g. Pre2); current_level follows its CEFR level
+    current_course = models.ForeignKey(
+        'courses.Course', on_delete=models.SET_NULL, null=True, blank=True, related_name='students'
     )
 
     # ENROLLMENT INFO
@@ -517,6 +509,16 @@ class Student(models.Model):
 
     def __str__(self):
         return f"{self.admission_number} - {self.full_name} ({self.current_level})"
+
+    def save(self, *args, **kwargs):
+        if self.current_course_id:
+            code = self._meta.get_field('current_course').related_model.objects.filter(
+                pk=self.current_course_id
+            ).values_list('level__short_code', flat=True).first()
+            if code:
+                self.current_level = code
+        self.__dict__.pop('_level_cache', None)
+        super().save(*args, **kwargs)
 
     @property
     def level(self):
@@ -751,6 +753,12 @@ class StudentClassHistory(models.Model):
     )
     to_class = models.ForeignKey(
         'courses.Class', on_delete=models.SET_NULL, null=True, blank=True, related_name='+'
+    )
+    from_course = models.ForeignKey(
+        'courses.Course', on_delete=models.SET_NULL, null=True, blank=True, related_name='+'
+    )
+    to_course = models.ForeignKey(
+        'courses.Course', on_delete=models.SET_NULL, null=True, blank=True, related_name='+'
     )
     from_level = models.CharField(max_length=20, blank=True)
     to_level = models.CharField(max_length=20, blank=True)

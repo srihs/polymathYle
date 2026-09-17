@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load yle_levels %}
 {% load static %}
 
 {% block PageTitle %}Add Teacher - Polymath School of English{% endblock %}
@@ -699,65 +700,39 @@
                         </div>
                     </div>
 
-                    <!-- Step 5: YLE Level Certifications -->
+                    <!-- Step 5: CEFR Level Qualifications -->
                     <div class="wizard-panel" id="step5-panel" role="tabpanel" aria-labelledby="step5">
                         <div class="step-header mb-4">
                             <h5 class="mb-1">
                                 <i class="ri-medal-line text-primary me-2"></i>
-                                YLE Level Certifications
+                                CEFR Level Qualifications
                             </h5>
-                            <p class="text-muted mb-0">Select which Cambridge YLE levels this teacher is qualified to teach</p>
+                            <p class="text-muted mb-0">Select which CEFR levels this teacher is qualified to teach</p>
                         </div>
 
                         <div class="row g-3 mb-4">
+                            {% for level in levels %}
                             <div class="col-md-4">
                                 <div class="form-check form-check-card h-100">
-                                    <input class="form-check-input" type="checkbox" id="teaches_starters" name="teaches_starters">
-                                    <label class="form-check-label d-block p-3 border rounded" for="teaches_starters">
+                                    <input class="form-check-input" type="checkbox" id="level_{{ level.id }}" name="levels" value="{{ level.id }}"{% if level.id in teacher_level_ids %} checked{% endif %}>
+                                    <label class="form-check-label d-block p-3 border rounded{% if level.id in teacher_level_ids %} border-primary{% endif %}" for="level_{{ level.id }}">
                                         <div class="d-flex align-items-center">
-                                            <span class="avatar-title bg-info-subtle text-info rounded me-2" style="width: 40px; height: 40px;">
-                                                <i class="ri-seedling-line fs-5"></i>
+                                            <span class="avatar-title rounded me-2 text-white bg-{{ level|level_color }}" style="width: 40px; height: 40px;">
+                                                <i class="{{ level|level_icon }} fs-5"></i>
                                             </span>
                                             <div>
-                                                <div class="fw-medium">Pre A1 Starters</div>
-                                                <div class="text-muted small">Ages 6-8</div>
+                                                <div class="fw-medium">{{ level.name }}</div>
+                                                <div class="text-muted small">CEFR level{% if level.age_range_min or level.age_range_max %} · Ages {{ level.age_range_min }}-{{ level.age_range_max }}{% endif %}</div>
                                             </div>
                                         </div>
                                     </label>
                                 </div>
                             </div>
-                            <div class="col-md-4">
-                                <div class="form-check form-check-card h-100">
-                                    <input class="form-check-input" type="checkbox" id="teaches_movers" name="teaches_movers">
-                                    <label class="form-check-label d-block p-3 border rounded" for="teaches_movers">
-                                        <div class="d-flex align-items-center">
-                                            <span class="avatar-title bg-warning-subtle text-warning rounded me-2" style="width: 40px; height: 40px;">
-                                                <i class="ri-run-line fs-5"></i>
-                                            </span>
-                                            <div>
-                                                <div class="fw-medium">A1 Movers</div>
-                                                <div class="text-muted small">Ages 8-10</div>
-                                            </div>
-                                        </div>
-                                    </label>
-                                </div>
+                            {% empty %}
+                            <div class="col-12">
+                                <div class="alert alert-warning border-0 mb-0">No active CEFR levels.</div>
                             </div>
-                            <div class="col-md-4">
-                                <div class="form-check form-check-card h-100">
-                                    <input class="form-check-input" type="checkbox" id="teaches_flyers" name="teaches_flyers">
-                                    <label class="form-check-label d-block p-3 border rounded" for="teaches_flyers">
-                                        <div class="d-flex align-items-center">
-                                            <span class="avatar-title bg-success-subtle text-success rounded me-2" style="width: 40px; height: 40px;">
-                                                <i class="ri-rocket-line fs-5"></i>
-                                            </span>
-                                            <div>
-                                                <div class="fw-medium">A2 Flyers</div>
-                                                <div class="text-muted small">Ages 10-12</div>
-                                            </div>
-                                        </div>
-                                    </label>
-                                </div>
-                            </div>
+                            {% endfor %}
                         </div>
 
                         <!-- Review Summary -->
@@ -804,9 +779,9 @@
                                     <i class="ri-lightbulb-line fs-4 text-info"></i>
                                 </div>
                                 <div class="flex-grow-1 ms-3">
-                                    <h6 class="mb-1">YLE Certification</h6>
+                                    <h6 class="mb-1">CEFR Level Qualifications</h6>
                                     <p class="mb-0 small">
-                                        Select all levels this teacher is certified to teach. This determines which classes
+                                        Select all CEFR levels this teacher is qualified to teach. This determines which classes
                                         can be assigned to them in the system.
                                     </p>
                                 </div>

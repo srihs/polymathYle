@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load yle_levels %}
 
 {% block PageTitle %}Preview: {{ template.name }} - PolymathYLE{% endblock %}
 {% block pageTitle %}Template Preview{% endblock %}
@@ -28,7 +29,7 @@
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0 me-3">
                             <div class="avatar-sm">
-                                <span class="avatar-title bg-{% if template.level == 'STARTERS' %}info{% elif template.level == 'MOVERS' %}warning{% else %}success{% endif %}-subtle text-{% if template.level == 'STARTERS' %}info{% elif template.level == 'MOVERS' %}warning{% else %}success{% endif %} rounded-circle">
+                                <span class="avatar-title bg-{{ template.level|level_color }}-subtle text-{{ template.level|level_color }} rounded-circle">
                                     <i class="ri-eye-line"></i>
                                 </span>
                             </div>
@@ -55,24 +56,18 @@
                 <div class="certificate-preview p-4 bg-light">
                     <div class="certificate-frame bg-white border rounded-3 p-5 mx-auto" style="max-width: 750px;">
                         <!-- Template Header with Level-Specific Styling -->
-                        <div class="certificate-header text-center mb-4 pb-4 border-bottom border-{% if template.level == 'STARTERS' %}info{% elif template.level == 'MOVERS' %}warning{% else %}success{% endif %}">
+                        <div class="certificate-header text-center mb-4 pb-4 border-bottom border-{{ template.level|level_color }}">
                             <!-- Logo -->
                             <img src="{% static 'assets/images/logo-dark.png' %}" alt="PolymathYLE Logo" style="height: 50px;" class="mb-3">
 
                             <!-- Level Indicator -->
                             <div class="d-flex justify-content-center align-items-center mb-3">
-                                <div class="level-badge p-3 rounded-circle bg-{% if template.level == 'STARTERS' %}info{% elif template.level == 'MOVERS' %}warning{% else %}success{% endif %}-subtle">
-                                    {% if template.level == 'STARTERS' %}
-                                    <i class="ri-seedling-line text-info" style="font-size: 2.5rem;"></i>
-                                    {% elif template.level == 'MOVERS' %}
-                                    <i class="ri-run-line text-warning" style="font-size: 2.5rem;"></i>
-                                    {% else %}
-                                    <i class="ri-rocket-line text-success" style="font-size: 2.5rem;"></i>
-                                    {% endif %}
+                                <div class="level-badge p-3 rounded-circle bg-{{ template.level|level_color }}-subtle">
+                                    <i class="{{ template.level|level_icon }} text-{{ template.level|level_color }}" style="font-size: 2.5rem;"></i>
                                 </div>
                             </div>
 
-                            <h2 class="text-{% if template.level == 'STARTERS' %}info{% elif template.level == 'MOVERS' %}warning{% else %}success{% endif %} mb-1">
+                            <h2 class="text-{{ template.level|level_color }} mb-1">
                                 Certificate of {{ template.get_certificate_type_display }}
                             </h2>
                             <p class="text-muted mb-0">Cambridge Young Learners English</p>
@@ -89,20 +84,14 @@
 
                         <!-- Level Name -->
                         <div class="text-center my-4">
-                            <h4 class="fw-semibold text-{% if template.level == 'STARTERS' %}info{% elif template.level == 'MOVERS' %}warning{% else %}success{% endif %}">
-                                {% if template.level == 'STARTERS' %}
-                                Pre A1 Starters
-                                {% elif template.level == 'MOVERS' %}
-                                A1 Movers
-                                {% else %}
-                                A2 Flyers
-                                {% endif %}
+                            <h4 class="fw-semibold text-{{ template.level|level_color }}">
+                                {{ template.level|level_name|default:template.get_template_type_display }}
                             </h4>
                             <p class="text-muted">Cambridge English examination</p>
                         </div>
 
                         <!-- Sample Shields Display -->
-                        <div class="shields-display bg-{% if template.level == 'STARTERS' %}info{% elif template.level == 'MOVERS' %}warning{% else %}success{% endif %}-subtle bg-opacity-25 rounded-3 p-4 mb-4">
+                        <div class="shields-display bg-{{ template.level|level_color }}-subtle bg-opacity-25 rounded-3 p-4 mb-4">
                             <h6 class="text-uppercase fw-semibold text-muted text-center mb-4">Performance Summary</h6>
                             <div class="row g-4 justify-content-center">
                                 <!-- Listening -->
@@ -188,7 +177,7 @@
 
                             <!-- Total -->
                             <div class="text-center mt-4 pt-3 border-top">
-                                <span class="badge bg-{% if template.level == 'STARTERS' %}info{% elif template.level == 'MOVERS' %}warning{% else %}success{% endif %} fs-6 px-4 py-2">
+                                <span class="badge bg-{{ template.level|level_color }} fs-6 px-4 py-2">
                                     <i class="ri-shield-star-fill me-1"></i> Total: 16/20 Shields
                                 </span>
                             </div>
@@ -273,15 +262,9 @@
     <div class="col-xl-4">
         <!-- Template Info Card -->
         <div class="card">
-            <div class="card-header border-bottom bg-{% if template.level == 'STARTERS' %}info{% elif template.level == 'MOVERS' %}warning{% else %}success{% endif %}-subtle">
-                <h5 class="card-title mb-0 text-{% if template.level == 'STARTERS' %}info{% elif template.level == 'MOVERS' %}warning{% else %}success{% endif %}">
-                    {% if template.level == 'STARTERS' %}
-                    <i class="ri-seedling-line me-2"></i>
-                    {% elif template.level == 'MOVERS' %}
-                    <i class="ri-run-line me-2"></i>
-                    {% else %}
-                    <i class="ri-rocket-line me-2"></i>
-                    {% endif %}
+            <div class="card-header border-bottom bg-{{ template.level|level_color }}-subtle">
+                <h5 class="card-title mb-0 text-{{ template.level|level_color }}">
+                    <i class="{{ template.level|level_icon }} me-2"></i>
                     {{ template.name }}
                 </h5>
             </div>
@@ -289,7 +272,7 @@
                 <div class="d-flex flex-column gap-3">
                     <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded">
                         <span class="text-muted">Level</span>
-                        <span class="badge bg-{% if template.level == 'STARTERS' %}info{% elif template.level == 'MOVERS' %}warning{% else %}success{% endif %}">
+                        <span class="badge bg-{{ template.level|level_color }}">
                             {{ template.get_level_display }}
                         </span>
                     </div>
@@ -374,28 +357,8 @@
             <div class="card-body">
                 <p class="text-muted small mb-3">This template uses the {{ template.get_level_display }} color scheme:</p>
                 <div class="d-flex gap-2">
-                    {% if template.level == 'STARTERS' %}
-                    <div class="p-3 bg-info rounded flex-grow-1 text-center">
-                        <span class="text-white">Primary</span>
-                    </div>
-                    <div class="p-3 bg-info-subtle rounded flex-grow-1 text-center">
-                        <span class="text-info">Subtle</span>
-                    </div>
-                    {% elif template.level == 'MOVERS' %}
-                    <div class="p-3 bg-warning rounded flex-grow-1 text-center">
-                        <span class="text-dark">Primary</span>
-                    </div>
-                    <div class="p-3 bg-warning-subtle rounded flex-grow-1 text-center">
-                        <span class="text-warning">Subtle</span>
-                    </div>
-                    {% else %}
-                    <div class="p-3 bg-success rounded flex-grow-1 text-center">
-                        <span class="text-white">Primary</span>
-                    </div>
-                    <div class="p-3 bg-success-subtle rounded flex-grow-1 text-center">
-                        <span class="text-success">Subtle</span>
-                    </div>
-                    {% endif %}
+                    <div class="p-3 bg-{{ template.level|level_color }} rounded flex-grow-1 text-center"><span class="text-white">Primary</span></div>
+                    <div class="p-3 bg-{{ template.level|level_color }}-subtle rounded flex-grow-1 text-center"><span class="text-{{ template.level|level_color }}">Subtle</span></div>
                 </div>
             </div>
         </div>

@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load yle_levels %}
 
 {% block PageTitle %}Award Achievement - PolymathYLE{% endblock %}
 {% block pageTitle %}Award Achievement{% endblock %}
@@ -56,6 +57,8 @@
                                     {% for student in students %}
                                     <option value="{{ student.id }}"
                                             data-level="{{ student.current_level }}"
+                                            data-level-name="{{ student.current_level|level_name }}"
+                                            data-level-color="{{ student.current_level|level_color }}"
                                             data-points="{{ student.total_points|default:0 }}"
                                             {% if form.student.value == student.id|stringformat:"s" or request.GET.student == student.id|stringformat:"s" %}selected{% endif %}>
                                         {{ student.full_name }} ({{ student.admission_number }})
@@ -345,10 +348,10 @@ $(document).ready(function() {
             $('#student-points-display').text(points);
 
             // Update level badge
-            var levelClass = level === 'STARTERS' ? 'info' : level === 'MOVERS' ? 'warning' : 'success';
-            var levelText = level === 'STARTERS' ? 'Pre A1 Starters' : level === 'MOVERS' ? 'A1 Movers' : 'A2 Flyers';
+            var levelClass = selected.data('level-color') || 'secondary';
+            var levelText = selected.data('level-name') || level;
             $('#student-level-badge')
-                .removeClass('bg-info-subtle text-info bg-warning-subtle text-warning bg-success-subtle text-success')
+                .removeClass(function(i, cls) { return (cls.match(/(^|\s)(bg|text)-\S+/g) || []).join(' '); })
                 .addClass('bg-' + levelClass + '-subtle text-' + levelClass)
                 .text(levelText);
 

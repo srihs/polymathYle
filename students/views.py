@@ -13,9 +13,9 @@ from .models import (
 from .forms import ApplicationForm
 from .class_allocation import (
     ClassAssignmentError, approve_transfer, assign_class, class_options, create_transfer_request,
-    next_level, promote_students, record_history, reject_transfer, schedule_summary, transfer_options,
+    next_course, promote_students, record_history, reject_transfer, schedule_summary, transfer_options,
 )
-from courses.models import YLELevel
+from courses.models import Course, YLELevel
 from django.core.paginator import Paginator
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse, JsonResponse
@@ -27,11 +27,34 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def _student_level_counts():
+    """Active students per active level, for the student list summary."""
+    counts = dict(
+        Student.objects.filter(is_active=True).values_list('current_level').annotate(n=Count('id')).values_list('current_level', 'n')
+    )
+    counts = {code.upper(): n for code, n in counts.items() if code}
+    return [
+        {'level': level, 'count': counts.get(level.short_code.upper(), 0)}
+        for level in YLELevel.objects.filter(is_active=True).order_by('order', 'id')
+    ]
+
+
 def _levels_with_class_counts():
     """Active levels in display order, each with class_count (active classes)."""
     return YLELevel.objects.filter(is_active=True).annotate(
         class_count=Count('classes', filter=Q(classes__is_active=True))
     ).order_by('order', 'id')
+
+
+def _course_groups():
+    """Active CEFR levels with their active courses (each with class_count), for course pickers."""
+    courses = Course.ordered().annotate(class_count=Count('classes', filter=Q(classes__is_active=True)))
+    groups = []
+    for course in courses:
+        if not groups or groups[-1]['level'].id != course.level_id:
+            groups.append({'level': course.level, 'courses': []})
+        groups[-1]['courses'].append(course)
+    return groups
 
 
 def apply_view(request):
@@ -162,7 +185,7 @@ def student_list_view(request):
     List all students with filtering and search
     """
     # Get all students
-    students = Student.objects.select_related('user', 'assigned_class').all()
+    students = Student.objects.select_related('user', 'assigned_class', 'current_course').all()
 
     # Search
     search_query = request.GET.get('search', '')
@@ -179,6 +202,13 @@ def student_list_view(request):
     if level_filter:
         students = students.filter(current_level=level_filter)
 
+    # Filter by course
+    course_filter = request.GET.get('course', '')
+    if course_filter.isdigit():
+        students = students.filter(current_course_id=course_filter)
+    else:
+        course_filter = ''
+
     # Filter by active status
     status_filter = request.GET.get('status', '')
     if status_filter == 'active':
@@ -193,7 +223,9 @@ def student_list_view(request):
 
     # Sorting
     sort_by = request.GET.get('sort', 'admission_number')
-    if sort_by in ['admission_number', 'full_name', 'enrollment_date', 'current_level']:
+    if sort_by == 'current_level':
+        students = students.order_by('current_course__level__order', 'current_course__order', 'admission_number')
+    elif sort_by in ['admission_number', 'full_name', 'enrollment_date']:
         students = students.order_by(sort_by)
 
     # Pagination
@@ -211,11 +243,15 @@ def student_list_view(request):
         'search_query': search_query,
         'level_filter': level_filter,
         'levels': YLELevel.objects.filter(is_active=True).order_by('order', 'id'),
+        'course_filter': course_filter,
+        'course_groups': _course_groups(),
         'status_filter': status_filter,
         'class_filter': class_filter,
         'sort_by': sort_by,
         'classes': classes,
         'total_count': students.count(),
+        'active_count': Student.objects.filter(is_active=True).count(),
+        'level_counts': _student_level_counts(),
     }
 
     return render(request, 'students/student_list.html', context)
@@ -228,7 +264,7 @@ def student_detail_view(request, student_id):
     View detailed student information
     """
     student = get_object_or_404(
-        Student.objects.select_related('user', 'assigned_class', 'application'),
+        Student.objects.select_related('user', 'assigned_class', 'application', 'current_course'),
         id=student_id
     )
 
@@ -263,7 +299,7 @@ def student_detail_view(request, student_id):
         'attendance_percentage': attendance_percentage,
         'badges': badges,
         'class_history': student.class_history.select_related(
-            'from_class', 'to_class', 'changed_by', 'transfer_request'
+            'from_class', 'to_class', 'from_course', 'to_course', 'changed_by', 'transfer_request'
         )[:20],
         'pending_transfer': student.transfer_requests.filter(status='PENDING').select_related('to_class').first(),
     }
@@ -288,13 +324,14 @@ def student_edit_view(request, student_id):
         student.primary_contact_number = request.POST.get('primary_contact_number', student.primary_contact_number)
         student.whatsapp_number = request.POST.get('whatsapp_number', student.whatsapp_number)
         student.current_school = request.POST.get('current_school', student.current_school)
-        # Level is locked once the student has a class; it then changes only through promotion
-        new_level = request.POST.get('current_level', student.current_level)
-        if not student.assigned_class_id:
-            if not YLELevel.objects.filter(short_code=new_level, is_active=True).exists() and new_level != student.current_level:
-                messages.error(request, 'Please select a valid level.')
+        # Course (and so level) is locked once the student has a class; it then changes only through promotion
+        new_course_id = request.POST.get('current_course', '')
+        if not student.assigned_class_id and new_course_id and str(new_course_id) != str(student.current_course_id):
+            new_course = Course.ordered().filter(id=new_course_id).first() if str(new_course_id).isdigit() else None
+            if not new_course:
+                messages.error(request, 'Please select a valid course.')
                 return redirect('student_edit', student_id=student.id)
-            student.current_level = new_level
+            student.current_course = new_course
         student.is_active = request.POST.get('is_active') == 'on'
 
         # Handle profile picture upload
@@ -310,7 +347,7 @@ def student_edit_view(request, student_id):
                 student.save()
                 if newly_assigned:
                     record_history(student, 'ASSIGNED', request.user, to_class=newly_assigned,
-                                   to_level=student.current_level)
+                                   to_level=student.current_level, to_course=student.current_course)
         except ClassAssignmentError as e:
             messages.error(request, str(e))
             return redirect('student_edit', student_id=student.id)
@@ -320,7 +357,7 @@ def student_edit_view(request, student_id):
 
     context = {
         'student': student,
-        'levels': _levels_with_class_counts(),
+        'course_groups': _course_groups(),
         'class_options': [] if student.assigned_class_id else class_options(
             student.application.schedule_preferences if student.application_id else None
         ),
@@ -473,9 +510,10 @@ def student_enroll_view(request, application_id):
         from django.contrib.auth.models import User, Group
         username = f"student_{application.admission_number.lower().replace('-', '_')}"
         class_id = request.POST.get('assigned_class')
-        current_level = request.POST.get('current_level', '')
-        if not YLELevel.objects.filter(short_code=current_level, is_active=True).exists():
-            messages.error(request, 'Please select a valid level.')
+        course_id = request.POST.get('current_course', '')
+        current_course = Course.ordered().filter(id=course_id).first() if str(course_id).isdigit() else None
+        if not current_course:
+            messages.error(request, 'Please select a course.')
             return redirect('student_enroll', application_id=application.id)
 
         try:
@@ -515,14 +553,15 @@ def student_enroll_view(request, application_id):
                     primary_contact_number=application.mother_contact_number or application.father_contact_number,
                     whatsapp_number=application.whatsapp_number,
                     current_school=application.current_school,
-                    current_level=current_level,
+                    current_course=current_course,
+                    current_level=current_course.level.short_code,
                 )
 
                 # Class allocation (optional when no class has free seats; can be assigned once later)
                 class_obj = assign_class(student, class_id) if class_id else None
                 student.save()
                 record_history(student, 'ENROLLED', request.user, to_class=class_obj,
-                               to_level=student.current_level)
+                               to_level=student.current_level, to_course=current_course)
 
                 if class_obj:
                     application.selected_class_day = schedule_summary(class_obj)[:100]
@@ -567,18 +606,25 @@ def student_enroll_view(request, application_id):
             )
         return redirect('student_detail', student_id=student.id)
 
-    levels = list(_levels_with_class_counts())
-    # Pre-select the level whose age range fits the child most closely, otherwise the first level
-    fitting = [l for l in levels if application.age and l.age_range_min <= application.age <= l.age_range_max]
-    suggested = min(fitting, key=lambda l: (l.age_range_max - l.age_range_min, l.order)) if fitting else (
-        levels[0] if levels else None
+    course_groups = _course_groups()
+    courses = [course for group in course_groups for course in group['courses']]
+
+    # Pre-select the course whose age range (or its level's) fits the child most closely, otherwise the first
+    def age_range(course):
+        low = course.age_range_min if course.age_range_min is not None else course.level.age_range_min
+        high = course.age_range_max if course.age_range_max is not None else course.level.age_range_max
+        return low, high
+
+    fitting = [c for c in courses if application.age and age_range(c)[0] <= application.age <= age_range(c)[1]]
+    suggested = min(fitting, key=lambda c: (age_range(c)[1] - age_range(c)[0], c.level.order, c.order)) if fitting else (
+        courses[0] if courses else None
     )
 
     context = {
         'application': application,
         'class_options': class_options(application.schedule_preferences),
-        'levels': levels,
-        'suggested_level': suggested.short_code if suggested else '',
+        'course_groups': course_groups,
+        'suggested_course': suggested.id if suggested else None,
     }
 
     return render(request, 'students/student_enroll.html', context)
@@ -944,7 +990,7 @@ def _safe_next(request, fallback):
 @permission_required('students.add_classtransferrequest', raise_exception=True)
 def transfer_request_create_view(request, student_id):
     """Raise a request to move a student to another class at the same level."""
-    student = get_object_or_404(Student.objects.select_related('assigned_class__level', 'application'), id=student_id)
+    student = get_object_or_404(Student.objects.select_related('assigned_class__level', 'application', 'current_course'), id=student_id)
 
     if not student.assigned_class_id:
         messages.warning(request, 'This student has no class yet. Assign one from the Edit page.')
@@ -980,7 +1026,7 @@ def transfer_request_new_view(request):
     """Pick a student (who has a class) to raise a transfer request for."""
     search_query = request.GET.get('search', '').strip()
     students = Student.objects.filter(is_active=True, assigned_class__isnull=False).select_related(
-        'assigned_class'
+        'assigned_class', 'current_course'
     ).annotate(
         pending_count=Count('transfer_requests', filter=Q(transfer_requests__status='PENDING'))
     ).order_by('full_name')
@@ -1074,11 +1120,11 @@ def transfer_request_cancel_view(request, transfer_id):
 @login_required
 @permission_required('students.promote_student', raise_exception=True)
 def class_promote_view(request, class_id):
-    """Promote selected students of a class into a class at the next level."""
+    """Promote selected students of a class into a class of the next course."""
     from courses.models import Class
 
-    class_obj = get_object_or_404(Class.objects.select_related('level'), id=class_id)
-    target_level = next_level(class_obj.level)
+    class_obj = get_object_or_404(Class.objects.select_related('level', 'course'), id=class_id)
+    target_course = next_course(class_obj.course)
 
     if request.method == 'POST':
         try:
@@ -1093,17 +1139,15 @@ def class_promote_view(request, class_id):
         to_class = promoted[0].assigned_class
         plural = 's' if len(promoted) != 1 else ''
         messages.success(
-            request, f'{len(promoted)} student{plural} promoted to {to_class.class_name} ({to_class.level.name}).'
+            request, f'{len(promoted)} student{plural} promoted to {to_class.class_name} ({to_class.course.name}, {to_class.level.name}).'
         )
         return redirect('class_detail', class_id=class_obj.id)
 
-    target_options = [
-        o for o in class_options() if target_level and o['level'] == target_level.short_code.upper()
-    ]
+    target_options = [o for o in class_options() if target_course and o['course_id'] == target_course.id]
     return render(request, 'students/class_promote.html', {
         'class_obj': class_obj,
         'students': class_obj.enrolled_students.filter(is_active=True).order_by('full_name'),
-        'target_level': target_level,
+        'target_course': target_course,
         'target_options': target_options,
     })
 

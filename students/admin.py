@@ -1,3 +1,4 @@
+from django import forms
 from django.contrib import admin
 from .models import (
     Application, Attendance, BaselineTest, ClassTransferRequest, Guardian, Student, StudentBadge,
@@ -5,10 +6,28 @@ from .models import (
 )
 
 
+def _level_choices():
+    from courses.models import YLELevel
+    return [('', '---------')] + [
+        (level.short_code, level.name) for level in YLELevel.objects.filter(is_active=True).order_by('order', 'id')
+    ]
+
+
+class BaselineTestAdminForm(forms.ModelForm):
+    """Offer every active YLE level for the recommended/assigned level fields."""
+    recommended_level = forms.ChoiceField(choices=_level_choices, required=False)
+    assigned_level = forms.ChoiceField(choices=_level_choices, required=False)
+
+    class Meta:
+        model = BaselineTest
+        fields = '__all__'
+
+
 class BaselineTestInline(admin.StackedInline):
     model = BaselineTest
+    form = BaselineTestAdminForm
     extra = 0
-    readonly_fields = ('total_score', 'percentage', 'recommended_level', 'created_at', 'updated_at')
+    readonly_fields = ('total_score', 'percentage', 'created_at', 'updated_at')
 
 
 @admin.register(Application)
@@ -48,10 +67,11 @@ class ApplicationAdmin(admin.ModelAdmin):
 
 @admin.register(BaselineTest)
 class BaselineTestAdmin(admin.ModelAdmin):
+    form = BaselineTestAdminForm
     list_display = ('application', 'test_date', 'percentage', 'recommended_level', 'assigned_level')
     list_filter = ('recommended_level', 'assigned_level', 'test_date')
     search_fields = ('application__full_name', 'application__admission_number')
-    readonly_fields = ('total_score', 'percentage', 'recommended_level', 'created_at', 'updated_at')
+    readonly_fields = ('total_score', 'percentage', 'created_at', 'updated_at')
     fieldsets = (
         ('Test Info', {
             'fields': ('application', 'test_date', 'tested_by')

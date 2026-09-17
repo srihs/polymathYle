@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load yle_levels %}
 
 {% block PageTitle %}{% if class %}Edit{% else %}Add{% endif %} Class - Polymath School of English{% endblock %}
 {% block pageTitle %}{% if class %}Edit{% else %}Add New{% endif %} Class{% endblock %}
@@ -36,23 +37,24 @@
                         </legend>
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label for="level" class="form-label">
-                                    YLE Level <span class="text-danger" aria-label="required">*</span>
+                                <label for="course" class="form-label">
+                                    Course <span class="text-danger" aria-label="required">*</span>
                                 </label>
-                                <select class="form-select"
-                                        id="level"
-                                        name="level"
-                                        required>
-                                    <option value="">Select Level</option>
-                                    {% for level in levels %}
-                                    <option value="{{ level.id }}"
-                                            {% if class and class.level.id == level.id %}selected{% endif %}
-                                            {% if selected_level == level.id|stringformat:'i' %}selected{% endif %}>
-                                        {{ level.name }} ({{ level.cefr_level }})
-                                    </option>
+                                <select class="form-select" id="course" name="course" required{% if course_locked %} disabled{% endif %}>
+                                    <option value="">Select Course</option>
+                                    {% for group in course_groups %}
+                                    <optgroup label="{{ group.level.name }}">
+                                        {% for course in group.courses %}
+                                        <option value="{{ course.id }}" {% if selected_course == course.id|stringformat:"s" %}selected{% endif %}>{{ course.name }} ({{ group.level.name }})</option>
+                                        {% endfor %}
+                                    </optgroup>
                                     {% endfor %}
                                 </select>
-                                <div class="invalid-feedback">Please select a YLE level.</div>
+                                {% if course_locked %}
+                                <input type="hidden" name="course" value="{{ selected_course }}">
+                                <div class="form-text"><i class="ri-lock-line me-1"></i>This class has students, so its course can't be changed.</div>
+                                {% endif %}
+                                <div class="invalid-feedback">Please select a course.</div>
                             </div>
                             <div class="col-md-6">
                                 <label for="class_code" class="form-label">
@@ -355,32 +357,18 @@
                 </h6>
             </div>
             <div class="card-body">
-                <div class="d-flex align-items-center mb-2">
-                    <span class="badge bg-info-subtle text-info me-2">
-                        <i class="ri-seedling-line"></i>
+                {% active_levels as guide_levels %}
+                {% for level in guide_levels %}
+                <div class="d-flex align-items-center{% if not forloop.last %} mb-2{% endif %}">
+                    <span class="badge bg-{{ level|level_color }}-subtle text-{{ level|level_color }} me-2">
+                        <i class="{{ level|level_icon }}"></i>
                     </span>
                     <div>
-                        <strong>Starters</strong>
-                        <small class="text-muted d-block">Pre A1 | Ages 6-8</small>
+                        <strong>{{ level.name }}</strong>
+                        <small class="text-muted d-block">{% if level.cefr_level %}{{ level.cefr_level }} | {% endif %}Ages {{ level.age_range_min }}-{{ level.age_range_max }}</small>
                     </div>
                 </div>
-                <div class="d-flex align-items-center mb-2">
-                    <span class="badge bg-warning-subtle text-warning me-2">
-                        <i class="ri-run-line"></i>
-                    </span>
-                    <div>
-                        <strong>Movers</strong>
-                        <small class="text-muted d-block">A1 | Ages 8-10</small>
-                    </div>
-                </div>
-                <div class="d-flex align-items-center">
-                    <span class="badge bg-success-subtle text-success me-2">
-                        <i class="ri-rocket-line"></i>
-                    </span>
-                    <div>
-                        <strong>Flyers</strong>
-                        <small class="text-muted d-block">A2 | Ages 10-12</small>
-                    </div>
+                {% endfor %}
                 </div>
             </div>
         </div>
@@ -389,6 +377,24 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<style>
+/* Select2 course picker: fill the input group and follow Bootstrap validation colours */
+.input-group > .select2-container--bootstrap-5 {
+    flex: 1 1 auto;
+    width: 1% !important;
+}
+.input-group > .select2-container--bootstrap-5 .select2-selection {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+.was-validated select:invalid + .select2-container--bootstrap-5 .select2-selection {
+    border-color: var(--bs-form-invalid-border-color, #dc3545);
+}
+.was-validated select:valid + .select2-container--bootstrap-5 .select2-selection {
+    border-color: var(--bs-form-valid-border-color, #198754);
+}
+</style>
 <!-- Teacher data for JavaScript -->
 <script type="application/json" id="teacherData">
 [{% for teacher in teachers %}{"id": {{ teacher.id }}, "name": "{{ teacher.full_name|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}]
@@ -397,6 +403,15 @@
 $(document).ready(function() {
     // Parse teacher data
     const teachers = JSON.parse(document.getElementById('teacherData').textContent);
+
+    // Searchable course picker (type a course or CEFR level name)
+    if ($.fn.select2) {
+        $('#course').select2({
+            theme: 'bootstrap-5',
+            placeholder: 'Search course or level...',
+            width: '100%',
+        });
+    }
 
     var scheduleIndex = $('#scheduleContainer .schedule-row').length;
 

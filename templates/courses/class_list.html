@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load yle_levels %}
 
 {% block PageTitle %}Classes - Polymath School of English{% endblock %}
 {% block pageTitle %}Class Management{% endblock %}
@@ -237,19 +238,7 @@
                                         </div>
                                     </td>
                                     <td>
-                                        {% if class.level.short_code == 'STARTERS' %}
-                                        <span class="badge bg-info-subtle text-info">
-                                            <i class="ri-seedling-line me-1"></i>{{ class.level.name }}
-                                        </span>
-                                        {% elif class.level.short_code == 'MOVERS' %}
-                                        <span class="badge bg-warning-subtle text-warning">
-                                            <i class="ri-run-line me-1"></i>{{ class.level.name }}
-                                        </span>
-                                        {% else %}
-                                        <span class="badge bg-success-subtle text-success">
-                                            <i class="ri-rocket-line me-1"></i>{{ class.level.name }}
-                                        </span>
-                                        {% endif %}
+                                        <span class="badge bg-{{ class.level|level_color }}-subtle text-{{ class.level|level_color }}"><i class="{{ class.level|level_icon }} me-1"></i>{% if class.course %}{{ class.course.name }} · {% endif %}{{ class.level|level_name }}</span>
                                     </td>
                                     <td>
                                         {% with class.schedule as schedules %}
@@ -368,19 +357,7 @@
                             <div class="card border mb-0 h-100">
                                 <div class="card-header border-bottom-0 pb-0">
                                     <div class="d-flex align-items-center justify-content-between">
-                                        {% if class.level.short_code == 'STARTERS' %}
-                                        <span class="badge bg-info-subtle text-info">
-                                            <i class="ri-seedling-line me-1"></i>Starters
-                                        </span>
-                                        {% elif class.level.short_code == 'MOVERS' %}
-                                        <span class="badge bg-warning-subtle text-warning">
-                                            <i class="ri-run-line me-1"></i>Movers
-                                        </span>
-                                        {% else %}
-                                        <span class="badge bg-success-subtle text-success">
-                                            <i class="ri-rocket-line me-1"></i>Flyers
-                                        </span>
-                                        {% endif %}
+                                        <span class="badge bg-{{ class.level|level_color }}-subtle text-{{ class.level|level_color }}"><i class="{{ class.level|level_icon }} me-1"></i>{% if class.course %}{{ class.course.name }} · {% endif %}{{ class.level|level_name }}</span>
                                         {% if class.is_active %}
                                         <span class="badge bg-success">Active</span>
                                         {% else %}

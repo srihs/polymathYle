@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load yle_levels %}
 
 {% block PageTitle %}Certificate Templates - PolymathYLE{% endblock %}
 {% block pageTitle %}Certificate Templates{% endblock %}
@@ -49,14 +50,10 @@
                      class="w-100 h-100 object-fit-cover">
                 {% else %}
                 <div class="d-flex align-items-center justify-content-center h-100
-                    {% if template.level == 'STARTERS' %}bg-info-subtle
-                    {% elif template.level == 'MOVERS' %}bg-warning-subtle
-                    {% else %}bg-success-subtle{% endif %}">
+                    bg-{{ template.level|level_color }}-subtle">
                     <div class="text-center">
                         <i class="ri-file-text-line fs-1
-                            {% if template.level == 'STARTERS' %}text-info
-                            {% elif template.level == 'MOVERS' %}text-warning
-                            {% else %}text-success{% endif %} mb-2 d-block"></i>
+                            text-{{ template.level|level_color }} mb-2 d-block"></i>
                         <span class="text-muted small">No preview available</span>
                     </div>
                 </div>
@@ -65,16 +62,8 @@
                 <!-- Level Badge Overlay -->
                 <div class="position-absolute top-0 end-0 m-2">
                     <span class="badge fs-6
-                        {% if template.level == 'STARTERS' %}bg-info
-                        {% elif template.level == 'MOVERS' %}bg-warning
-                        {% else %}bg-success{% endif %}">
-                        {% if template.level == 'STARTERS' %}
-                            <i class="ri-seedling-line me-1"></i>Starters
-                        {% elif template.level == 'MOVERS' %}
-                            <i class="ri-run-line me-1"></i>Movers
-                        {% else %}
-                            <i class="ri-rocket-line me-1"></i>Flyers
-                        {% endif %}
+                        bg-{{ template.level|level_color }}">
+                        <i class="{{ template.level|level_icon }} me-1"></i>{{ template.level|level_name|default:template.get_template_type_display }}
                     </span>
                 </div>
 
@@ -211,86 +200,36 @@
         </h5>
     </div>
 
-    <div class="col-lg-4">
-        <div class="card border-info h-100">
-            <div class="card-header bg-info-subtle border-info">
+    {% active_levels as guideline_levels %}
+    {% for level in guideline_levels %}
+    <div class="col-lg-4 mb-3">
+        <div class="card border-{{ level|level_color }} h-100">
+            <div class="card-header bg-{{ level|level_color }}-subtle border-{{ level|level_color }}">
                 <div class="d-flex align-items-center">
-                    <i class="ri-seedling-line text-info fs-4 me-2"></i>
-                    <h6 class="card-title mb-0 text-info">Pre A1 Starters</h6>
+                    <i class="{{ level|level_icon }} text-{{ level|level_color }} fs-4 me-2"></i>
+                    <h6 class="card-title mb-0 text-{{ level|level_color }}">{{ level.name }}</h6>
                 </div>
             </div>
             <div class="card-body">
                 <ul class="list-unstyled mb-0">
                     <li class="mb-2">
-                        <i class="ri-checkbox-circle-line text-info me-2"></i>Ages 6-8 years
+                        <i class="ri-checkbox-circle-line text-{{ level|level_color }} me-2"></i>Ages {{ level.age_range_min }}-{{ level.age_range_max }} years
                     </li>
+                    {% if level.cefr_level %}
                     <li class="mb-2">
-                        <i class="ri-checkbox-circle-line text-info me-2"></i>Beginner level
+                        <i class="ri-checkbox-circle-line text-{{ level|level_color }} me-2"></i>CEFR {{ level.cefr_level }}
                     </li>
-                    <li class="mb-2">
-                        <i class="ri-checkbox-circle-line text-info me-2"></i>Uses bright, playful colors
-                    </li>
+                    {% endif %}
+                    {% if level.description %}
                     <li class="mb-0">
-                        <i class="ri-checkbox-circle-line text-info me-2"></i>Simple illustrations
+                        <i class="ri-checkbox-circle-line text-{{ level|level_color }} me-2"></i>{{ level.description }}
                     </li>
+                    {% endif %}
                 </ul>
             </div>
         </div>
     </div>
-
-    <div class="col-lg-4">
-        <div class="card border-warning h-100">
-            <div class="card-header bg-warning-subtle border-warning">
-                <div class="d-flex align-items-center">
-                    <i class="ri-run-line text-warning fs-4 me-2"></i>
-                    <h6 class="card-title mb-0 text-warning">A1 Movers</h6>
-                </div>
-            </div>
-            <div class="card-body">
-                <ul class="list-unstyled mb-0">
-                    <li class="mb-2">
-                        <i class="ri-checkbox-circle-line text-warning me-2"></i>Ages 8-10 years
-                    </li>
-                    <li class="mb-2">
-                        <i class="ri-checkbox-circle-line text-warning me-2"></i>Elementary level
-                    </li>
-                    <li class="mb-2">
-                        <i class="ri-checkbox-circle-line text-warning me-2"></i>Uses warm, encouraging colors
-                    </li>
-                    <li class="mb-0">
-                        <i class="ri-checkbox-circle-line text-warning me-2"></i>Dynamic imagery
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-lg-4">
-        <div class="card border-success h-100">
-            <div class="card-header bg-success-subtle border-success">
-                <div class="d-flex align-items-center">
-                    <i class="ri-rocket-line text-success fs-4 me-2"></i>
-                    <h6 class="card-title mb-0 text-success">A2 Flyers</h6>
-                </div>
-            </div>
-            <div class="card-body">
-                <ul class="list-unstyled mb-0">
-                    <li class="mb-2">
-                        <i class="ri-checkbox-circle-line text-success me-2"></i>Ages 10-12 years
-                    </li>
-                    <li class="mb-2">
-                        <i class="ri-checkbox-circle-line text-success me-2"></i>Pre-intermediate level
-                    </li>
-                    <li class="mb-2">
-                        <i class="ri-checkbox-circle-line text-success me-2"></i>Uses accomplished, mature colors
-                    </li>
-                    <li class="mb-0">
-                        <i class="ri-checkbox-circle-line text-success me-2"></i>Achievement-focused design
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </div>
+    {% endfor %}
 </div>
 {% endblock %}
 

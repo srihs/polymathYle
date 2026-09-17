@@ -4,10 +4,12 @@ from django.contrib.auth.models import User
 
 class YLELevel(models.Model):
     """
-    Three main YLE levels: Starters, Movers, Flyers
+    CEFR level labelled with its Cambridge exam: Pre A1 (Starters), A1 (Movers), A2 (Flyers), A2 (KET),
+    B1 (PET), B2 (FCE). Fixed reference list, managed in Django admin.
+    Courses (e.g. Pre1, Pre2, Pre3) belong to a level.
     """
-    name = models.CharField(max_length=50)  # e.g., "Pre A1 Starters"
-    short_code = models.CharField(max_length=20, unique=True)  # e.g., "STARTERS"
+    name = models.CharField(max_length=50)  # e.g., "Pre A1 (Starters)", "B2 (FCE)"
+    short_code = models.CharField(max_length=20, unique=True)  # e.g., "PRE_A1", "A2_KET"
     cefr_level = models.CharField(max_length=10, blank=True)  # e.g., "Pre A1", "A1", "A2" - Optional field
     description = models.TextField()
     age_range_min = models.IntegerField()  # Minimum age
@@ -26,9 +28,46 @@ class YLELevel(models.Model):
         ordering = ['order']
 
     def __str__(self):
-        if self.cefr_level:
-            return f"{self.name} ({self.cefr_level})"
         return self.name
+
+
+class Course(models.Model):
+    """
+    A course taught under a CEFR level, e.g. Pre1, Pre2, Pre3 under Pre A1.
+    Classes run a course; students progress course by course (by level order, then course order).
+    """
+    level = models.ForeignKey(YLELevel, on_delete=models.PROTECT, related_name='courses')
+    name = models.CharField(max_length=100)  # e.g. "Pre1"
+    code = models.CharField(max_length=20, unique=True)  # e.g. "PRE1"
+    description = models.TextField(blank=True)
+    order = models.IntegerField(default=0, help_text="Order within the CEFR level")
+    age_range_min = models.IntegerField(null=True, blank=True)
+    age_range_max = models.IntegerField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['level__order', 'order', 'name']
+
+    def __str__(self):
+        return f"{self.name} ({self.level.name})"
+
+    @classmethod
+    def ordered(cls, active_only=True):
+        """Courses in progression order: CEFR level order, then course order."""
+        qs = cls.objects.select_related('level')
+        if active_only:
+            qs = qs.filter(is_active=True, level__is_active=True)
+        return qs.order_by('level__order', 'level__id', 'order', 'id')
+
+    def next_course(self):
+        """The next active course in progression order, or None."""
+        courses = list(Course.ordered())
+        for index, course in enumerate(courses):
+            if course.pk == self.pk:
+                return courses[index + 1] if index + 1 < len(courses) else None
+        return None
 
 
 class Class(models.Model):
@@ -37,6 +76,8 @@ class Class(models.Model):
     One level can have multiple classes (e.g., Starters Class A, Starters Class B)
     IMPORTANT: This is for class allocation - students are assigned to specific classes
     """
+    # A class runs one course; its CEFR level always follows the course
+    course = models.ForeignKey(Course, on_delete=models.PROTECT, related_name='classes', null=True)
     level = models.ForeignKey(YLELevel, on_delete=models.CASCADE, related_name='classes')
 
     # Class identification
@@ -92,6 +133,11 @@ class Class(models.Model):
 
     def __str__(self):
         return f"{self.level.short_code} - {self.class_name}"
+
+    def save(self, *args, **kwargs):
+        if self.course_id:
+            self.level_id = Course.objects.filter(pk=self.course_id).values_list('level_id', flat=True).first()
+        super().save(*args, **kwargs)
 
     def is_full(self):
         """Check if class has reached capacity"""

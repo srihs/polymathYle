@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load yle_levels %}
 
 {% block PageTitle %}Certificates - PolymathYLE{% endblock %}
 {% block pageTitle %}Certificates{% endblock %}
@@ -35,83 +36,7 @@
         </div>
     </div>
 
-    <div class="col-xl-3 col-md-6">
-        <div class="card card-animate">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Starters</p>
-                        <h2 class="mt-3 mb-0 ff-secondary fw-semibold">
-                            <span class="counter-value" data-target="{{ starters_count|default:0 }}">{{ starters_count|default:0 }}</span>
-                        </h2>
-                        <p class="text-muted mb-0 mt-2">
-                            <span class="badge bg-info-subtle text-info me-1">
-                                <i class="ri-seedling-line align-middle"></i>
-                            </span>
-                            <span class="text-muted">Pre A1 Level</span>
-                        </p>
-                    </div>
-                    <div class="avatar-sm flex-shrink-0">
-                        <span class="avatar-title bg-info-subtle rounded-circle fs-2">
-                            <i class="ri-seedling-fill text-info"></i>
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-xl-3 col-md-6">
-        <div class="card card-animate">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Movers</p>
-                        <h2 class="mt-3 mb-0 ff-secondary fw-semibold">
-                            <span class="counter-value" data-target="{{ movers_count|default:0 }}">{{ movers_count|default:0 }}</span>
-                        </h2>
-                        <p class="text-muted mb-0 mt-2">
-                            <span class="badge bg-warning-subtle text-warning me-1">
-                                <i class="ri-run-line align-middle"></i>
-                            </span>
-                            <span class="text-muted">A1 Level</span>
-                        </p>
-                    </div>
-                    <div class="avatar-sm flex-shrink-0">
-                        <span class="avatar-title bg-warning-subtle rounded-circle fs-2">
-                            <i class="ri-run-fill text-warning"></i>
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-xl-3 col-md-6">
-        <div class="card card-animate">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Flyers</p>
-                        <h2 class="mt-3 mb-0 ff-secondary fw-semibold">
-                            <span class="counter-value" data-target="{{ flyers_count|default:0 }}">{{ flyers_count|default:0 }}</span>
-                        </h2>
-                        <p class="text-muted mb-0 mt-2">
-                            <span class="badge bg-success-subtle text-success me-1">
-                                <i class="ri-rocket-line align-middle"></i>
-                            </span>
-                            <span class="text-muted">A2 Level</span>
-                        </p>
-                    </div>
-                    <div class="avatar-sm flex-shrink-0">
-                        <span class="avatar-title bg-success-subtle rounded-circle fs-2">
-                            <i class="ri-rocket-fill text-success"></i>
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    {% include "partials/_level_count_card.html" with title="Certificates by Level" col=9 %}
 </div>
 
 <!-- Filter Section -->
@@ -155,9 +80,9 @@
                             <label for="level" class="form-label">YLE Level</label>
                             <select class="form-select" id="level" name="level">
                                 <option value="">All Levels</option>
-                                <option value="STARTERS" {% if request.GET.level == 'STARTERS' %}selected{% endif %}>Pre A1 Starters</option>
-                                <option value="MOVERS" {% if request.GET.level == 'MOVERS' %}selected{% endif %}>A1 Movers</option>
-                                <option value="FLYERS" {% if request.GET.level == 'FLYERS' %}selected{% endif %}>A2 Flyers</option>
+                                {% for level in levels %}
+                                <option value="{{ level.id }}" {% if request.GET.level == level.id|stringformat:"s" %}selected{% endif %}>{{ level.name }}</option>
+                                {% endfor %}
                             </select>
                         </div>
                         <div class="col-xl-3 col-md-6">
@@ -211,7 +136,7 @@
                 <div class="row g-4">
                     {% for certificate in certificates %}
                     <div class="col-xl-4 col-lg-6">
-                        <div class="card card-animate h-100 border {% if certificate.level == 'STARTERS' %}border-info{% elif certificate.level == 'MOVERS' %}border-warning{% else %}border-success{% endif %}">
+                        <div class="card card-animate h-100 border border-{{ certificate.level|level_color }}">
                             <div class="card-body">
                                 <!-- Certificate Header -->
                                 <div class="d-flex align-items-start justify-content-between mb-3">
@@ -221,7 +146,7 @@
                                              class="avatar-md rounded-circle me-3 object-fit-cover">
                                         {% else %}
                                         <div class="avatar-md me-3">
-                                            <span class="avatar-title bg-{% if certificate.level == 'STARTERS' %}info{% elif certificate.level == 'MOVERS' %}warning{% else %}success{% endif %}-subtle text-{% if certificate.level == 'STARTERS' %}info{% elif certificate.level == 'MOVERS' %}warning{% else %}success{% endif %} rounded-circle fs-4">
+                                            <span class="avatar-title bg-{{ certificate.level|level_color }}-subtle text-{{ certificate.level|level_color }} rounded-circle fs-4">
                                                 {{ certificate.student.full_name|first|upper }}
                                             </span>
                                         </div>
@@ -231,7 +156,7 @@
                                             <small class="text-muted">{{ certificate.student.admission_number }}</small>
                                         </div>
                                     </div>
-                                    <span class="badge bg-{% if certificate.level == 'STARTERS' %}info{% elif certificate.level == 'MOVERS' %}warning{% else %}success{% endif %}-subtle text-{% if certificate.level == 'STARTERS' %}info{% elif certificate.level == 'MOVERS' %}warning{% else %}success{% endif %}">
+                                    <span class="badge bg-{{ certificate.level|level_color }}-subtle text-{{ certificate.level|level_color }}">
                                         {{ certificate.get_level_display }}
                                     </span>
                                 </div>
