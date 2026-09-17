@@ -102,7 +102,14 @@
                         <td class="text-end">
                             <a href="{% url 'course_detail' course.id %}" class="btn btn-sm btn-soft-primary" title="View {{ course.name }}"><i class="ri-eye-line"></i></a>
                             {% if perms.courses.change_course %}
+                            <button type="button" class="btn btn-sm btn-soft-info js-rename-course" title="Rename {{ course.name }}"
+                                    data-url="{% url 'course_rename' course.id %}" data-name="{{ course.name }}"><i class="ri-text"></i></button>
                             <a href="{% url 'course_edit' course.id %}" class="btn btn-sm btn-soft-warning" title="Edit {{ course.name }}"><i class="ri-edit-line"></i></a>
+                            {% endif %}
+                            {% if perms.courses.delete_course %}
+                            <button type="button" class="btn btn-sm btn-soft-danger js-delete-course" title="Delete {{ course.name }}"
+                                    data-url="{% url 'course_delete' course.id %}" data-name="{{ course.name }}"
+                                    data-classes="{{ course.all_class_count }}" data-students="{{ course.all_student_count }}"><i class="ri-delete-bin-line"></i></button>
                             {% endif %}
                         </td>
                     </tr>
@@ -118,4 +125,103 @@
 {% empty %}
 <div class="alert alert-warning">No active CEFR levels. Levels are managed in Django admin.</div>
 {% endfor %}
+
+{% if perms.courses.change_course %}
+<div class="modal fade" id="renameCourseModal" tabindex="-1" aria-labelledby="renameCourseTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="post" class="modal-content" id="renameCourseForm">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <div class="modal-header">
+                <h5 class="modal-title" id="renameCourseTitle"><i class="ri-text me-2 text-info"></i>Rename course</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <label for="renameCourseName" class="form-label">Course name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="renameCourseName" name="name" maxlength="100" required>
+                <div class="form-text">Only the name changes. Classes and students stay on this course.</div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-info"><i class="ri-save-line me-1"></i>Save name</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+{% if perms.courses.delete_course %}
+<div class="modal fade" id="deleteCourseModal" tabindex="-1" aria-labelledby="deleteCourseTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="post" class="modal-content" id="deleteCourseForm">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteCourseTitle"><i class="ri-delete-bin-line me-2 text-danger"></i>Delete course</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0" id="deleteCourseText"></p>
+                <div class="alert alert-warning border-0 mt-3 mb-0" id="deleteCourseBlocked" hidden>
+                    <i class="ri-error-warning-line me-1"></i><span></span>
+                    Mark it inactive instead (Edit &rarr; Active).
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-danger" id="deleteCourseSubmit"><i class="ri-delete-bin-line me-1"></i>Delete</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    function setupModal(id) {
+        var el = document.getElementById(id);
+        if (!el) return null;
+        document.body.appendChild(el);  // keep the modal above page layout layers
+        return { el: el, modal: bootstrap.Modal.getOrCreateInstance(el) };
+    }
+
+    var rename = setupModal('renameCourseModal');
+    if (rename) {
+        var nameInput = document.getElementById('renameCourseName');
+        document.querySelectorAll('.js-rename-course').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                document.getElementById('renameCourseForm').action = btn.dataset.url;
+                nameInput.value = btn.dataset.name;
+                rename.modal.show();
+            });
+        });
+        rename.el.addEventListener('shown.bs.modal', function () { nameInput.focus(); nameInput.select(); });
+    }
+
+    var del = setupModal('deleteCourseModal');
+    if (del) {
+        document.querySelectorAll('.js-delete-course').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var classes = parseInt(btn.dataset.classes, 10) || 0;
+                var students = parseInt(btn.dataset.students, 10) || 0;
+                var text = document.getElementById('deleteCourseText');
+                var blocked = document.getElementById('deleteCourseBlocked');
+                var submit = document.getElementById('deleteCourseSubmit');
+                document.getElementById('deleteCourseForm').action = btn.dataset.url;
+                text.textContent = 'Delete "' + btn.dataset.name + '"? This cannot be undone.';
+                var reasons = [];
+                if (classes) reasons.push(classes + ' class' + (classes === 1 ? '' : 'es'));
+                if (students) reasons.push(students + ' student' + (students === 1 ? '' : 's'));
+                blocked.hidden = reasons.length === 0;
+                blocked.querySelector('span').textContent = reasons.length
+                    ? 'This course has ' + reasons.join(' and ') + ', so it can\'t be deleted. ' : '';
+                submit.disabled = reasons.length > 0;
+                del.modal.show();
+            });
+        });
+    }
+});
+</script>
 {% endblock %}

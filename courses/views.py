@@ -869,6 +869,8 @@ def course_list_view(request):
     courses = Course.objects.select_related('level').annotate(
         class_count=Count('classes', filter=Q(classes__is_active=True), distinct=True),
         student_count=Count('students', filter=Q(students__is_active=True), distinct=True),
+        all_class_count=Count('classes', distinct=True),
+        all_student_count=Count('students', distinct=True),
     ).order_by('level__order', 'level__id', 'order', 'id')
     if not show_inactive:
         courses = courses.filter(is_active=True)
@@ -942,6 +944,73 @@ def course_edit_view(request, course_id):
             messages.error(request, error)
 
     return render(request, 'courses/course_form.html', {'levels': levels, 'data': data, 'course': course})
+
+
+def _back_to_courses(request):
+    """Return to the page the form was posted from (course list with its filters), else the course list."""
+    from django.utils.http import url_has_allowed_host_and_scheme
+    next_url = request.POST.get('next', '')
+    if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()},
+                                                    require_https=request.is_secure()):
+        return redirect(next_url)
+    return redirect('course_list')
+
+
+def course_delete_blockers(course):
+    """Reasons a course can't be deleted (it still has classes, students or class history)."""
+    from students.models import StudentClassHistory
+    blockers = []
+    class_count = course.classes.count()
+    if class_count:
+        blockers.append(f'{class_count} class{"es" if class_count != 1 else ""}')
+    student_count = course.students.count()
+    if student_count:
+        blockers.append(f'{student_count} student{"s" if student_count != 1 else ""}')
+    if StudentClassHistory.objects.filter(Q(from_course=course) | Q(to_course=course)).exists():
+        blockers.append('class history records')
+    return blockers
+
+
+@login_required
+@permission_required('courses.change_course', raise_exception=True)
+def course_rename_view(request, course_id):
+    course = get_object_or_404(Course, id=course_id)
+    if request.method != 'POST':
+        return redirect('course_edit', course_id=course.id)
+    name = request.POST.get('name', '').strip()
+    max_length = Course._meta.get_field('name').max_length
+    if not name:
+        messages.error(request, 'Course name is required.')
+    elif len(name) > max_length:
+        messages.error(request, f'Course name can be at most {max_length} characters.')
+    elif name == course.name:
+        messages.info(request, 'The name is unchanged.')
+    else:
+        old_name = course.name
+        course.name = name
+        course.save(update_fields=['name', 'updated_at'])
+        messages.success(request, f'Course "{old_name}" renamed to "{name}".')
+    return _back_to_courses(request)
+
+
+@login_required
+@permission_required('courses.delete_course', raise_exception=True)
+def course_delete_view(request, course_id):
+    course = get_object_or_404(Course, id=course_id)
+    if request.method != 'POST':
+        return redirect('course_detail', course_id=course.id)
+    blockers = course_delete_blockers(course)
+    if blockers:
+        messages.error(
+            request,
+            f'"{course.name}" can\'t be deleted because it has {", ".join(blockers)}. '
+            f'Mark it inactive instead (Edit → Active).'
+        )
+        return _back_to_courses(request)
+    name = course.name
+    course.delete()
+    messages.success(request, f'Course "{name}" deleted.')
+    return _back_to_courses(request)
 
 
 @login_required

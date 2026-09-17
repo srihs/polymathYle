@@ -15,6 +15,8 @@ urlpatterns = [
     path('courses/add/', views.course_add_view, name='course_add'),
     path('courses/<int:course_id>/', views.course_detail_view, name='course_detail'),
     path('courses/<int:course_id>/edit/', views.course_edit_view, name='course_edit'),
+    path('courses/<int:course_id>/rename/', views.course_rename_view, name='course_rename'),
+    path('courses/<int:course_id>/delete/', views.course_delete_view, name='course_delete'),
     path('levels/add/', views.yle_level_add_view, name='yle_level_add'),
     path('levels/<int:level_id>/', views.level_detail_view, name='level_detail'),
 
