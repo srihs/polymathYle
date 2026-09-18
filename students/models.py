@@ -16,6 +16,7 @@ class Application(models.Model):
     """
     DOCUMENT_TYPE_CHOICES = (
         ('APPLICATION_BACKSIDE', 'Backside of the Application'),
+        ('PLACEMENT_TEST_PAPER', 'Placement Test Paper'),
         ('BIRTH_CERTIFICATE', 'Birth Certificate'),
         ('PHOTO', 'Photo'),
         ('PASSPORT', 'Passport'),
