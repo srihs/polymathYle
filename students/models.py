@@ -143,6 +143,10 @@ class Application(models.Model):
     document1_type = models.CharField(max_length=32, blank=True, choices=DOCUMENT_TYPE_CHOICES)
     document2 = models.FileField(upload_to='applications/documents/', blank=True, null=True)
     document2_type = models.CharField(max_length=32, blank=True, choices=DOCUMENT_TYPE_CHOICES)
+    document3 = models.FileField(upload_to='applications/documents/', blank=True, null=True)
+    document3_type = models.CharField(max_length=32, blank=True, choices=DOCUMENT_TYPE_CHOICES)
+    document4 = models.FileField(upload_to='applications/documents/', blank=True, null=True)
+    document4_type = models.CharField(max_length=32, blank=True, choices=DOCUMENT_TYPE_CHOICES)
 
     # QR code generated once application is approved (payload encodes attendance scan URL)
     qr_code = models.ImageField(upload_to='applications/qr_codes/', blank=True, null=True)
@@ -182,6 +186,15 @@ class Application(models.Model):
     # A paper application has two sides: the main scan (front) and an additional
     # document typed "Backside of the Application".
     BACKSIDE_DOCUMENT_TYPE = 'APPLICATION_BACKSIDE'
+    # Additional document slots (file field, type field)
+    DOCUMENT_SLOTS = (
+        ('document1', 'document1_type'),
+        ('document2', 'document2_type'),
+        ('document3', 'document3_type'),
+        ('document4', 'document4_type'),
+    )
+    # Type pre-selected for each slot on the upload form (staff can change it)
+    DEFAULT_SLOT_TYPES = ('APPLICATION_BACKSIDE', 'PLACEMENT_TEST_PAPER', 'PHOTO', 'BIRTH_CERTIFICATE')
 
     @staticmethod
     def _file_info(field_file, label):
@@ -194,10 +207,14 @@ class Application(models.Model):
             'is_pdf': name.endswith('.pdf'),
         }
 
+    def _additional_documents(self):
+        """(file, type) for each additional document slot, in slot order."""
+        return [(getattr(self, file_field), getattr(self, type_field)) for file_field, type_field in self.DOCUMENT_SLOTS]
+
     @property
     def backside_document(self):
         """The file of the additional document marked as the backside, or None."""
-        for field_file, doc_type in ((self.document1, self.document1_type), (self.document2, self.document2_type)):
+        for field_file, doc_type in self._additional_documents():
             if field_file and doc_type == self.BACKSIDE_DOCUMENT_TYPE:
                 return field_file
         return None
@@ -215,7 +232,7 @@ class Application(models.Model):
     def other_documents(self):
         """Additional documents that are not the backside of the application."""
         docs = []
-        for field_file, doc_type in ((self.document1, self.document1_type), (self.document2, self.document2_type)):
+        for field_file, doc_type in self._additional_documents():
             if field_file and doc_type != self.BACKSIDE_DOCUMENT_TYPE:
                 label = dict(self.DOCUMENT_TYPE_CHOICES).get(doc_type, 'Document')
                 docs.append(self._file_info(field_file, label))

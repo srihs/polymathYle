@@ -660,7 +660,7 @@
                             </div>
                             <div>
                                 <h6 class="form-section-title">Additional Documents</h6>
-                                <small class="text-muted">The backside of the application is required. Birth certificate, photo, passport, etc. are optional.</small>
+                                <small class="text-muted">The backside of the application is required. Placement test paper, photo, birth certificate, etc. are optional.</small>
                             </div>
                         </div>
                         <div class="alert alert-warning border-0 py-2 small" id="backsideHint" role="note">
@@ -692,6 +692,30 @@
                                     {{ form.document2_type.label }}
                                 </label>
                                 {{ form.document2_type }}
+                            </div>
+                            <div class="col-md-8">
+                                <label for="{{ form.document3.id_for_label }}" class="form-label">
+                                    {{ form.document3.label }}
+                                </label>
+                                {{ form.document3 }}
+                            </div>
+                            <div class="col-md-4">
+                                <label for="{{ form.document3_type.id_for_label }}" class="form-label">
+                                    {{ form.document3_type.label }}
+                                </label>
+                                {{ form.document3_type }}
+                            </div>
+                            <div class="col-md-8">
+                                <label for="{{ form.document4.id_for_label }}" class="form-label">
+                                    {{ form.document4.label }}
+                                </label>
+                                {{ form.document4 }}
+                            </div>
+                            <div class="col-md-4">
+                                <label for="{{ form.document4_type.id_for_label }}" class="form-label">
+                                    {{ form.document4_type.label }}
+                                </label>
+                                {{ form.document4_type }}
                             </div>
                         </div>
                     </div>
@@ -1263,7 +1287,9 @@ $(document).ready(function() {
         // Backside of the application is required (one additional document typed as backside)
         const backsideSlots = [
             { file: $('#id_document1'), type: $('#id_document1_type') },
-            { file: $('#id_document2'), type: $('#id_document2_type') }
+            { file: $('#id_document2'), type: $('#id_document2_type') },
+            { file: $('#id_document3'), type: $('#id_document3_type') },
+            { file: $('#id_document4'), type: $('#id_document4_type') }
         ].filter(function(slot) {
             return slot.type.val() === 'APPLICATION_BACKSIDE' && slot.file[0] && slot.file[0].files.length > 0;
         });
@@ -1280,7 +1306,7 @@ $(document).ready(function() {
                 function() { $('#id_document1').trigger('focus'); }
             );
         } else {
-            $('#id_document1, #id_document1_type, #id_document2, #id_document2_type').removeClass('is-invalid');
+            $('[id^="id_document"]').removeClass('is-invalid');
             $('#backsideHint').removeClass('alert-danger').addClass('alert-warning');
         }
 
@@ -1381,7 +1407,7 @@ $(document).ready(function() {
 
         Object.keys(fieldErrors).forEach(function(name) {
             $form.find('[name="' + name + '"]').addClass('is-invalid');
-            if (name === 'document1' || name === 'document2' || name.indexOf('document') === 0) {
+            if (name.indexOf('document') === 0) {
                 $('#backsideHint').removeClass('alert-warning').addClass('alert-danger');
             }
         });

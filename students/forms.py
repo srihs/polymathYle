@@ -30,6 +30,7 @@ class ApplicationForm(forms.ModelForm):
             'schedule_preferences', 'special_comments', 'terms_accepted',
             'application_form_scan',  # For scanned/uploaded application forms
             'document1', 'document1_type', 'document2', 'document2_type',
+            'document3', 'document3_type', 'document4', 'document4_type',
             'admission_number', 'application_date', 'receipt_number'  # Office Use fields
         ]
 
@@ -38,6 +39,10 @@ class ApplicationForm(forms.ModelForm):
             'document1_type': 'Document 1 Type',
             'document2': 'Additional Document 2',
             'document2_type': 'Document 2 Type',
+            'document3': 'Additional Document 3',
+            'document3_type': 'Document 3 Type',
+            'document4': 'Additional Document 4',
+            'document4_type': 'Document 4 Type',
         }
 
         widgets = {
@@ -160,6 +165,20 @@ class ApplicationForm(forms.ModelForm):
             'document2_type': forms.Select(attrs={
                 'class': 'form-select'
             }),
+            'document3': forms.ClearableFileInput(attrs={
+                'class': 'form-control',
+                'accept': 'image/*,.pdf'
+            }),
+            'document3_type': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+            'document4': forms.ClearableFileInput(attrs={
+                'class': 'form-control',
+                'accept': 'image/*,.pdf'
+            }),
+            'document4_type': forms.Select(attrs={
+                'class': 'form-select'
+            }),
 
             # Office Use Only fields
             'age': forms.NumberInput(attrs={
@@ -185,7 +204,7 @@ class ApplicationForm(forms.ModelForm):
         self.require_backside = require_backside
         super().__init__(*args, **kwargs)
         # Scans and supporting documents may be PDFs or images
-        for name in ('application_form_scan', 'document1', 'document2'):
+        for name in ('application_form_scan',) + tuple(file_field for file_field, _ in Application.DOCUMENT_SLOTS):
             if name in self.fields:
                 self.fields[name].validators += [
                     FileExtensionValidator(settings.ALLOWED_UPLOAD_EXTENSIONS),
@@ -194,13 +213,17 @@ class ApplicationForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+        # Slots come with a type pre-selected; a slot without a file keeps no type
+        for file_field, type_field in Application.DOCUMENT_SLOTS:
+            if type_field in cleaned_data and not cleaned_data.get(file_field):
+                cleaned_data[type_field] = ''
         if not self.require_backside:
             return cleaned_data
 
         backside = Application.BACKSIDE_DOCUMENT_TYPE
         has_backside = any(
             cleaned_data.get(file_field) and cleaned_data.get(type_field) == backside
-            for file_field, type_field in (('document1', 'document1_type'), ('document2', 'document2_type'))
+            for file_field, type_field in Application.DOCUMENT_SLOTS
         )
         if not has_backside:
             raise forms.ValidationError(
@@ -208,10 +231,11 @@ class ApplicationForm(forms.ModelForm):
                 'and set its type to "Backside of the Application".',
                 code='backside_required',
             )
-        both_backside = all(
-            cleaned_data.get(type_field) == backside for type_field in ('document1_type', 'document2_type')
+        backside_count = sum(
+            1 for file_field, type_field in Application.DOCUMENT_SLOTS
+            if cleaned_data.get(file_field) and cleaned_data.get(type_field) == backside
         )
-        if both_backside:
+        if backside_count > 1:
             raise forms.ValidationError(
                 'Only one additional document can be the backside of the application.',
                 code='backside_duplicate',

@@ -835,8 +835,11 @@ def application_upload_view(request):
             for error in error_list:
                 messages.error(request, error)
     else:
-        # Document 1 is normally the backside of the paper application
-        form = ApplicationForm(initial={'document1_type': Application.BACKSIDE_DOCUMENT_TYPE})
+        # Slots start as backside, placement test paper, photo and birth certificate
+        form = ApplicationForm(initial={
+            type_field: doc_type
+            for (_, type_field), doc_type in zip(Application.DOCUMENT_SLOTS, Application.DEFAULT_SLOT_TYPES)
+        })
 
     return render(request, 'students/application_upload.html', {
         'form': form
