@@ -1,4 +1,5 @@
 from django import forms
+from django.utils import timezone
 from django.conf import settings
 from django.core.validators import FileExtensionValidator
 from .models import Application
@@ -277,7 +278,7 @@ class ApplicationForm(forms.ModelForm):
         from datetime import date
         dob = self.cleaned_data.get('date_of_birth')
         if dob:
-            today = date.today()
+            today = timezone.localdate()
             age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
             if age < 4:
                 raise forms.ValidationError('Student must be at least 4 years old.')

@@ -10,6 +10,8 @@ services:
       - ./keys:/keys:ro
     depends_on:
       - db
+    environment:
+      TZ: ${TZ:-Asia/Colombo}
     env_file:
       - .env
 

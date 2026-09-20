@@ -19,6 +19,7 @@ Improvements in this version:
 """
 
 import os
+from django.utils import timezone
 import re
 import json
 import base64
@@ -375,7 +376,7 @@ class OCRService:
         extracted_fields['_extraction_metadata'] = {
             'total_words_detected': len(words),
             'total_blocks_detected': len(blocks),
-            'extraction_timestamp': datetime.now().isoformat(),
+            'extraction_timestamp': timezone.localtime().isoformat(),
             'fields_extracted': len([k for k in extracted_fields.keys() if not k.startswith('_')])
         }
 
@@ -1912,7 +1913,7 @@ class OCRService:
                     parsed = datetime.strptime(reconstructed, date_format)
 
                     # Validate date is reasonable (between 1990 and current year + 5)
-                    current_year = datetime.now().year
+                    current_year = timezone.localdate().year
                     if 1990 <= parsed.year <= current_year + 5:
                         return parsed.strftime('%Y-%m-%d')
                 except ValueError:
@@ -1924,7 +1925,7 @@ class OCRService:
             # Try DDMMYYYY first (more common in Sri Lanka)
             try:
                 parsed = datetime.strptime(digits_only, '%d%m%Y')
-                if 1990 <= parsed.year <= datetime.now().year + 5:
+                if 1990 <= parsed.year <= timezone.localdate().year + 5:
                     return parsed.strftime('%Y-%m-%d')
             except ValueError:
                 pass
@@ -1932,7 +1933,7 @@ class OCRService:
             # Try YYYYMMDD
             try:
                 parsed = datetime.strptime(digits_only, '%Y%m%d')
-                if 1990 <= parsed.year <= datetime.now().year + 5:
+                if 1990 <= parsed.year <= timezone.localdate().year + 5:
                     return parsed.strftime('%Y-%m-%d')
             except ValueError:
                 pass

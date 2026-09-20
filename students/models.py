@@ -1,4 +1,5 @@
 import os
+from django.utils import timezone
 
 from django.db import models
 from django.contrib.auth.models import User
@@ -240,7 +241,7 @@ class Application(models.Model):
 
     def calculate_age(self):
         """Auto-calculate age from date of birth"""
-        today = date.today()
+        today = timezone.localdate()
         age = today.year - self.date_of_birth.year - (
             (today.month, today.day) < (self.date_of_birth.month, self.date_of_birth.day)
         )
@@ -257,7 +258,7 @@ class Application(models.Model):
 
         # Generate reference number if it doesn't exist (for new applications)
         if is_new and not self.reference_number:
-            app_date = self.application_date or date.today()
+            app_date = self.application_date or timezone.localdate()
             self.reference_number = f"A{app_date.strftime('%y%m%d')}-{self.pk}"
             super().save(update_fields=['reference_number'])
 
@@ -291,7 +292,7 @@ class Application(models.Model):
     def generate_admission_number(self):
         """Generate the next unused admission number (format: FCE-YEAR-XXXX)."""
         from datetime import datetime
-        year = datetime.now().year
+        year = timezone.localdate().year
         prefix = f'FCE-{year}-'
         existing = Application.objects.filter(admission_number__istartswith=prefix).values_list('admission_number', flat=True)
         numbers = [int(n[len(prefix):]) for n in existing if n[len(prefix):].isdigit()]
@@ -497,7 +498,7 @@ class Student(models.Model):
     )
 
     # ENROLLMENT INFO
-    enrollment_date = models.DateField(auto_now_add=True)
+    enrollment_date = models.DateField(default=timezone.localdate, editable=False)
     is_active = models.BooleanField(default=True)
 
     # CLASS ALLOCATION
@@ -551,7 +552,7 @@ class Student(models.Model):
 
     def calculate_age(self):
         """Calculate current age from date of birth"""
-        today = date.today()
+        today = timezone.localdate()
         return today.year - self.date_of_birth.year - (
             (today.month, today.day) < (self.date_of_birth.month, self.date_of_birth.day)
         )

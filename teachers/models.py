@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from datetime import date
@@ -139,5 +140,5 @@ class TeacherDocument(models.Model):
     def is_expired(self):
         """Check if document has expired"""
         if self.expiry_date:
-            return date.today() > self.expiry_date
+            return timezone.localdate() > self.expiry_date
         return False

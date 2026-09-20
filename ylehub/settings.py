@@ -132,7 +132,8 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+# Sri Lanka. Timestamps are stored in UTC and shown in this zone.
+TIME_ZONE = os.getenv('TIME_ZONE', 'Asia/Colombo')
 
 USE_I18N = True
 

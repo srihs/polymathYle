@@ -377,7 +377,7 @@ def certificate_issue_view(request):
         'levels': levels,
         'templates': templates,
         'certificate_types': Certificate.CERTIFICATE_TYPE_CHOICES,
-        'today': date.today(),
+        'today': timezone.localdate(),
     }
 
     return render(request, 'certification/certificate_issue.html', context)
@@ -641,7 +641,7 @@ def template_preview_view(request, template_id):
         'certificate_number': 'YLE-2024-SAMPLE-0001',
         'title': 'Sample Certificate Title',
         'description': 'This is a sample certificate description for preview purposes.',
-        'issue_date': date.today().strftime('%B %d, %Y'),
+        'issue_date': timezone.localdate().strftime('%B %d, %Y'),
         'level_name': 'A1',
         'listening_shields': 4,
         'reading_shields': 5,
@@ -821,7 +821,7 @@ def _report_filters(request):
     Parse the report's date range (default: last 12 months) and level filter.
     Returns (date_from, date_to, level_filter, filtered certificate queryset).
     """
-    date_to = date.today()
+    date_to = timezone.localdate()
     date_from = date_to - timedelta(days=365)
 
     try:
@@ -831,7 +831,7 @@ def _report_filters(request):
             date_to = datetime.strptime(request.GET['date_to'], '%Y-%m-%d').date()
     except ValueError:
         messages.warning(request, 'Invalid date format. Showing the last 12 months instead.')
-        date_to = date.today()
+        date_to = timezone.localdate()
         date_from = date_to - timedelta(days=365)
 
     level_filter = request.GET.get('level', '')
@@ -937,7 +937,7 @@ def api_certificate_stats(request):
     Returns summary statistics for dashboard widgets.
     """
     # Last 30 days
-    thirty_days_ago = date.today() - timedelta(days=30)
+    thirty_days_ago = timezone.localdate() - timedelta(days=30)
 
     certificates_30d = Certificate.objects.filter(issue_date__gte=thirty_days_ago)
     achievements_30d = Achievement.objects.filter(earned_date__date__gte=thirty_days_ago)

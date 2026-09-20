@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 import random
 from datetime import datetime
 
@@ -41,7 +42,7 @@ class Certificate(models.Model):
     certificate_pdf = models.FileField(upload_to='certificates/', blank=True)
 
     # Dates
-    issue_date = models.DateField(auto_now_add=True)
+    issue_date = models.DateField(default=timezone.localdate, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     # Verification
@@ -60,7 +61,7 @@ class Certificate(models.Model):
 
     def generate_certificate_number(self):
         """Generate unique certificate number"""
-        year = datetime.now().year
+        year = timezone.localdate().year
         random_num = random.randint(1000, 9999)
         return f"YLE-{year}-{self.student.id}-{random_num}"
 

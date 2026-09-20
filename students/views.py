@@ -132,7 +132,7 @@ def student_dashboard_view(request):
     total_lessons = 0      # TODO: Calculate from Lesson when Courses app is created
 
     # Attendance percentage (last 30 days)
-    thirty_days_ago = datetime.now().date() - timedelta(days=30)
+    thirty_days_ago = timezone.localdate() - timedelta(days=30)
     recent_attendance = student.attendance_records.filter(date__gte=thirty_days_ago)
     total_days = recent_attendance.count()
     present_days = recent_attendance.filter(status='PRESENT').count()
@@ -272,7 +272,7 @@ def student_detail_view(request, student_id):
     guardians = student.guardians.all()
 
     # Get recent attendance (last 30 days)
-    thirty_days_ago = date.today() - timedelta(days=30)
+    thirty_days_ago = timezone.localdate() - timedelta(days=30)
     recent_attendance = student.attendance_records.filter(
         date__gte=thirty_days_ago
     ).order_by('-date')[:10]
@@ -452,7 +452,7 @@ def application_review_view(request, application_id):
         if action == 'approve':
             application.status = 'APPROVED'
             application.authorized_by = request.user.get_full_name() or request.user.username
-            application.authorization_date = date.today()
+            application.authorization_date = timezone.localdate()
             application.save()
 
             if application.admission_number and not application.qr_code:
@@ -644,7 +644,7 @@ def attendance_mark_view(request):
     classes = Class.objects.filter(is_active=True)
     selected_class = None
     students = []
-    attendance_date = date.today()
+    attendance_date = timezone.localdate()
 
     if request.method == 'POST':
         class_id = request.POST.get('class_id')
@@ -711,7 +711,7 @@ def attendance_report_view(request):
     View attendance reports and statistics
     """
     # Default date range: last 30 days
-    date_to = date.today()
+    date_to = timezone.localdate()
     date_from = date_to - timedelta(days=30)
 
     # Get parameters
@@ -804,7 +804,7 @@ def application_upload_view(request):
             # Set application date if not provided
             if not application.application_date:
                 from datetime import date
-                application.application_date = date.today()
+                application.application_date = timezone.localdate()
 
             # Save the application
             application.save()
@@ -870,7 +870,7 @@ def attendance_scan_view(request, admission_number):
     context = {
         'admission_number': admission_number,
         'student': student,
-        'scanned_at': datetime.now(),
+        'scanned_at': timezone.localtime(),
         'found': student is not None,
     }
     return render(request, 'students/attendance_scan_result.html', context)
