@@ -1,12 +1,18 @@
+import csv
+from datetime import datetime
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import permission_required
 from django.contrib import messages
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.core.paginator import Paginator
-from django.core.exceptions import ValidationError
+from django.core.exceptions import PermissionDenied, ValidationError
+from django.http import HttpResponse
+from django.utils import timezone
 
-from .models import PaymentTier
+from .application_payments import PaymentError, RATE_PER_APPLICATION, payable_summary, process_payment, uploads
+from .models import ApplicationPaymentRun, PaymentTier
 
 
 @login_required
@@ -185,3 +191,105 @@ def payment_tier_edit_view(request, pk):
     }
 
     return render(request, 'payments/payment_tier_form.html', context)
+
+
+# ============== APPLICATION UPLOAD PAYMENTS ==============
+# Uploaders are paid per scanned application. Like the upload log itself, these pages
+# are superuser only.
+
+def _require_superuser(request):
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
+
+def _parse_date(value):
+    try:
+        return datetime.strptime(value, '%Y-%m-%d').date() if value else None
+    except ValueError:
+        return None
+
+
+@login_required
+def application_payment_process_view(request):
+    """Pay for every unpaid upload in the chosen dates, then show the payment."""
+    _require_superuser(request)
+    if request.method != 'POST':
+        return redirect('application_payment_report')
+
+    date_from = _parse_date(request.POST.get('date_from', ''))
+    date_to = _parse_date(request.POST.get('date_to', ''))
+    try:
+        run = process_payment(date_from, date_to, request.user, request.POST.get('note', ''))
+    except PaymentError as e:
+        messages.error(request, str(e))
+        return redirect(request.POST.get('next') or 'application_upload_log')
+
+    messages.success(
+        request,
+        f'Payment processed: {run.total_applications} application'
+        f'{"" if run.total_applications == 1 else "s"} for Rs. {run.total_amount:,.2f}.'
+    )
+    return redirect('application_payment_detail', run_id=run.id)
+
+
+@login_required
+def application_payment_report_view(request):
+    """Processed payments, newest first, with what is still unpaid."""
+    _require_superuser(request)
+
+    runs = ApplicationPaymentRun.objects.select_related('processed_by').prefetch_related('lines__user')
+    page_obj = Paginator(runs, 10).get_page(request.GET.get('page'))
+    totals = runs.aggregate(applications=Sum('total_applications'), amount=Sum('total_amount'))
+    unpaid = payable_summary()
+
+    return render(request, 'payments/application_payment_report.html', {
+        'page_obj': page_obj,
+        'runs': page_obj.object_list,
+        'paid_applications': totals['applications'] or 0,
+        'paid_amount': totals['amount'] or 0,
+        'unpaid': unpaid,
+        'unpaid_applications': sum(row['applications'] for row in unpaid),
+        'unpaid_amount': sum(row['amount'] for row in unpaid),
+        'rate': RATE_PER_APPLICATION,
+        'today': timezone.localdate(),
+    })
+
+
+@login_required
+def application_payment_detail_view(request, run_id):
+    """One payment: what each user was paid, and the applications it covered."""
+    _require_superuser(request)
+    run = get_object_or_404(
+        ApplicationPaymentRun.objects.select_related('processed_by').prefetch_related('lines__user'), id=run_id
+    )
+    applications = run.applications.select_related('uploaded_by').order_by('uploaded_by__username', 'created_at')
+
+    if request.GET.get('export') == 'csv':
+        response = HttpResponse(content_type='text/csv; charset=utf-8')
+        response['Content-Disposition'] = f'attachment; filename="application_payment_{run.id}.csv"'
+        response.write('\ufeff')
+        writer = csv.writer(response)
+        writer.writerow([f'Payment {run.id}', f'{run.date_from} to {run.date_to}', f'Rate Rs. {run.rate}'])
+        writer.writerow([])
+        writer.writerow(['User', 'Applications', 'Amount (Rs.)', 'First Upload', 'Last Upload'])
+        for line in run.lines.all():
+            writer.writerow([
+                (line.user.get_full_name() or line.user.username) if line.user else 'Not recorded',
+                line.applications, f'{line.amount:.2f}', line.first_upload or '', line.last_upload or '',
+            ])
+        writer.writerow(['Total', run.total_applications, f'{run.total_amount:.2f}', '', ''])
+        writer.writerow([])
+        writer.writerow(['Uploaded At', 'Uploaded By', 'Reference Number', 'Student Name'])
+        for app in applications:
+            uploader = app.uploaded_by
+            writer.writerow([
+                timezone.localtime(app.created_at).strftime('%Y-%m-%d %H:%M'),
+                (uploader.get_full_name() or uploader.username) if uploader else 'Not recorded',
+                app.reference_number or '', app.full_name,
+            ])
+        return response
+
+    return render(request, 'payments/application_payment_detail.html', {
+        'run': run,
+        'applications': applications,
+    })

@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block PageTitle %}Payment {{ run.id }} - Polymath School of English{% endblock %}
+{% block pageTitle %}Application Upload Payment{% endblock %}
+{% block Title %}Reports{% endblock %}
+{% block functionTitle %}Payment #{{ run.id }}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+            <div>
+                <h4 class="mb-1">Uploads {{ run.date_from|date:"M d, Y" }} &ndash; {{ run.date_to|date:"M d, Y" }}</h4>
+                <p class="text-muted mb-0">
+                    Processed {{ run.processed_at|date:"M d, Y H:i" }}
+                    {% if run.processed_by %}by {{ run.processed_by.get_full_name|default:run.processed_by.username }}{% endif %}
+                    &middot; Rs. {{ run.rate|floatformat:2 }} per application
+                </p>
+                {% if run.note %}<p class="text-muted fst-italic mb-0">{{ run.note }}</p>{% endif %}
+            </div>
+            <div class="text-end">
+                <h3 class="mb-0">Rs. {{ run.total_amount|floatformat:2 }}</h3>
+                <small class="text-muted">{{ run.total_applications }} application{{ run.total_applications|pluralize }}</small>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="?export=csv" class="btn btn-outline-primary"><i class="ri-download-line me-1"></i> Export CSV</a>
+                <a href="{% url 'application_payment_report' %}" class="btn btn-light"><i class="ri-arrow-left-line me-1"></i> All payments</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xl-5">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="ri-user-line me-2 text-primary"></i>Paid per User</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>User</th>
+                                <th>Uploads between</th>
+                                <th class="text-end">Applications</th>
+                                <th class="text-end">Amount (Rs.)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for line in run.lines.all %}
+                            <tr>
+                                <td>{% if line.user %}{{ line.user.get_full_name|default:line.user.username }}{% else %}<span class="text-muted">Not recorded</span>{% endif %}</td>
+                                <td><small>{{ line.first_upload|date:"M d, Y" }} &ndash; {{ line.last_upload|date:"M d, Y" }}</small></td>
+                                <td class="text-end">{{ line.applications }}</td>
+                                <td class="text-end fw-semibold">{{ line.amount|floatformat:2 }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-light">
+                                <th colspan="2">Total</th>
+                                <th class="text-end">{{ run.total_applications }}</th>
+                                <th class="text-end">{{ run.total_amount|floatformat:2 }}</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-7">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="ri-file-list-3-line me-2 text-primary"></i>Applications Covered
+                    <span class="badge bg-primary-subtle text-primary ms-1">{{ run.total_applications }}</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive" style="max-height: 520px; overflow-y: auto;">
+                    <table class="table table-sm table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Uploaded</th>
+                                <th>Uploaded By</th>
+                                <th>Application</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for app in applications %}
+                            <tr>
+                                <td><small>{{ app.created_at|date:"M d, Y H:i" }}</small></td>
+                                <td>{% if app.uploaded_by %}{{ app.uploaded_by.get_full_name|default:app.uploaded_by.username }}{% else %}<span class="text-muted">Not recorded</span>{% endif %}</td>
+                                <td>
+                                    {% if perms.students.change_application %}
+                                    <a href="{% url 'application_review' app.id %}">{{ app.full_name }}</a>
+                                    {% else %}{{ app.full_name }}{% endif %}
+                                    <small class="text-muted d-block">{{ app.reference_number|default:"-" }}</small>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="3" class="text-muted">No applications are linked to this payment any more.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

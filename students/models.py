@@ -165,6 +165,15 @@ class Application(models.Model):
         help_text="Percentage of handwritten content detected (0-100)"
     )
 
+    # Payment run that paid the uploader for this application (see payments.application_payments)
+    payment_run = models.ForeignKey(
+        'payments.ApplicationPaymentRun',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='applications'
+    )
+
     # Who uploaded a scanned (offline) application; the upload time is created_at
     uploaded_by = models.ForeignKey(
         User,

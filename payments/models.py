@@ -1,5 +1,7 @@
+from django.contrib.auth.models import User
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 
 class PaymentTier(models.Model):
@@ -92,3 +94,46 @@ class PaymentTier(models.Model):
         if self.payment_type == 'HOURLY':
             return self.hourly_rate
         return self.fixed_amount
+
+
+class ApplicationPaymentRun(models.Model):
+    """
+    One processed payment for uploaded (scanned) applications in a date range.
+    Every application it covers points back at it, so nothing is paid for twice.
+    """
+    date_from = models.DateField()
+    date_to = models.DateField()
+    rate = models.DecimalField(max_digits=10, decimal_places=2, help_text="Rate paid per application")
+    total_applications = models.IntegerField(default=0)
+    total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    note = models.TextField(blank=True)
+    processed_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True, related_name='application_payment_runs'
+    )
+    processed_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ['-processed_at', '-id']
+
+    def __str__(self):
+        return f"{self.date_from} to {self.date_to} - {self.total_applications} applications"
+
+
+class ApplicationPaymentLine(models.Model):
+    """What one user was paid in a payment run."""
+    run = models.ForeignKey(ApplicationPaymentRun, on_delete=models.CASCADE, related_name='lines')
+    user = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True, related_name='application_payment_lines'
+    )
+    applications = models.IntegerField(default=0)
+    amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    # Dates of the earliest and latest upload this line covers
+    first_upload = models.DateField(null=True, blank=True)
+    last_upload = models.DateField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-applications', 'id']
+
+    def __str__(self):
+        who = (self.user.get_full_name() or self.user.username) if self.user else 'Not recorded'
+        return f"{who} - {self.applications} applications"

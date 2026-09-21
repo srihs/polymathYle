@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
 from django.db import transaction
-from django.db.models import Avg, Count, Q
+from django.db.models import Avg, Count, Max, Min, Q
 from django.urls import reverse
 from django.utils import timezone
 from urllib.parse import urlencode
@@ -16,6 +16,8 @@ from .class_allocation import (
     next_course, promote_students, record_history, reject_transfer, schedule_summary, transfer_options,
 )
 from courses.models import Course, YLELevel
+from payments.application_payments import RATE_PER_APPLICATION
+from payments.models import ApplicationPaymentRun
 from django.core.paginator import Paginator
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse, JsonResponse
@@ -1164,7 +1166,7 @@ def application_upload_log_view(request):
         raise PermissionDenied
     from django.contrib.auth.models import User
 
-    all_uploads = Application.objects.filter(application_type='OFFLINE').select_related('uploaded_by')
+    all_uploads = Application.objects.filter(application_type='OFFLINE').select_related('uploaded_by', 'payment_run')
     uploads = all_uploads
 
     # Date range on upload time (created_at); invalid dates are ignored
@@ -1180,13 +1182,24 @@ def application_upload_log_view(request):
         date_from = date_to = ''
         uploads = all_uploads
 
-    # Per-user totals for the selected dates (before the user filter)
+    # Per-user totals for the selected dates (before the user filter), with what is still unpaid
     users_by_id = {u.id: u for u in User.objects.filter(uploaded_applications__in=uploads).distinct()}
     summary = [
-        {'user': users_by_id.get(row['uploaded_by']), 'user_id': row['uploaded_by'], 'total': row['total']}
-        for row in uploads.values('uploaded_by').annotate(total=Count('id')).order_by('-total')
+        {
+            'user': users_by_id.get(row['uploaded_by']),
+            'user_id': row['uploaded_by'],
+            'total': row['total'],
+            'unpaid': row['unpaid'],
+            'paid': row['total'] - row['unpaid'],
+            'amount': RATE_PER_APPLICATION * row['unpaid'],
+        }
+        for row in uploads.values('uploaded_by').annotate(
+            total=Count('id'), unpaid=Count('id', filter=Q(payment_run__isnull=True))
+        ).order_by('-total')
     ]
     total_uploads = sum(r['total'] for r in summary)
+    unpaid_uploads = sum(r['unpaid'] for r in summary)
+    payable_amount = RATE_PER_APPLICATION * unpaid_uploads
 
     user_filter = request.GET.get('user', '')
     if user_filter == 'unknown':
@@ -1204,13 +1217,14 @@ def application_upload_log_view(request):
         response['Content-Disposition'] = 'attachment; filename="application_upload_log.csv"'
         response.write('\ufeff')
         writer = csv.writer(response)
-        writer.writerow(['Uploaded At', 'Uploaded By', 'Reference Number', 'Student Name', 'Status'])
+        writer.writerow(['Uploaded At', 'Uploaded By', 'Reference Number', 'Student Name', 'Status', 'Payment'])
         for app in uploads:
             uploader = app.uploaded_by
             writer.writerow([
                 timezone.localtime(app.created_at).strftime('%Y-%m-%d %H:%M'),
                 (uploader.get_full_name() or uploader.username) if uploader else 'Not recorded',
                 app.reference_number or '', app.full_name, app.get_status_display(),
+                f'Paid (payment {app.payment_run_id})' if app.payment_run_id else 'Not paid',
             ])
         return response
 
@@ -1224,6 +1238,13 @@ def application_upload_log_view(request):
         'uploads': page_obj.object_list,
         'summary': summary,
         'total_uploads': total_uploads,
+        'unpaid_uploads': unpaid_uploads,
+        'payable_amount': payable_amount,
+        'rate': RATE_PER_APPLICATION,
+        'unpaid_range': all_uploads.filter(payment_run__isnull=True).aggregate(
+            first=Min('created_at'), last=Max('created_at')
+        ),
+        'latest_runs': ApplicationPaymentRun.objects.select_related('processed_by')[:5],
         'uploaders': User.objects.filter(uploaded_applications__isnull=False).distinct().order_by('username'),
         'has_unrecorded': all_uploads.filter(uploaded_by__isnull=True).exists(),
         'date_from': date_from,

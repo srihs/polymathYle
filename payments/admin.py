@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import PaymentTier
+from .models import ApplicationPaymentLine, ApplicationPaymentRun, PaymentTier
 
 
 @admin.register(PaymentTier)
@@ -47,3 +47,18 @@ class PaymentTierAdmin(admin.ModelAdmin):
         updated = queryset.update(is_active=False)
         self.message_user(request, f'{updated} payment tier(s) deactivated.')
     deactivate_tiers.short_description = "Deactivate selected payment tiers"
+
+
+class ApplicationPaymentLineInline(admin.TabularInline):
+    model = ApplicationPaymentLine
+    extra = 0
+    readonly_fields = ['user', 'applications', 'amount', 'first_upload', 'last_upload']
+    can_delete = False
+
+
+@admin.register(ApplicationPaymentRun)
+class ApplicationPaymentRunAdmin(admin.ModelAdmin):
+    list_display = ['id', 'date_from', 'date_to', 'total_applications', 'total_amount', 'processed_by', 'processed_at']
+    list_filter = ['processed_at']
+    readonly_fields = ['rate', 'total_applications', 'total_amount', 'processed_by', 'processed_at']
+    inlines = [ApplicationPaymentLineInline]

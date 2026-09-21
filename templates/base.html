@@ -496,6 +496,11 @@
                                         <i class="ri-upload-cloud-line"></i> Application Upload Log
                                     </a>
                                 </li>
+                                <li class="nav-item">
+                                    <a href="{% url 'application_payment_report' %}" class="nav-link">
+                                        <i class="ri-money-dollar-circle-line"></i> Application Upload Payments
+                                    </a>
+                                </li>
                                 {% endif %}
                                 {% if perms.certification.view_certificate %}
                                 <li class="nav-item">

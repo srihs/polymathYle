@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block PageTitle %}Application Upload Payments - Polymath School of English{% endblock %}
+{% block pageTitle %}Application Upload Payments{% endblock %}
+{% block Title %}Reports{% endblock %}
+{% block functionTitle %}Payments to Uploaders{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-3">
+        <div class="card card-animate">
+            <div class="card-body">
+                <p class="text-uppercase fw-medium text-muted mb-1">Rate</p>
+                <h3 class="mb-0">Rs. {{ rate|floatformat:2 }}</h3>
+                <small class="text-muted">per application</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-animate">
+            <div class="card-body">
+                <p class="text-uppercase fw-medium text-muted mb-1">Paid so far</p>
+                <h3 class="mb-0">Rs. {{ paid_amount|floatformat:2 }}</h3>
+                <small class="text-muted">{{ paid_applications }} application{{ paid_applications|pluralize }}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-animate">
+            <div class="card-body">
+                <p class="text-uppercase fw-medium text-muted mb-1">Not yet paid</p>
+                <h3 class="mb-0 {% if unpaid_applications %}text-danger{% endif %}">Rs. {{ unpaid_amount|floatformat:2 }}</h3>
+                <small class="text-muted">{{ unpaid_applications }} application{{ unpaid_applications|pluralize }}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-animate">
+            <div class="card-body d-flex flex-column justify-content-between h-100">
+                <p class="text-uppercase fw-medium text-muted mb-2">Process a payment</p>
+                <a href="{% url 'application_upload_log' %}" class="btn btn-success">
+                    <i class="ri-money-dollar-circle-line me-1"></i> Go to Upload Log
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if unpaid %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0"><i class="ri-time-line me-2 text-danger"></i>Waiting to be paid</h5>
+        <p class="text-muted small mb-0">Every upload that no payment covers yet, by user.</p>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>User</th>
+                        <th>Uploads between</th>
+                        <th class="text-end">Applications</th>
+                        <th class="text-end">Amount (Rs.)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in unpaid %}
+                    <tr>
+                        <td>{% if row.user %}{{ row.user.get_full_name|default:row.user.username }}{% else %}<span class="text-muted">Not recorded</span>{% endif %}</td>
+                        <td><small>{{ row.first_upload|date:"M d, Y" }} &ndash; {{ row.last_upload|date:"M d, Y" }}</small></td>
+                        <td class="text-end">{{ row.applications }}</td>
+                        <td class="text-end fw-semibold">{{ row.amount|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr class="table-light">
+                        <th colspan="2">Total</th>
+                        <th class="text-end">{{ unpaid_applications }}</th>
+                        <th class="text-end">{{ unpaid_amount|floatformat:2 }}</th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            <i class="ri-history-line me-2 text-primary"></i>Processed Payments
+            <span class="badge bg-primary-subtle text-primary ms-1">{{ page_obj.paginator.count }}</span>
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if runs %}
+        {% for run in runs %}
+        <div class="border rounded p-3 {% if not forloop.last %}mb-3{% endif %}">
+            <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
+                <div>
+                    <h6 class="mb-1">
+                        <a href="{% url 'application_payment_detail' run.id %}">Uploads {{ run.date_from|date:"M d, Y" }} &ndash; {{ run.date_to|date:"M d, Y" }}</a>
+                    </h6>
+                    <small class="text-muted">
+                        Processed {{ run.processed_at|date:"M d, Y H:i" }}
+                        {% if run.processed_by %}by {{ run.processed_by.get_full_name|default:run.processed_by.username }}{% endif %}
+                        &middot; Rs. {{ run.rate|floatformat:2 }} each
+                    </small>
+                    {% if run.note %}<small class="d-block text-muted fst-italic">{{ run.note }}</small>{% endif %}
+                </div>
+                <div class="text-end">
+                    <h5 class="mb-0">Rs. {{ run.total_amount|floatformat:2 }}</h5>
+                    <small class="text-muted">{{ run.total_applications }} application{{ run.total_applications|pluralize }}</small>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>User</th>
+                            <th>Uploads between</th>
+                            <th class="text-end">Applications</th>
+                            <th class="text-end">Amount (Rs.)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for line in run.lines.all %}
+                        <tr>
+                            <td>{% if line.user %}{{ line.user.get_full_name|default:line.user.username }}{% else %}<span class="text-muted">Not recorded</span>{% endif %}</td>
+                            <td><small>{{ line.first_upload|date:"M d, Y" }} &ndash; {{ line.last_upload|date:"M d, Y" }}</small></td>
+                            <td class="text-end">{{ line.applications }}</td>
+                            <td class="text-end fw-semibold">{{ line.amount|floatformat:2 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endfor %}
+
+        {% if page_obj.has_other_pages %}
+        <nav class="mt-3" aria-label="Payment pages">
+            <ul class="pagination pagination-sm justify-content-end mb-0">
+                {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+                {% endif %}
+                <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+                {% if page_obj.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+        {% else %}
+        <div class="text-center py-5">
+            <i class="ri-money-dollar-circle-line fs-1 text-muted"></i>
+            <p class="text-muted mb-0 mt-2">No payments processed yet. Pick the dates on the Application Upload Log and process a payment.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
