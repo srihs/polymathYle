@@ -1,0 +1,13 @@
+# All commits in this repository are by one person, committed under four different
+# name/email pairs (see `git shortlog -sne --all` before this file existed):
+#
+#   srimalhs <srimalhs@gmail.com>          20 commits
+#   SAS <sas@SASs-MacBook-Pro.local>       17 commits
+#   srimal <srimalhs@gmail.com>            13 commits
+#   srihs <srihs@example.com>               2 commits
+#
+# This file only changes how those are displayed; no history is rewritten.
+
+srimalhs <srimalhs@gmail.com> SAS <sas@SASs-MacBook-Pro.local>
+srimalhs <srimalhs@gmail.com> srimal <srimalhs@gmail.com>
+srimalhs <srimalhs@gmail.com> srihs <srihs@example.com>
