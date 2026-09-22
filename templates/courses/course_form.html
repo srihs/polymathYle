@@ -13,7 +13,7 @@
                 <h5 class="card-title mb-0">
                     <i class="ri-book-open-line me-2 text-primary"></i>{% if course %}Edit {{ course.name }}{% else %}Add a Course{% endif %}
                 </h5>
-                <p class="text-muted small mb-0">A course (e.g. Pre1, Pre2, Pre3) belongs to a CEFR level. Students move through courses in order.</p>
+                <p class="text-muted small mb-0">A course (e.g. Pre1, Pre2, Pre3) belongs to a level. Students move through courses in order.</p>
             </div>
             <div class="card-body">
                 <form method="post" novalidate>
@@ -29,7 +29,7 @@
                             <div class="form-text">Short unique code.</div>
                         </div>
                         <div class="col-md-6">
-                            <label for="level" class="form-label">CEFR level <span class="text-danger">*</span></label>
+                            <label for="level" class="form-label">Level <span class="text-danger">*</span></label>
                             <select class="form-select" id="level" name="level" required>
                                 <option value="">Choose a level...</option>
                                 {% for level in levels %}

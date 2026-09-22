@@ -720,14 +720,14 @@
                         </div>
                     </div>
 
-                    <!-- Step 5: CEFR Level Qualifications & Account Status -->
+                    <!-- Step 5: Level Qualifications & Account Status -->
                     <div class="wizard-panel" id="step5-panel" role="tabpanel" aria-labelledby="step5">
                         <div class="step-header mb-4">
                             <h5 class="mb-1">
                                 <i class="ri-medal-line text-primary me-2"></i>
-                                CEFR Level Qualifications & Account Status
+                                Level Qualifications & Account Status
                             </h5>
-                            <p class="text-muted mb-0">Select which CEFR levels this teacher is qualified to teach and manage account status</p>
+                            <p class="text-muted mb-0">Select which levels this teacher is qualified to teach and manage account status</p>
                         </div>
 
                         <!-- CEFR Levels -->
@@ -743,7 +743,7 @@
                                             </span>
                                             <div>
                                                 <div class="fw-medium">{{ level.name }}</div>
-                                                <div class="text-muted small">CEFR level{% if level.age_range_min or level.age_range_max %} · Ages {{ level.age_range_min }}-{{ level.age_range_max }}{% endif %}</div>
+                                                <div class="text-muted small">{% if level.cefr_level %}CEFR {{ level.cefr_level }}{% else %}Polymath level{% endif %}{% if level.age_range_min or level.age_range_max %} · Ages {{ level.age_range_min }}-{{ level.age_range_max }}{% endif %}</div>
                                             </div>
                                         </div>
                                     </label>
@@ -751,7 +751,7 @@
                             </div>
                             {% empty %}
                             <div class="col-12">
-                                <div class="alert alert-warning border-0 mb-0">No active CEFR levels.</div>
+                                <div class="alert alert-warning border-0 mb-0">No active levels.</div>
                             </div>
                             {% endfor %}
                         </div>
@@ -845,9 +845,9 @@
                                     <i class="ri-lightbulb-line fs-4 text-info"></i>
                                 </div>
                                 <div class="flex-grow-1 ms-3">
-                                    <h6 class="mb-1">CEFR Level Qualifications</h6>
+                                    <h6 class="mb-1">Level Qualifications</h6>
                                     <p class="mb-0 small">
-                                        Select all CEFR levels this teacher is qualified to teach. This determines which classes
+                                        Select all levels this teacher is qualified to teach. This determines which classes
                                         can be assigned to them in the system.
                                     </p>
                                 </div>

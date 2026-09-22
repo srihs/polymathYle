@@ -49,7 +49,7 @@ def _levels_with_class_counts():
 
 
 def _course_groups():
-    """Active CEFR levels with their active courses (each with class_count), for course pickers."""
+    """Active levels with their active courses (each with class_count), for course pickers."""
     courses = Course.ordered().annotate(class_count=Count('classes', filter=Q(classes__is_active=True)))
     groups = []
     for course in courses:

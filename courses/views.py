@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 def _course_groups(include_inactive_ids=()):
-    """Active CEFR levels with their active courses, for grouped course pickers."""
+    """Active levels with their active courses, for grouped course pickers."""
     groups = []
     for level in YLELevel.objects.filter(is_active=True).order_by('order', 'id'):
         courses = [
@@ -38,14 +38,14 @@ def _course_groups(include_inactive_ids=()):
 
 @login_required
 def level_list_view(request):
-    """CEFR levels are fixed; the level list now lives on the course list (courses grouped by level)."""
+    """Levels are fixed; the level list now lives on the course list (courses grouped by level)."""
     return redirect('course_list')
 
 
 @login_required
 def yle_level_add_view(request):
-    """CEFR levels are a fixed list (Pre A1 to B2); what staff add here are courses under a level."""
-    messages.info(request, 'CEFR levels are fixed. Add a course under a level instead.')
+    """Levels are a fixed list (Pre-Junior to B2); what staff add here are courses under a level."""
+    messages.info(request, 'Levels are fixed. Add a course under a level instead.')
     return redirect('course_add')
 
 
@@ -298,7 +298,7 @@ def class_add_view(request):
             messages.error(request, f'Class code "{class_code}" already exists.')
             return redirect('class_add')
 
-        # Get related objects (the class's CEFR level follows its course)
+        # Get related objects (the class's level follows its course)
         course = Course.objects.select_related('level').filter(id=course_id, is_active=True).first() if str(course_id).isdigit() else None
         if not course:
             messages.error(request, 'Please select an active course.')
@@ -864,7 +864,7 @@ def _apply_course_data(course, data, level):
 @login_required
 @permission_required('courses.view_course', raise_exception=True)
 def course_list_view(request):
-    """Courses grouped by CEFR level, with class and student counts per course and teacher counts per level."""
+    """Courses grouped by level, with class and student counts per course and teacher counts per level."""
     show_inactive = request.GET.get('inactive') == '1'
     courses = Course.objects.select_related('level').annotate(
         class_count=Count('classes', filter=Q(classes__is_active=True), distinct=True),

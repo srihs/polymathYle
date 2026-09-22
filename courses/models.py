@@ -4,8 +4,9 @@ from django.contrib.auth.models import User
 
 class YLELevel(models.Model):
     """
-    CEFR level labelled with its Cambridge exam: Pre A1 (Starters), A1 (Movers), A2 (Flyers), A2 (KET),
-    B1 (PET), B2 (FCE). Fixed reference list, managed in Django admin.
+    A level: Polymath's own Pre-Junior, then the CEFR bands labelled with their Cambridge exam
+    (Pre A1 (Starters), A1 (Movers), A2 (Flyers), A2 (KET), B1 (PET), B2 (FCE)).
+    Fixed reference list, managed in Django admin. Pre-Junior has no cefr_level.
     Courses (e.g. Pre1, Pre2, Pre3) belong to a level.
     """
     name = models.CharField(max_length=50)  # e.g., "Pre A1 (Starters)", "B2 (FCE)"
@@ -33,14 +34,14 @@ class YLELevel(models.Model):
 
 class Course(models.Model):
     """
-    A course taught under a CEFR level, e.g. Pre1, Pre2, Pre3 under Pre A1.
+    A course taught under a level, e.g. Pre1, Pre2, Pre3 under Pre A1.
     Classes run a course; students progress course by course (by level order, then course order).
     """
     level = models.ForeignKey(YLELevel, on_delete=models.PROTECT, related_name='courses')
     name = models.CharField(max_length=100)  # e.g. "Pre1"
     code = models.CharField(max_length=20, unique=True)  # e.g. "PRE1"
     description = models.TextField(blank=True)
-    order = models.IntegerField(default=0, help_text="Order within the CEFR level")
+    order = models.IntegerField(default=0, help_text="Order within the level")
     age_range_min = models.IntegerField(null=True, blank=True)
     age_range_max = models.IntegerField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
@@ -55,7 +56,7 @@ class Course(models.Model):
 
     @classmethod
     def ordered(cls, active_only=True):
-        """Courses in progression order: CEFR level order, then course order."""
+        """Courses in progression order: level order, then course order."""
         qs = cls.objects.select_related('level')
         if active_only:
             qs = qs.filter(is_active=True, level__is_active=True)
@@ -76,7 +77,7 @@ class Class(models.Model):
     One level can have multiple classes (e.g., Starters Class A, Starters Class B)
     IMPORTANT: This is for class allocation - students are assigned to specific classes
     """
-    # A class runs one course; its CEFR level always follows the course
+    # A class runs one course; its level always follows the course
     course = models.ForeignKey(Course, on_delete=models.PROTECT, related_name='classes', null=True)
     level = models.ForeignKey(YLELevel, on_delete=models.CASCADE, related_name='classes')
 

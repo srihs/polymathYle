@@ -16,6 +16,7 @@ register = template.Library()
 
 # Bootstrap colour per known level; any other level gets the fallback.
 LEVEL_COLORS = {
+    'PRE_JUNIOR': 'secondary',
     'PRE_A1': 'info',
     'A1': 'warning',
     'A2': 'success',

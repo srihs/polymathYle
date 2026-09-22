@@ -4,7 +4,7 @@
 {% block PageTitle %}Courses - Polymath School of English{% endblock %}
 {% block pageTitle %}Courses{% endblock %}
 {% block Title %}Academic Management{% endblock %}
-{% block functionTitle %}Courses by CEFR Level{% endblock %}
+{% block functionTitle %}Courses by Level{% endblock %}
 
 {% block content %}
 <div class="row">
@@ -44,7 +44,7 @@
 </div>
 
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-    <p class="text-muted mb-0">Courses run under a CEFR level and students progress through them in order.</p>
+    <p class="text-muted mb-0">Courses run under a level and students progress through them in order.</p>
     <div class="d-flex gap-2">
         <a href="?{% if not show_inactive %}inactive=1{% endif %}" class="btn btn-sm btn-light">
             <i class="ri-eye{% if show_inactive %}-off{% endif %}-line me-1"></i>{% if show_inactive %}Hide{% else %}Show{% endif %} inactive
@@ -123,7 +123,7 @@
     </div>
 </div>
 {% empty %}
-<div class="alert alert-warning">No active CEFR levels. Levels are managed in Django admin.</div>
+<div class="alert alert-warning">No active levels. Levels are managed in Django admin.</div>
 {% endfor %}
 
 {% if perms.courses.change_course %}

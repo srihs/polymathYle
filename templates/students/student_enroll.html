@@ -586,7 +586,7 @@ legend {
                                 <i class="ri-medal-line text-primary me-2"></i>
                                 Course Selection
                             </h5>
-                            <p class="text-muted mb-0">Select the course (under its CEFR level) and class for this student</p>
+                            <p class="text-muted mb-0">Select the course (under its level) and class for this student</p>
                         </div>
 
                         <div class="alert alert-info border-0 mb-4">
@@ -603,7 +603,7 @@ legend {
                             Assign Course <span class="text-danger" aria-label="required">*</span>
                         </label>
 
-                        <!-- Course Cards, grouped by CEFR level -->
+                        <!-- Course Cards, grouped by level -->
                         {% for group in course_groups %}
                         <h6 class="text-uppercase fw-semibold small mt-3 mb-2 text-{{ group.level|level_color }}">
                             <i class="{{ group.level|level_icon }} me-1"></i>{{ group.level.name }}

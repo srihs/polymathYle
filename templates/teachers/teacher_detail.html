@@ -243,7 +243,7 @@
                 </h5>
             </div>
             <div class="card-body">
-                <h6 class="text-uppercase fw-semibold text-muted mb-3 small">CEFR Levels</h6>
+                <h6 class="text-uppercase fw-semibold text-muted mb-3 small">Teaching Levels</h6>
                 <div class="d-flex flex-wrap gap-2 mb-4">
                     {% for level in teacher.ordered_levels %}
                         <div class="d-flex align-items-center p-2 border rounded bg-{{ level|level_color }}-subtle">
@@ -256,7 +256,7 @@
                     {% empty %}
                         <div class="text-center w-100 py-3">
                             <i class="ri-information-line fs-3 text-muted"></i>
-                            <p class="text-muted mb-0">No CEFR levels set</p>
+                            <p class="text-muted mb-0">No levels set</p>
                             {% if perms.teachers.change_teacher %}
                                 <a href="{% url 'teacher_edit' teacher.id %}" class="btn btn-sm btn-outline-primary mt-2">
                                     <i class="ri-add-line me-1"></i>Add Levels
