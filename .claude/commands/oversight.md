@@ -40,11 +40,16 @@ the four trailers exactly as named, then the attribution line the session requir
     Oversight-Trigger: <trigger>
     Oversight-Action: <action>
     Oversight-Durable: <yes|no>
-
     Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
 
-Write it with a heredoc (`git commit -F -`) so the blank lines and trailers survive. Do not
-amend, squash or rebase: this commit is part of the dataset.
+Keep `Co-Authored-By` in the **same block** as the four trailers, with no blank line before
+it. Git only parses the last paragraph as trailers, so a blank line there would leave the
+`Oversight-` lines invisible to `git interpret-trailers --parse` and `%(trailers)`.
+
+Write it with a heredoc (`git commit -F -`) so the blank lines and trailers survive, then
+check with `git log -1 --format='%B' | git interpret-trailers --parse` that all five
+trailers come back before you move on. Do not amend, squash or rebase once they do: this
+commit is part of the dataset.
 
 **5. Append the log row.** Add one row to the end of the table in `OVERSIGHT_LOG.md`, using
 the short SHA from `git rev-parse --short HEAD` and today's date in `YYYY-MM-DD`:

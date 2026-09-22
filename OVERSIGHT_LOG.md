@@ -11,3 +11,4 @@ section of [CLAUDE.md](CLAUDE.md).
 
 | Date | Commit | Type | What looked right but was not | What I did | Durable |
 | --- | --- | --- | --- | --- | --- |
+| 2026-09-22 | e31945a | data-model | I modelled the fixed level list as exactly the CEFR bands the user listed, leaving no place for Polymath's own pre-junior level below Pre A1. | Caught the missing level and told me to add Pre-Junior as a non-CEFR level standing before Pre A1. | no |
